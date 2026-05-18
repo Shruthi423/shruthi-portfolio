@@ -30,8 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — secrets stay local, but .env.example is committed so
+# anyone cloning the repo (or future-me) sees which vars exist
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local font / asset sources — only the curated copies in public/ are tracked
+/Fonts/
+.DS_Store
