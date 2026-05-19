@@ -47,8 +47,12 @@
   --font-heading: var(--font-fraunces), "Fraunces", Georgia, serif;
   --font-body: var(--font-switzer), "Switzer", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
-  --font-mono: var(--font-dm-mono), "DM Mono", ui-monospace, SFMono-Regular,
-    Menlo, monospace;
+  /* `--font-mono` is a legacy token name — it now points at Barlow (a
+   * sans-serif). Token kept so all 5 consumers (`font-mono` utility) keep
+   * working without renaming. Rename to `--font-labels` if a refactor ever
+   * comes through. */
+  --font-mono: var(--font-barlow), "Barlow", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
 
   /* Spacing scale (additive — keeps default Tailwind spacing intact) */
   --spacing-xs: 4px;

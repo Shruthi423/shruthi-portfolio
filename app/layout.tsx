@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Mono } from "next/font/google";
+import { Barlow } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -36,10 +36,13 @@ const fraunces = localFont({
   ],
 });
 
-const dmMono = DM_Mono({
-  variable: "--font-dm-mono",
+// Barlow — used for nav, footer links, tags, project category labels, cursor
+// pill. (Replaced DM Mono on 2026-05-19.) Loading just the weights actually
+// used; expand if a specific weight is needed later.
+const barlow = Barlow({
+  variable: "--font-barlow",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -124,7 +127,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${dmMono.variable} ${switzer.variable} ${dahlia.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${barlow.variable} ${switzer.variable} ${dahlia.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Script id="theme-init" strategy="beforeInteractive">
