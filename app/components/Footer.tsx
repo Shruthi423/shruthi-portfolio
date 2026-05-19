@@ -46,7 +46,7 @@ function LinkColumn({ label, links }: { label: string; links: FooterLink[] }) {
       <ul className="mt-5 flex flex-col gap-2">
         {links.map((l) => {
           const className =
-            "relative font-heading text-link text-text/65 transition-colors duration-150 hover:text-text after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100";
+            "relative font-mono text-caption-1 uppercase text-text/65 transition-colors duration-150 hover:text-text after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100";
           return (
             <li key={l.label}>
               {l.external ? (
@@ -101,7 +101,7 @@ export function Footer() {
               className="mt-3 font-display text-h2"
               data-cursor-label="I respond fast"
               style={{
-                fontWeight: 700,
+                fontWeight: 400,
                 letterSpacing: "-0.02em",
                 color: "#2d2a26",
               }}

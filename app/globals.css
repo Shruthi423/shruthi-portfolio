@@ -36,22 +36,22 @@
   --color-text: var(--text);
   --color-muted: var(--color-text-secondary);
 
-  /* Fonts — four roles:
-   *   display  → Dahlia    (statement only: hero, big CTA)
+  /* Fonts — 3 families across 4 role tokens:
+   *   display  → Dahlia    (statement only: hero, big CTA — regular weight)
    *   heading  → Fraunces  (section + case-study titles, italic leads)
-   *   body     → Switzer   (body, cards, metrics — default body font)
-   *   mono     → DM Mono   (nav, footer links, tags, category labels)
+   *   body     → Figtree   (body, cards, metrics — default body font)
+   *   mono     → Figtree   (legacy token name; nav, footer links, tags, cursor)
    */
   --font-display: var(--font-dahlia), "Dahlia", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
   --font-heading: var(--font-fraunces), "Fraunces", Georgia, serif;
-  --font-body: var(--font-switzer), "Switzer", "Helvetica Neue", Helvetica,
+  --font-body: var(--font-figtree), "Figtree", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
-  /* `--font-mono` is a legacy token name — it now points at Barlow (a
-   * sans-serif). Token kept so all 5 consumers (`font-mono` utility) keep
-   * working without renaming. Rename to `--font-labels` if a refactor ever
-   * comes through. */
-  --font-mono: var(--font-barlow), "Barlow", "Helvetica Neue", Helvetica,
+  /* `--font-mono` is a legacy token name — it now points at Figtree (a
+   * sans-serif), same family as --font-body. Token kept so the `font-mono`
+   * consumers (nav, footer links, tags, cursor pill) keep working without a
+   * rename. Rename to `--font-labels` if a refactor ever comes through. */
+  --font-mono: var(--font-figtree), "Figtree", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
 
   /* Spacing scale (additive — keeps default Tailwind spacing intact) */

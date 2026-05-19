@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Barlow } from "next/font/google";
+import { Figtree } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -36,47 +36,24 @@ const fraunces = localFont({
   ],
 });
 
-// Barlow — used for nav, footer links, tags, project category labels, cursor
-// pill. (Replaced DM Mono on 2026-05-19.) Loading just the weights actually
-// used; expand if a specific weight is needed later.
-const barlow = Barlow({
-  variable: "--font-barlow",
+// Figtree — the sans-serif: body copy, nav, footer links, tags, cursor pill.
+// (Replaced Barlow on 2026-05-19.) Variable font — one file covers all weights;
+// normal + italic loaded.
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
-// Switzer — body copy, cards, metrics. Single variable file covers all weights.
-const switzer = localFont({
-  variable: "--font-switzer",
-  display: "swap",
-  src: [
-    {
-      path: "../public/fonts/Switzer-Variable.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Switzer-VariableItalic.woff2",
-      weight: "100 900",
-      style: "italic",
-    },
-  ],
-});
-
-// Dahlia — statement font, big headings only. Just Bold + BoldCondensed.
+// Dahlia — statement font, big headings only. Regular weight (400).
 const dahlia = localFont({
   variable: "--font-dahlia",
   display: "swap",
   src: [
     {
-      path: "../public/fonts/dahlia-bold.woff",
-      weight: "700",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/dahlia-boldcondensed.woff",
-      weight: "700",
+      path: "../public/fonts/dahlia-regular.woff",
+      weight: "400",
       style: "normal",
     },
   ],
@@ -127,7 +104,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${barlow.variable} ${switzer.variable} ${dahlia.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${figtree.variable} ${dahlia.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Script id="theme-init" strategy="beforeInteractive">

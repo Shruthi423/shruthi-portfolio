@@ -7,7 +7,7 @@ export default function PlaygroundPage() {
     <section className="flex min-h-screen flex-col items-center justify-center px-10 text-center">
       <h1
         className="font-display text-h2 text-text"
-        style={{ fontWeight: 700, letterSpacing: "-0.02em" }}
+        style={{ fontWeight: 400, letterSpacing: "-0.02em" }}
       >
         Playground
       </h1>

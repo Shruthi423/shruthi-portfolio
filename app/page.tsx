@@ -62,7 +62,7 @@ function Hero() {
     >
       <h1
         className="font-display text-h1 text-text"
-        style={{ fontWeight: 700, letterSpacing: "-0.03em" }}
+        style={{ fontWeight: 400, letterSpacing: "-0.03em" }}
       >
         <Scramble text="SHRUTHI" />
       </h1>
