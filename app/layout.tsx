@@ -79,9 +79,38 @@ const dahlia = localFont({
   ],
 });
 
+const SITE_URL = "https://shruthiaragonda.com";
+const SITE_TITLE = "Shruthi — Multidisciplinary Designer";
+const SITE_DESCRIPTION =
+  "A multidisciplinary designer's portfolio — identity systems, visual storytelling, and AI-native prototyping.";
+
 export const metadata: Metadata = {
-  title: "Shruthi — Multidisciplinary Designer",
-  description: "Portfolio of Shruthi, a multidisciplinary designer.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: "Shruthi",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/og-image.jpeg",
+        width: 1066,
+        height: 1600,
+        alt: "Shruthi — Multidisciplinary Designer",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    creator: "@shruthi00129",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/og-image.jpeg"],
+  },
 };
 
 const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=s==='dark'||((s==='system'||!s)&&m);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;

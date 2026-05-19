@@ -17,13 +17,13 @@ const SAY_HI_LINKS: FooterLink[] = [
   },
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/",
+    href: "https://www.linkedin.com/in/shruthi-a-/",
     external: true,
     cursorLabel: "#OpenToConnect",
   },
   {
     label: "GitHub",
-    href: "https://github.com/",
+    href: "https://github.com/Shruthi423",
     external: true,
     cursorLabel: "Code lives here",
   },

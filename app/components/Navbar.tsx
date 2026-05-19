@@ -14,12 +14,12 @@ const NAV_LINKS = [
 const SOCIAL_LINKS = [
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/",
+    href: "https://www.linkedin.com/in/shruthi-a-/",
     Icon: LinkedInIcon,
   },
   {
     label: "GitHub",
-    href: "https://github.com/",
+    href: "https://github.com/Shruthi423",
     Icon: GitHubIcon,
   },
   {

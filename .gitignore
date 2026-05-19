@@ -45,3 +45,6 @@ next-env.d.ts
 # Local font / asset sources — only the curated copies in public/ are tracked
 /Fonts/
 .DS_Store
+
+# Original-source assets — only the processed copies in public/ are tracked
+/my_pic.jpeg
