@@ -98,7 +98,7 @@ export function Footer() {
               liked what you saw?
             </p>
             <h2
-              className="mt-3 font-display text-h2"
+              className="mt-3 font-display text-cta whitespace-nowrap"
               data-cursor-label="I respond fast"
               style={{
                 fontWeight: 700,
