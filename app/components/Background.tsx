@@ -68,15 +68,6 @@ const SHOOTING = [
   { top: "5%", left: "54%", d: 9, dur: 19 },
 ];
 
-// Loose flock — offsets within the drifting group (px).
-const BIRDS = [
-  { x: 0, y: 0 },
-  { x: 30, y: 10 },
-  { x: 16, y: 22 },
-  { x: 52, y: 5 },
-  { x: 42, y: 26 },
-];
-
 // Grass blades along the front hill's top edge — deterministic irregularity.
 const BLADES = Array.from({ length: 46 }, (_, i) => ({
   x: i * 2.18 + (i % 3) * 0.55,
@@ -163,29 +154,6 @@ const CSS = `
 .bg-cloud-2 { top: 30%; right: 3%;  width: 380px; }
 .bg-cloud-3 { top: 52%; left: 11%;  width: 240px; }
 .bg-cloud-4 { top: 6%;  right: 19%; width: 300px; }
-
-/* ---- birds (day) ---- */
-.bg-birds {
-  position: absolute;
-  top: 24%;
-  left: 0;
-  will-change: transform;
-  animation: bgw-birdsDrift 40s linear infinite;
-  transition: opacity 0.6s ease;
-}
-.dark .bg-birds { opacity: 0; }
-.bg-bird { position: absolute; }
-
-/* ---- airplane (day) ---- */
-.bg-plane {
-  position: absolute;
-  top: 6%;
-  left: 0;
-  will-change: transform, opacity;
-  animation: bgw-planeFly 90s linear infinite;
-  transition: opacity 0.5s ease;
-}
-.dark .bg-plane { opacity: 0; }
 
 /* ---- stars (night) ---- */
 .bg-stars {
@@ -294,17 +262,6 @@ const CSS = `
 @keyframes bgw-moonBob {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-4px); }
-}
-@keyframes bgw-birdsDrift {
-  from { transform: translateX(112vw); }
-  to   { transform: translateX(-160px); }
-}
-@keyframes bgw-planeFly {
-  0%   { transform: translateX(-16vw); opacity: 0; }
-  2%   { opacity: 0.7; }
-  48%  { opacity: 0.7; }
-  50%  { transform: translateX(118vw); opacity: 0; }
-  100% { transform: translateX(118vw); opacity: 0; }
 }
 @keyframes bgw-twinkle {
   0%, 100% { opacity: 0.4; }
@@ -430,21 +387,6 @@ function Cloud({
         <path d={shape.d} />
       </svg>
     </div>
-  );
-}
-
-function BirdShape() {
-  return (
-    <svg className="bg-bird" width="26" height="14" viewBox="0 0 26 14" aria-hidden>
-      <path
-        d="M1 7 C4 1 8 1 12 6 C16 1 21 1 25 7"
-        stroke="#2d2a26"
-        strokeOpacity="0.55"
-        strokeWidth="2.5"
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
 
@@ -708,30 +650,6 @@ export function SkyScene() {
         <Cloud shape={CLOUD_SHAPES[3]} className="bg-cloud bg-cloud-4" dir="right" depth={0.4} />
       </div>
 
-      {/* birds (day) */}
-      <div className="bg-birds" style={{ width: 80, height: 50 }}>
-        {BIRDS.map((b, i) => (
-          <div key={i} className="bg-bird" style={{ left: b.x, top: b.y }}>
-            <BirdShape />
-          </div>
-        ))}
-      </div>
-
-      {/* airplane (day) */}
-      <div className="bg-plane">
-        <svg width="64" height="26" viewBox="0 0 64 26" aria-hidden>
-          <line
-            x1="2" y1="15" x2="22" y2="14"
-            stroke="#2d2a26" strokeOpacity="0.4" strokeWidth="2"
-            strokeLinecap="round" strokeDasharray="1 6"
-          />
-          <path
-            d="M22 15 L42 12 L52 4 L55 5 L50 13 L60 12 L63 9 L64 11 L58 15 L50 16 L53 21 L49 22 L42 16 L22 15 Z"
-            fill="#2d2a26"
-            fillOpacity="0.65"
-          />
-        </svg>
-      </div>
     </div>
   );
 }

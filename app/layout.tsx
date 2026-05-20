@@ -46,14 +46,14 @@ const figtree = Figtree({
   display: "swap",
 });
 
-// Dahlia — statement font, big headings only. Regular weight (400).
+// Dahlia — statement font, big headings only. Bold weight (700).
 const dahlia = localFont({
   variable: "--font-dahlia",
   display: "swap",
   src: [
     {
-      path: "../public/fonts/dahlia-regular.woff",
-      weight: "400",
+      path: "../public/fonts/dahlia-bold.woff",
+      weight: "700",
       style: "normal",
     },
   ],

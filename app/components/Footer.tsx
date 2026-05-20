@@ -101,7 +101,7 @@ export function Footer() {
               className="mt-3 font-display text-h2"
               data-cursor-label="I respond fast"
               style={{
-                fontWeight: 400,
+                fontWeight: 700,
                 letterSpacing: "-0.02em",
                 color: "#2d2a26",
               }}

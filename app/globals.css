@@ -37,7 +37,7 @@
   --color-muted: var(--color-text-secondary);
 
   /* Fonts — 3 families across 4 role tokens:
-   *   display  → Dahlia    (statement only: hero, big CTA — regular weight)
+   *   display  → Dahlia    (statement only: hero, big CTA — bold weight)
    *   heading  → Fraunces  (section + case-study titles, italic leads)
    *   body     → Figtree   (body, cards, metrics — default body font)
    *   mono     → Figtree   (legacy token name; nav, footer links, tags, cursor)
