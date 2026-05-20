@@ -91,7 +91,7 @@ export function Footer() {
         className="relative mx-auto flex h-full max-w-[1440px] flex-col justify-between"
         style={{ padding: "180px 40px 32px", zIndex: 2 }}
       >
-        <div className="grid grid-cols-1 gap-20 md:grid-cols-2 md:gap-24">
+        <div className="grid grid-cols-1 gap-20 md:grid-cols-[1.6fr_1fr] md:gap-24">
           {/* Left panel: Big text + tagline */}
           <div className="flex flex-col items-start">
             <p className="font-mono text-caption-1 uppercase text-text">
