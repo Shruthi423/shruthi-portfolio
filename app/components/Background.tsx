@@ -9,7 +9,7 @@ import { gsap, useGSAP } from "../lib/gsap";
  * composable pieces so it can integrate with the real site:
  *   <BackgroundStyles />  — the shared <style> block (render once)
  *   <SkyScene />          — sky colour + clouds + birds + plane + stars
- *   <DayNightToggle />    — the sun / moon button (fixed, top-left)
+ *   <DayNightToggle />    — the day / night bat button (fixed, top-right)
  *   <GrasslandScene />    — hills + sheep + tree + fence + fireflies
  *   <Background />        — default: all of the above, for /background
  *
@@ -89,25 +89,25 @@ const CSS = `
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: #faf7f0;
+  background-color: #FFFAF2;
   transition: background-color 1.2s ease;
 }
-.dark .bg-sky { background-color: #0a1a4a; }
+.dark .bg-sky { background-color: #171520; }
 
 /* flat sky-coloured fill (used behind the footer) */
 .bg-skyfill {
   position: absolute;
   inset: 0;
-  background-color: #faf7f0;
+  background-color: #FFFAF2;
   transition: background-color 1.2s ease;
 }
-.dark .bg-skyfill { background-color: #0a1a4a; }
+.dark .bg-skyfill { background-color: #171520; }
 
 /* ---- sun / moon toggle ---- */
 .bg-toggle {
   position: fixed;
   top: 0;
-  left: 32px;
+  right: 32px;
   width: 64px;
   height: 64px;
   padding: 0;
@@ -115,22 +115,24 @@ const CSS = `
   background: transparent;
   cursor: pointer;
   z-index: 60;
-  transition: transform 0.2s ease;
-}
-.bg-toggle:hover { transform: scale(1.08); }
-.bg-toggle .toggle-icon {
-  position: absolute;
-  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.8s ease, opacity 0.8s ease;
-  will-change: transform, opacity;
+  color: #3b2a1c; /* espresso — matches the top-right icons, visible on light + sky */
+  transition: transform 0.2s ease;
 }
-.toggle-sun  { transform: translateY(0);    opacity: 1; }
-.toggle-moon { transform: translateY(54px); opacity: 0; }
-.dark .toggle-sun  { transform: translateY(54px); opacity: 0; transition-timing-function: ease-in; }
-.dark .toggle-moon { transform: translateY(0);    opacity: 1; transition-delay: 0.4s; }
+.bg-toggle:hover { transform: scale(1.08); }
+/* moonlit oat at night so the bat stays visible on the dark home */
+.dark .bg-toggle { color: #eae0ce; }
+.bat-flip {
+  display: block;
+  opacity: 0.7;
+  transform: rotate(180deg); /* day → upside-down (bat at rest) */
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  will-change: transform;
+}
+.dark .bat-flip { transform: rotate(0deg); } /* night → upright */
+.bg-toggle:hover .bat-flip { opacity: 1; }
 .bg-sun-rays { transform-origin: 50px 50px; animation: bgw-rayRotate 12s linear infinite; will-change: transform; }
 .bg-moon-bob { animation: bgw-moonBob 4s ease-in-out infinite; will-change: transform; }
 
@@ -230,8 +232,8 @@ const CSS = `
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #c8f060;
-  box-shadow: 0 0 8px 2px rgba(200, 240, 96, 0.85);
+  background: #e6c45c;
+  box-shadow: 0 0 8px 2px rgba(230, 196, 92, 0.85);
   will-change: transform, opacity;
   animation:
     bgw-fireflyFloat var(--dur) ease-in-out infinite,
@@ -286,61 +288,42 @@ const CSS = `
   0%, 100% { transform: translateX(0); }
   50%      { transform: translateX(110px); }
 }
+
+/* ---- bat toggle (day: upside-down · night: upright · wings flap on hover) ---- */
+.bat-wing-l { transform-box: view-box; transform-origin: 41px 40px; }
+.bat-wing-r { transform-box: view-box; transform-origin: 59px 40px; }
+.bg-toggle:hover .bat-wing-l { animation: bgw-batFlapL 0.5s ease-in-out infinite; }
+.bg-toggle:hover .bat-wing-r { animation: bgw-batFlapR 0.5s ease-in-out infinite; }
+@keyframes bgw-batFlapL {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-8deg); }
+}
+@keyframes bgw-batFlapR {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bat-flip { transition: none; }
+  .bat-wing-l, .bat-wing-r { animation: none; }
+}
 `;
 
 /* ---- SVG pieces (hand-drawn, wobbly paths) ---- */
 
-function SunIcon() {
+// The bat — your exact silhouette, split into wings so they can flap on hover.
+function BatIcon() {
   return (
-    <svg width="52" height="52" viewBox="0 0 100 100" aria-hidden>
-      <g className="bg-sun-rays" stroke="#f5c800" strokeWidth="3" strokeLinecap="round">
-        <path d="M50 6 L51 17" />
-        <path d="M74 12 L69 22" />
-        <path d="M91 33 L80 38" />
-        <path d="M95 56 L83 55" />
-        <path d="M84 80 L75 72" />
-        <path d="M55 94 L53 82" />
-        <path d="M22 88 L29 78" />
-        <path d="M7 52 L19 51" />
+    <svg width="46" height="46" viewBox="0 0 100 100" fill="currentColor" aria-hidden>
+      {/* left wing */}
+      <g className="bat-wing-l">
+        <path d="M41.34 41.18 L32.42 30.32 H9.60 C13.72 33.88 19.58 40.82 19.00 51.22 C24.76 50.89 42.14 51.51 50.00 69.68 L41.34 41.18 Z" />
       </g>
-      <path
-        d="M50 19 C67 17 84 32 83 50 C84 68 68 84 49 83 C32 84 16 69 17 50 C16 32 33 20 50 19 Z"
-        fill="#f5c800"
-      />
-      <g transform="rotate(-5 50 50)">
-        <path
-          d="M28 44 C28 41 31 40 38 40 C45 40 47 41 47 45 C47 52 44 55 37 55 C30 55 28 51 28 44 Z"
-          fill="#0a1a4a"
-        />
-        <path
-          d="M53 44 C53 41 56 40 63 40 C70 40 72 42 72 45 C72 52 69 55 62 55 C55 55 53 51 53 44 Z"
-          fill="#0a1a4a"
-        />
-        <path d="M47 45 C49 43 51 43 53 45" stroke="#0a1a4a" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* right wing */}
+      <g className="bat-wing-r">
+        <path d="M58.66 41.18 L67.58 30.32 H90.40 C86.28 33.88 80.42 40.82 81.00 51.22 C75.24 50.89 57.86 51.51 50.00 69.68 L58.66 41.18 Z" />
       </g>
-      <path d="M44 66 C48 70 55 69 58 64" stroke="#0a1a4a" strokeWidth="3" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg width="48" height="48" viewBox="0 0 100 100" aria-hidden>
-      <g className="bg-moon-bob">
-        <path
-          d="M64 14 C44 19 31 37 33 57 C35 75 50 88 68 85 C53 80 45 64 46 49 C47 35 55 23 64 14 Z"
-          fill="#f5f0d8"
-        />
-        <path
-          d="M44 35 C41 32 39 36 43 38 C39 40 41 44 44 41 C47 44 49 40 45 38 C49 36 47 32 44 35 Z"
-          fill="#1a2e6e"
-        />
-        <path
-          d="M35 42 C35 39 39 38 47 39 C56 40 60 42 60 47 C60 53 55 55 47 54 C39 53 35 50 35 42 Z"
-          fill="#1a2e6e"
-        />
-        <path d="M47 64 C50 66 54 65 56 62" stroke="#1a2e6e" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      </g>
+      {/* body + ears (drawn on top — hides the wing roots while they flap) */}
+      <path d="M48.86 35.46 L44.00 29.96 V40.23 C44.00 40.86 43.60 41.43 43.01 41.64 C42.42 41.85 41.75 41.67 41.34 41.18 L50.00 69.68 L58.66 41.18 C58.26 41.67 57.59 41.85 56.99 41.64 C56.40 41.43 56.00 40.87 56.00 40.23 V29.96 L51.12 35.45 C50.45 36.02 49.55 36.02 48.86 35.46 Z" />
     </svg>
   );
 }
@@ -405,7 +388,7 @@ function StarShape({ size }: { size: number }) {
 function HillBack() {
   return (
     <svg className="bg-hill" viewBox="0 0 1440 160" preserveAspectRatio="none" aria-hidden style={{ height: 320 }}>
-      <path d="M0 160 L0 78 C240 28 470 22 720 52 C980 84 1210 38 1440 68 L1440 160 Z" fill="#6ab86a" />
+      <path d="M0 160 L0 78 C240 28 470 22 720 52 C980 84 1210 38 1440 68 L1440 160 Z" fill="#9fae72" />
     </svg>
   );
 }
@@ -413,7 +396,7 @@ function HillBack() {
 function HillMid() {
   return (
     <svg className="bg-hill" viewBox="0 0 1440 130" preserveAspectRatio="none" aria-hidden style={{ height: 260 }}>
-      <path d="M0 130 L0 72 C300 102 520 38 800 62 C1080 86 1270 48 1440 78 L1440 130 Z" fill="#4e9e4e" />
+      <path d="M0 130 L0 72 C300 102 520 38 800 62 C1080 86 1270 48 1440 78 L1440 130 Z" fill="#79894c" />
     </svg>
   );
 }
@@ -421,8 +404,8 @@ function HillMid() {
 function HillFront() {
   return (
     <svg className="bg-hill" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden style={{ height: 192 }}>
-      <path d="M0 100 L0 56 C360 72 600 44 920 58 C1180 70 1320 50 1440 60 L1440 100 Z" fill="#3a7d3a" />
-      <g stroke="#3a7d3a" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M0 100 L0 56 C360 72 600 44 920 58 C1180 70 1320 50 1440 60 L1440 100 Z" fill="#5b6a34" />
+      <g stroke="#5b6a34" strokeWidth="2.5" strokeLinecap="round">
         {BLADES.map((b, i) => {
           const x = (b.x / 100) * 1440;
           const topY = 58 - (b.x % 7);
@@ -467,11 +450,11 @@ function Tree() {
     >
       <path
         d="M40 150 C39 120 36 100 38 78 C39 70 44 66 50 70 C54 73 53 95 52 118 C52 132 53 142 54 150 Z"
-        fill="#2d4a1e"
+        fill="#3a4520"
       />
       <path
         d="M46 8 C70 4 92 22 88 44 C95 58 80 78 58 76 C40 82 14 70 12 48 C4 32 22 10 46 8 Z"
-        fill="#2d6e2d"
+        fill="#4f6129"
       />
     </svg>
   );
@@ -541,11 +524,8 @@ export function DayNightToggle() {
           : "Toggle day and night"
       }
     >
-      <span className="toggle-icon toggle-sun">
-        <SunIcon />
-      </span>
-      <span className="toggle-icon toggle-moon">
-        <MoonIcon />
+      <span className="bat-flip">
+        <BatIcon />
       </span>
     </button>
   );

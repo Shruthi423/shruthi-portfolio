@@ -3,18 +3,20 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Colors — base */
-  --color-bg-light: #faf7f0;
-  --color-bg-dark: #111111;
+  /* Colors — base (shared earthy palette, home + inner pages) */
+  --color-bg-light: #FFFAF2;  /* morning mist — matches the home */
+  --color-bg-dark: #171520;   /* warm midnight — one shared night */
   --color-surface-light: #eceae4;
-  --color-surface-dark: #1a1a1a;
+  --color-surface-dark: #211f2a;
   --color-border-light: #e0ded8;
-  --color-border-dark: #2a2a2a;
-  --color-text-light: #2d2a26;
-  --color-text-dark: #f5f4f0;
+  --color-border-dark: #2a2733;
+  --color-text-light: #3b2a1c;  /* espresso ink */
+  --color-text-dark: #eae0ce;   /* warm oat ink */
   --color-text-secondary: #888780;
-  /* Accent — pulled from the grassland front hill */
-  --color-accent: #3a7d3a;
+  /* Accent — earthier olive (was grass green), sits with terracotta */
+  --color-accent: #5b6a34;
+  /* Heading / link accent — terracotta by day, clay by night (= home links) */
+  --color-heading: var(--heading);
 
   /* Project cards */
   --color-temple-bg: #f7d0bc;
@@ -38,13 +40,13 @@
 
   /* Fonts — 3 families across 4 role tokens:
    *   display  → Dahlia    (statement only: hero, big CTA — bold weight)
-   *   heading  → Fraunces  (section + case-study titles, italic leads)
+   *   heading  → EB Garamond (section + case-study titles, italic leads)
    *   body     → Figtree   (body, cards, metrics — default body font)
    *   mono     → Figtree   (legacy token name; nav, footer links, tags, cursor)
    */
   --font-display: var(--font-dahlia), "Dahlia", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
-  --font-heading: var(--font-fraunces), "Fraunces", Georgia, serif;
+  --font-heading: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
   --font-body: var(--font-figtree), "Figtree", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
   /* `--font-mono` is a legacy token name — it now points at Figtree (a
@@ -103,6 +105,7 @@
   --surface: var(--color-surface-light);
   --border: var(--color-border-light);
   --text: var(--color-text-light);
+  --heading: #963417; /* terracotta */
   color-scheme: light;
 }
 
@@ -112,6 +115,7 @@
   --surface: var(--color-surface-dark);
   --border: var(--color-border-dark);
   --text: var(--color-text-dark);
+  --heading: #e0905a; /* clay glow */
   color-scheme: dark;
 }
 

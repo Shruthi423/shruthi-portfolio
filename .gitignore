@@ -48,3 +48,8 @@ next-env.d.ts
 
 # Original-source assets — only the processed copies in public/ are tracked
 /my_pic.jpeg
+/About_images/
+
+# Rejected day/night reference images (never used)
+/Moon.png
+/Sun.png

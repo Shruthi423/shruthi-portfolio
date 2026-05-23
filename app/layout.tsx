@@ -1,39 +1,23 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import { EB_Garamond, Figtree } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
-import Navbar from "./components/Navbar";
-import { Footer, FOOTER_HEIGHT } from "./components/Footer";
+import { SiteFrame } from "./components/SiteFrame";
 import { CircleCursor } from "./components/CircleCursor";
 import { IntroOverlay } from "./components/IntroOverlay";
-import {
-  BackgroundStyles,
-  DayNightToggle,
-  SkyScene,
-} from "./components/Background";
+import { BackgroundStyles, DayNightToggle } from "./components/Background";
 
-// Fraunces — section / case-study titles + the italic moments that used to be
-// EB Garamond. Self-hosted variable font with the full 4-axis set baked in:
-// wght (100–900), opsz, SOFT, WONK. Reach SOFT/WONK from CSS with
-// `font-variation-settings: "SOFT" 50, "WONK" 1`.
-const fraunces = localFont({
-  variable: "--font-fraunces",
+// EB Garamond — section / case-study titles + the italic moments (the wordmark,
+// section headers, italic taglines). Variable Google font (wght 400–800),
+// auto self-hosted by next/font; normal + italic loaded.
+const ebGaramond = EB_Garamond({
+  variable: "--font-eb-garamond",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
   display: "swap",
-  src: [
-    {
-      path: "../public/fonts/Fraunces-Variable.ttf",
-      weight: "100 900",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Fraunces-VariableItalic.ttf",
-      weight: "100 900",
-      style: "italic",
-    },
-  ],
 });
 
 // Figtree — the sans-serif: body copy, nav, footer links, tags, cursor pill.
@@ -104,7 +88,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${figtree.variable} ${dahlia.variable} h-full antialiased`}
+      className={`${ebGaramond.variable} ${figtree.variable} ${dahlia.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Script id="theme-init" strategy="beforeInteractive">
@@ -112,25 +96,9 @@ export default function RootLayout({
         </Script>
         <ThemeProvider>
           <BackgroundStyles />
-          <Navbar />
-          <main
-            className="relative z-10 flex-1"
-            style={{ marginBottom: FOOTER_HEIGHT }}
-          >
-            {/* Sticky sky backdrop — stays in the viewport while content
-                scrolls over it, then scrolls away to reveal the footer. */}
-            <div className="sticky top-0 h-screen" style={{ zIndex: 0 }}>
-              <SkyScene />
-            </div>
-            {/* Content is pulled up to overlap the sky backdrop. */}
-            <div
-              className="relative"
-              style={{ zIndex: 1, marginTop: "-100vh" }}
-            >
-              {children}
-            </div>
-          </main>
-          <Footer />
+          {/* Route-aware: home (/) renders the footprints page bare; inner
+              pages get the top bar + sticky sky backdrop + curtain footer. */}
+          <SiteFrame>{children}</SiteFrame>
           <DayNightToggle />
           <CircleCursor />
           <IntroOverlay />

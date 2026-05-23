@@ -2,8 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
+import { useTheme } from "./ThemeProvider";
 
 const EDGE_THRESHOLD = 180;
+
+// Earthy cursor — espresso pill + oat label by day; inverts to an oat pill +
+// espresso label at night so it stays legible on the dark home.
+const CURSOR_COLOR = "#3b2a1c"; // espresso
+const CURSOR_LABEL = "#faf7f0"; // oat milk
+const CURSOR_COLOR_DARK = "#eae0ce"; // oat pill at night
+const CURSOR_LABEL_DARK = "#171520"; // warm-midnight ink
 
 type PillSide = "left" | "center" | "right";
 
@@ -21,6 +29,7 @@ function parsePillSide(value: string | null): PillSide | null {
 }
 
 export function CircleCursor() {
+  const { resolvedTheme } = useTheme();
   const [enabled, setEnabled] = useState(false);
   const [ready, setReady] = useState(false);
   const [labeledEl, setLabeledEl] = useState<HTMLElement | null>(null);
@@ -105,6 +114,9 @@ export function CircleCursor() {
 
   const effectiveSide = pillSideOverride ?? autoPillSide;
   const translateX = SIDE_TRANSLATE_X[effectiveSide];
+  const dark = resolvedTheme === "dark";
+  const pillBg = dark ? CURSOR_COLOR_DARK : CURSOR_COLOR;
+  const pillText = dark ? CURSOR_LABEL_DARK : CURSOR_LABEL;
 
   return (
     <motion.div
@@ -114,8 +126,9 @@ export function CircleCursor() {
     >
       <motion.div
         layout
-        className="flex items-center justify-center rounded-full bg-text"
+        className="flex items-center justify-center rounded-full"
         style={{
+          backgroundColor: pillBg,
           transform: `translate(${translateX}, -50%)`,
           minWidth: 12,
           minHeight: 12,
@@ -126,8 +139,8 @@ export function CircleCursor() {
           {label && (
             <motion.span
               key="label"
-              className="whitespace-nowrap px-4 py-1.5 font-mono uppercase text-bg"
-              style={{ fontSize: 15 }}
+              className="whitespace-nowrap px-4 py-1.5 font-mono lowercase"
+              style={{ fontSize: 15, color: pillText }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

@@ -40,7 +40,7 @@ export const FOOTER_HEIGHT = "100vh";
 function LinkColumn({ label, links }: { label: string; links: FooterLink[] }) {
   return (
     <div className="flex flex-col items-start">
-      <p className="font-mono text-caption-1 uppercase text-text">
+      <p className="font-mono text-caption-1 font-medium uppercase text-text">
         {label}
       </p>
       <ul className="mt-5 flex flex-col gap-2">
@@ -103,11 +103,11 @@ export function Footer() {
               style={{
                 fontWeight: 700,
                 letterSpacing: "-0.02em",
-                color: "#2d2a26",
+                color: "var(--text)",
               }}
             >
               Might as well{" "}
-              <span style={{ color: "#3a7d3a" }}>say hi.</span>
+              <span style={{ color: "var(--color-heading)" }}>say hi.</span>
             </h2>
           </div>
 
