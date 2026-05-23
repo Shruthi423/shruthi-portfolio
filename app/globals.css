@@ -56,14 +56,10 @@
   --font-mono: var(--font-figtree), "Figtree", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
 
-  /* Spacing scale (additive — keeps default Tailwind spacing intact) */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 40px;
-  --spacing-2xl: 64px;
-  --spacing-3xl: 80px;
+  /* NOTE: do NOT add named spacing tokens like --spacing-xl (xs/sm/md/lg/xl/2xl/3xl).
+   * In Tailwind v4 they hijack the named max-width and width scale — e.g.
+   * --spacing-xl of 40px silently makes max-w-xl resolve to 40px instead of 36rem.
+   * The numeric scale (p-4, gap-12, mt-10) runs off the base --spacing and is fine. */
 
   /* Container */
   --breakpoint-max: 1440px;
