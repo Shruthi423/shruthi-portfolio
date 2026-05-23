@@ -1,0 +1,16 @@
+import type { MetadataRoute } from "next";
+
+const SITE_URL = "https://shruthiaragonda.com";
+
+// The real, navigable routes. /background is a dev reference page and the
+// per-project detail routes (/temple, /zuge…) don't exist yet, so neither is
+// listed. Add project pages here as they ship.
+export default function sitemap(): MetadataRoute.Sitemap {
+  const lastModified = new Date();
+  return [
+    { url: SITE_URL, lastModified, changeFrequency: "monthly", priority: 1 },
+    { url: `${SITE_URL}/work`, lastModified, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE_URL}/about`, lastModified, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE_URL}/playground`, lastModified, changeFrequency: "monthly", priority: 0.7 },
+  ];
+}
