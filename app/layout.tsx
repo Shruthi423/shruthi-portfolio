@@ -52,6 +52,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
+  // Lion-paw favicon — terracotta by day, clay by night (matches the home prints).
+  icons: {
+    icon: [
+      { url: "/favicon-light.svg", type: "image/svg+xml" },
+      { url: "/favicon-dark.svg", media: "(prefers-color-scheme: dark)", type: "image/svg+xml" },
+    ],
+  },
   openGraph: {
     type: "website",
     locale: "en_US",

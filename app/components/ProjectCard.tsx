@@ -44,20 +44,23 @@ export function ProjectCard({ project }: { project: Project }) {
       });
 
       // Floating mockup drifts slower than the card — gentle parallax.
-      gsap.fromTo(
-        mockupRef.current,
-        { yPercent: -6 },
-        {
-          yPercent: 6,
-          ease: "none",
-          scrollTrigger: {
-            trigger: cardRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
+      // (Image-fill cards have no mockup, so only run when present.)
+      if (mockupRef.current) {
+        gsap.fromTo(
+          mockupRef.current,
+          { yPercent: -6 },
+          {
+            yPercent: 6,
+            ease: "none",
+            scrollTrigger: {
+              trigger: cardRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
           },
-        },
-      );
+        );
+      }
     },
     { scope: cardRef },
   );
@@ -226,25 +229,26 @@ export function ProjectCard({ project }: { project: Project }) {
     <div
       ref={frameRef}
       data-cursor-label={project.href ? "VIEW" : undefined}
-      className="group relative aspect-[4/3] w-full overflow-hidden rounded-xl"
+      className="group relative aspect-[4/3] w-full overflow-hidden"
       style={{ backgroundColor: project.color1 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div
-        ref={mockupRef}
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-      >
-        <div className="w-[78%] transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-[1.015]">
-          {project.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={project.image}
-              alt={`${project.name} preview`}
-              className="w-full rounded-lg shadow-xl"
-            />
-          ) : (
-            // Placeholder "screen" — swapped for a real screenshot later.
+      {project.image ? (
+        // Full-bleed cover photo — fills the whole card; pills still rain on hover.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={project.image}
+          alt={`${project.name} preview`}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+        />
+      ) : (
+        <div
+          ref={mockupRef}
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        >
+          <div className="w-[78%] transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-[1.015]">
+            {/* Placeholder "screen" — swapped for a real screenshot later. */}
             <div className="aspect-[16/10] w-full overflow-hidden rounded-lg bg-white/95 shadow-xl ring-1 ring-black/5">
               <div className="flex items-center gap-1.5 border-b border-black/5 px-3 py-2.5">
                 <span className="h-2 w-2 rounded-full bg-black/10" />
@@ -257,9 +261,9 @@ export function ProjectCard({ project }: { project: Project }) {
                 <div className="h-2 w-2/3 rounded bg-black/5" />
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Pills — physics-driven: they rain from the top and pile up on hover. */}
       {hasTags && (

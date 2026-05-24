@@ -144,8 +144,18 @@ export default function Playground() {
     >
       <div className="mx-auto max-w-[1440px] px-10 pb-24 pt-32">
         <header className="text-center">
-          <h1 className="font-heading text-h2 text-heading">The Playground</h1>
-          <p className="mx-auto mt-3 w-full max-w-[34rem] text-balance font-body text-[15px] leading-relaxed text-muted md:text-[17px]">
+          <h1
+            className="font-display lowercase text-heading"
+            style={{
+              fontWeight: 700,
+              fontSize: "clamp(2.75rem, 11vw, 7.875rem)",
+              lineHeight: 1,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            playground
+          </h1>
+          <p className="mx-auto mt-10 w-full max-w-[34rem] text-balance font-body text-[15px] leading-relaxed text-muted md:text-[17px]">
             I illustrate what&rsquo;s around me, imperfect and hand-drawn,
             because that&rsquo;s where the real feeling is.
           </p>

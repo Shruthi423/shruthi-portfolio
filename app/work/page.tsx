@@ -75,12 +75,19 @@ const projects: Project[] = [
   },
   {
     name: "Handmade Homestead",
-    discipline: "Branding & Visual Assets",
+    discipline: "Brand & Social",
     year: "2025", // PLACEHOLDER year — confirm
-    description: "A handcrafted brand identity for a modern homestead.", // PLACEHOLDER
-    tags: ["Logo", "Packaging", "Brand System", "Illustration", "Print"],
+    description: "A homestead brand, grown from identity to 152.6K views.",
+    tags: [
+      "Brand System",
+      "Visual Identity",
+      "Social Strategy",
+      "152.6K Views",
+      "Content Design",
+    ],
     color1: "#E7E0CE",
     color2: "#7E6A45",
+    image: "/handmade-homestead/hero.jpg",
     href: "/handmade-homestead",
   },
   {
@@ -95,10 +102,11 @@ const projects: Project[] = [
   },
   {
     name: "Feeld",
-    discipline: "Figma Designathon",
+    discipline: "Speculative UX",
+    type: "Designathon",
     year: "2026",
-    description: "A Figma Designathon concept for Feeld.", // PLACEHOLDER
-    tags: ["Concept", "Figma", "Prototype", "UX", "8-Hr Build"],
+    description: "A wearable that lets you read the room, and yourself.",
+    tags: ["Speculative UX", "Concept", "Wearable", "Figma", "48-Hr Build"],
     color1: "#F7CFC9",
     color2: "#CF4B3B",
     href: "/feeld",
@@ -110,10 +118,15 @@ export default function WorkPage() {
     <>
       <header className="flex flex-col items-center px-10 pb-24 pt-40 text-center">
         <h1
-          className="font-display text-h1 text-heading"
-          style={{ fontWeight: 700, letterSpacing: "-0.03em" }}
+          className="font-display lowercase text-heading"
+          style={{
+            fontWeight: 700,
+            fontSize: "clamp(2.75rem, 11vw, 7.875rem)",
+            lineHeight: 1,
+            letterSpacing: "-0.01em",
+          }}
         >
-          Work
+          work
         </h1>
       </header>
       <section className="px-10 pb-10">

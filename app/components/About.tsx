@@ -38,7 +38,14 @@ const HEADING = "var(--color-heading)"; // terracotta (day) → clay (night)
 function Heading({ children }: { children: React.ReactNode }) {
   return (
     <h2
-      style={{ ...DISPLAY, color: HEADING, fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)" }}
+      className="whitespace-nowrap lowercase"
+      style={{
+        ...DISPLAY,
+        color: HEADING,
+        fontSize: "clamp(2.75rem, 11vw, 7.875rem)",
+        lineHeight: 1,
+        letterSpacing: "-0.01em",
+      }}
     >
       {children}
     </h2>

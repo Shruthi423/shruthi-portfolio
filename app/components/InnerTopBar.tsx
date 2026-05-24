@@ -32,8 +32,8 @@ export function InnerTopBar() {
         <Link
           href="/"
           data-cursor-label="Back to menu"
-          className="absolute left-1/2 -translate-x-1/2 text-lg lowercase tracking-tight text-text transition-opacity duration-150 hover:opacity-70"
-          style={{ fontFamily: "var(--font-eb-garamond)" }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lowercase tracking-tight text-text transition-opacity duration-150 hover:opacity-70"
+          style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "22px" }}
         >
           shruthi aragonda
         </Link>

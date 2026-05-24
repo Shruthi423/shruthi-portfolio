@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { gsap } from "../lib/gsap";
 import { GitHubIcon, LinkedInIcon, MailIcon } from "./Icons";
 import { useTheme } from "./ThemeProvider";
+import { isSplashLifted, onSplashLift, splashWillPlay } from "../lib/splash";
+
+const REVEAL_EASE = [0.16, 1, 0.3, 1] as const;
 
 // Palette + footprint colors live below the Animal type (LIGHT / DARK), since
 // the frost + prints are drawn on a 2D canvas — they need real color values
@@ -241,6 +244,61 @@ export default function FootprintsHome() {
     palRef.current = pal;
   }, [pal]);
 
+  // Splash coordination: hold the home hidden until the splash lifts (or reveal
+  // immediately when there's no splash, e.g. arriving via client-side nav), and
+  // wait for the display font so the blur→sharp reveal doesn't reflow.
+  const shouldReduce = useReducedMotion();
+  const [lifted, setLifted] = useState(false);
+  const [fontsReady, setFontsReady] = useState(false);
+  const revealed = lifted && fontsReady;
+
+  useEffect(() => {
+    if (isSplashLifted() || !splashWillPlay()) {
+      setLifted(true);
+      return;
+    }
+    const off = onSplashLift(() => setLifted(true));
+    const safety = window.setTimeout(() => setLifted(true), 2600); // never strand the home
+    return () => {
+      off();
+      window.clearTimeout(safety);
+    };
+  }, []);
+
+  useEffect(() => {
+    let ok = true;
+    const done = () => ok && setFontsReady(true);
+    if (typeof document !== "undefined" && document.fonts) {
+      document.fonts.ready.then(done);
+    }
+    const fb = window.setTimeout(done, 1500); // fallback if fonts never resolve
+    return () => {
+      ok = false;
+      window.clearTimeout(fb);
+    };
+  }, []);
+
+  // Reveal variants — links rise + sharpen from a soft blur, staggered.
+  const revealDur = shouldReduce ? 0 : 0.8;
+  const linkStack: Variants = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: shouldReduce ? 0 : 0.1,
+        delayChildren: shouldReduce ? 0 : 0.04,
+      },
+    },
+  };
+  const linkReveal: Variants = {
+    hidden: { opacity: 0, y: 26, filter: "blur(12px)" },
+    show: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { duration: revealDur, ease: REVEAL_EASE },
+    },
+  };
+
   // 0 over any protected element (calm) → 1 out in the open.
   const quietFactor = (x: number, y: number) => {
     let m = 1;
@@ -415,17 +473,6 @@ export default function FootprintsHome() {
     if (document.fonts) document.fonts.ready.then(computeQuietBoxes);
     window.addEventListener("resize", onResize);
 
-    if (root.current) {
-      gsap.from(root.current.querySelectorAll("[data-link]"), {
-        y: 64,
-        duration: 0.9,
-        ease: "power4.out",
-        stagger: 0.08,
-        delay: 0.15,
-        clearProps: "transform",
-      });
-    }
-
     const paintFog = (dt: number) => {
       const { w, h } = dims.current;
       ctx.clearRect(0, 0, w, h);
@@ -478,43 +525,42 @@ export default function FootprintsHome() {
       return;
     }
 
-    // A short intro trail to invite interaction.
-    const intro: gsap.core.Tween[] = [];
-    const { w, h } = dims.current;
-    for (let i = 0; i < 4; i++) {
-      intro.push(
-        gsap.delayedCall(0.4 + i * 0.18, () => {
-          const x = w * (0.16 + i * 0.1);
-          const y = h * (0.85 - i * 0.02);
-          spawnPrint("lion", x, y, i % 2 ? 14 : -14, 0.7);
-          addWipe(x, y);
-        }) as unknown as gsap.core.Tween,
-      );
-    }
-
     const update = (_t: number, deltaMs: number) => paintFog(Math.min(deltaMs, 50));
     gsap.ticker.add(update);
 
     return () => {
       gsap.ticker.remove(update);
       window.removeEventListener("resize", onResize);
-      intro.forEach((c) => c.kill());
       gsap.killTweensOf(paws.current);
       wipes.current = [];
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // The inviting footprint trail plays once the home is revealed — so it isn't
+  // wasted behind the splash.
+  useEffect(() => {
+    if (!revealed || reduced.current) return;
+    const { w, h } = dims.current;
+    const calls = Array.from({ length: 4 }, (_, i) =>
+      gsap.delayedCall(0.25 + i * 0.18, () => {
+        const x = w * (0.16 + i * 0.1);
+        const y = h * (0.85 - i * 0.02);
+        spawnPrint("lion", x, y, i % 2 ? 14 : -14, 0.7);
+        addWipe(x, y);
+      }),
+    );
+    return () => calls.forEach((c) => c.kill());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed]);
+
   return (
-    <motion.div
+    <div
       ref={root}
       aria-label="Home"
       onPointerMove={onMove}
       onPointerDown={onDown}
       onPointerLeave={onLeave}
-      initial={{ opacity: 0, scale: 1.04 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       className="fixed inset-0 z-0 flex flex-col"
       style={{
         backgroundColor: pal.bg,
@@ -546,11 +592,14 @@ export default function FootprintsHome() {
       />
 
       {/* Top bar — socials left, centered wordmark (bat toggle sits top-right) */}
-      <div className="relative z-30 flex h-16 shrink-0 items-center justify-start px-8">
+      <div
+        className="relative z-30 flex h-16 shrink-0 items-center justify-start px-8"
+        style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.1s" }}
+      >
         <span
           ref={wordmarkRef}
-          className="absolute left-1/2 -translate-x-1/2 text-lg lowercase tracking-tight"
-          style={{ fontFamily: "var(--font-eb-garamond)" }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lowercase tracking-tight"
+          style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "22px" }}
         >
           shruthi aragonda
         </span>
@@ -576,44 +625,48 @@ export default function FootprintsHome() {
         aria-label="Sections"
         className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
       >
-        <div
+        <motion.div
           ref={stackRef}
+          variants={linkStack}
+          initial="hidden"
+          animate={revealed ? "show" : "hidden"}
           className="pointer-events-auto flex flex-col items-center gap-[clamp(0.85rem,2.6vw,2.25rem)]"
           onMouseLeave={() => setHovered(null)}
         >
           {LINKS.map((l) => {
             const frost = hovered !== null && hovered !== l.href;
             return (
-              <Link
-                key={l.href}
-                data-link
-                href={l.href}
-                onMouseEnter={() => setHovered(l.href)}
-                data-cursor-label={l.cursor}
-                className="block lowercase"
-                style={{
-                  fontFamily: "var(--font-dahlia)",
-                  fontWeight: 700,
-                  fontSize: "clamp(2.75rem, 11vw, 8.5rem)",
-                  lineHeight: 1,
-                  letterSpacing: "-0.01em",
-                  color: pal.font,
-                  opacity: frost ? 0.4 : 1,
-                  filter: frost ? "blur(7px)" : "blur(0px)",
-                  transition: "filter 0.3s ease, opacity 0.3s ease",
-                }}
-              >
-                {l.label}
-              </Link>
+              <motion.div key={l.href} variants={linkReveal}>
+                <Link
+                  href={l.href}
+                  onMouseEnter={() => setHovered(l.href)}
+                  data-cursor-label={l.cursor}
+                  className="block lowercase"
+                  style={{
+                    fontFamily: "var(--font-dahlia)",
+                    fontWeight: 700,
+                    fontSize: "clamp(2.75rem, 11vw, 7.875rem)",
+                    lineHeight: 1,
+                    letterSpacing: "-0.01em",
+                    color: pal.font,
+                    opacity: frost ? 0.4 : 1,
+                    filter: frost ? "blur(7px)" : "blur(0px)",
+                    transition: "filter 0.3s ease, opacity 0.3s ease",
+                  }}
+                >
+                  {l.label}
+                </Link>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </nav>
 
       {/* Bottom — footprint picker + tagline */}
       <div
         ref={bottomRef}
         className="relative z-30 mt-auto flex shrink-0 flex-col items-center gap-4 pb-8 pt-4"
+        style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.15s" }}
         onPointerDown={(e) => e.stopPropagation()}
         onPointerMove={(e) => e.stopPropagation()}
       >
@@ -648,6 +701,6 @@ export default function FootprintsHome() {
           Perpetually evolving, designed with Love.
         </p>
       </div>
-    </motion.div>
+    </div>
   );
 }

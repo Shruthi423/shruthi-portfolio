@@ -148,19 +148,6 @@ const prefersReduced = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// Lion paw - the home's footprint, reused for the section nav + accents.
-function PawPrint({ style }: { style?: React.CSSProperties }) {
-  return (
-    <svg viewBox="0 0 100 110" fill="currentColor" aria-hidden style={style}>
-      <ellipse cx="50" cy="74" rx="27" ry="23" />
-      <ellipse cx="20" cy="42" rx="9" ry="13" />
-      <ellipse cx="41" cy="27" rx="9" ry="14" />
-      <ellipse cx="62" cy="27" rx="9" ry="14" />
-      <ellipse cx="81" cy="42" rx="9" ry="13" />
-    </svg>
-  );
-}
-
 // Hand-drawn squiggle underline (accent) - the hand-made touch under eyebrows.
 function Squiggle({ className = "" }: { className?: string }) {
   return (
@@ -457,11 +444,10 @@ function DotNav({ active, onJump }: { active: string; onJump: (id: string) => vo
       aria-label="Sections"
       className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3.5 md:flex"
     >
-      {SECTIONS.map((s, i) => {
+      {SECTIONS.map((s) => {
         const isActive = active === s.id;
         const show = isActive || hovered === s.id;
-        const size = isActive ? 22 : 14; // paw print grows when active
-        const tilt = i % 2 === 0 ? -12 : 10; // alternating steps → a "trail"
+        const size = isActive ? 9 : 6;
         return (
           <button
             key={s.id}
@@ -474,13 +460,14 @@ function DotNav({ active, onJump }: { active: string; onJump: (id: string) => vo
             data-cursor-label={s.label}
             className="group relative flex h-6 w-6 items-center justify-center"
           >
-            <PawPrint
+            <span
+              aria-hidden
               style={{
                 width: size,
-                height: size * 1.1,
-                color: isActive ? "var(--accent)" : "var(--color-muted)",
+                height: size,
+                borderRadius: "9999px",
+                backgroundColor: isActive ? "var(--accent)" : "var(--color-muted)",
                 opacity: isActive ? 1 : show ? 0.85 : 0.4,
-                transform: `rotate(${isActive ? 0 : tilt}deg)`,
                 transition: "all 0.2s ease-out",
               }}
             />
@@ -658,7 +645,7 @@ export function OnkiCaseStudy() {
         </SectionWrap>
 
         {/* 3 - INSIGHTS (warm band) */}
-        <SectionWrap id="insights" className="bg-surface py-20 md:py-28">
+        <SectionWrap id="insights" className="py-20 md:py-28">
           <div className="mx-auto max-w-6xl">
             <Reveal>
               <Eyebrow>Key insights</Eyebrow>
@@ -762,7 +749,7 @@ export function OnkiCaseStudy() {
         </SectionWrap>
 
         {/* 7 - OUTCOME (warm band) */}
-        <SectionWrap id="outcome" className="bg-surface py-20 md:py-28">
+        <SectionWrap id="outcome" className="py-20 md:py-28">
           <div className="mx-auto max-w-6xl">
             <Reveal>
               <Statement>Designs shipped. Numbers followed.</Statement>
