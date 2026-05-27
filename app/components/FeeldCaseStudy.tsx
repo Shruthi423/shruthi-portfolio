@@ -281,33 +281,6 @@ function Body({
   );
 }
 
-// Aside — clearly smaller + italic, sits below a Pull as a margin note.
-// text-body keeps it one rung beneath Body for an unambiguous hierarchy.
-// Mirrors Pull's align contract so paired Pull+Aside moments stay together.
-function Aside({
-  children,
-  className = "",
-  align = "left",
-}: {
-  children: React.ReactNode;
-  className?: string;
-  align?: "left" | "center";
-}) {
-  const ref = useRef<HTMLParagraphElement>(null);
-  useWordReveal(ref, { stagger: 0.025, y: 12 });
-  // Same width contract as Body/Pull: left spans full column, center caps.
-  const widthAlign =
-    align === "center" ? "mx-auto text-center max-w-2xl" : "text-left";
-  return (
-    <p
-      ref={ref}
-      className={`font-heading italic leading-relaxed text-muted text-body ${widthAlign} ${className}`}
-    >
-      {children}
-    </p>
-  );
-}
-
 // ---- Figure: image w/ subtle scroll-parallax and an aspect frame ----
 
 function Figure({
