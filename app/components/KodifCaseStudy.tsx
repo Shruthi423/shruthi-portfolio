@@ -351,7 +351,7 @@ function SectionRail({ active, onJump }: { active: string; onJump: (id: string) 
               }}
             />
             <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 lowercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
+              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
                 show ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
               }`}
               style={{ color: isActive ? "var(--accent)" : "var(--text)" }}

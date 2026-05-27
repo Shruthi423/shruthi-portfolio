@@ -698,7 +698,7 @@ export default function FootprintsHome() {
           className="text-sm italic opacity-60"
           style={{ fontFamily: "var(--font-eb-garamond)" }}
         >
-          Perpetually evolving, designed with Love.
+          Who doesn&rsquo;t love leaving a footprint!
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import { ProjectCard, type Project } from "../components/ProjectCard";
+import type { Project } from "../components/ProjectCard";
+import { WorkGrid } from "../components/WorkGrid";
 
 const projects: Project[] = [
   {
@@ -106,10 +107,76 @@ const projects: Project[] = [
     type: "Designathon",
     year: "2026",
     description: "A wearable that lets you read the room, and yourself.",
-    tags: ["Speculative UX", "Concept", "Wearable", "Figma", "48-Hr Build"],
-    color1: "#F7CFC9",
+    tags: ["Speculative UX", "Concept", "Wearable contact lens", "Figma Make", "48-Hr Build"],
+    color1: "#000000", // matches the mockup's black background → seamless edges
     color2: "#CF4B3B",
+    image: "/feeld/Feeld-Mockup-thumb.png", // 4:3 crop tight on the phone screen
+    // Warm palette on black. Five explicit entries (one per tag). Cream was
+    // failing white-on-light contrast for "Concept" and "Figma Make" — both
+    // swapped to darker warm tones so all pills support white text legibly.
+    //   0 Speculative UX     → red
+    //   1 Concept            → taupe (was cream)
+    //   2 Wearable contact lens → amber
+    //   3 Figma Make         → deep amber (was cream)
+    //   4 48-Hr Build        → red
+    pillColors: ["#CF4B3B", "#6B5D3F", "#E89B3A", "#8F6921", "#CF4B3B"],
     href: "/feeld",
+  },
+  // ---- Coming soon ---- (no `href` → ProjectCard shows "Coming soon" on hover)
+  {
+    name: "UMSI Expo Badges",
+    discipline: "Brand & Identity",
+    year: "2026",
+    description: "Conference badges for the University of Michigan SI expo.",
+    tags: ["Brand & Identity", "Print Design", "Event", "U-M", "Badges"],
+    color1: "#FFFFEA", // matches the cover image's cream background → seamless edges
+    color2: "#4B4F58",
+    image: "/umsi-expo-badges/cover.jpg",
+  },
+  {
+    name: "Ghost",
+    discipline: "AI / Browser Extension",
+    year: "2026",
+    description: "A Chrome extension that helps you write better prompts.",
+    tags: ["AI Tooling", "Browser Extension", "Prompt UX", "Chrome", "AI"],
+    color1: "#D9D1ED",
+    color2: "#5B4DA8",
+  },
+  {
+    name: "Michigan Wellness Wordmark",
+    discipline: "Logo & Identity",
+    year: "2025",
+    description: "Wordmark identity for Michigan Wellness.",
+    tags: ["Logo Design", "Wordmark", "Brand & Identity", "Typography"],
+    color1: "#C6DDC8",
+    color2: "#3E6B49",
+  },
+  {
+    name: "Gesture-based Website",
+    discipline: "Interaction Design",
+    year: "2026",
+    description: "A website you navigate with hand gestures.",
+    tags: ["Gesture UX", "Interaction", "Web", "ML/Vision", "Prototype"],
+    color1: "#F2C9DA",
+    color2: "#B6446F",
+  },
+  {
+    name: "Gesture-based Games",
+    discipline: "Interaction Design",
+    year: "2026",
+    description: "Games you play with your hands in the air.",
+    tags: ["Gesture UX", "Game Design", "Interaction", "Play", "Prototype"],
+    color1: "#B5E1E5",
+    color2: "#2A7882",
+  },
+  {
+    name: "Campus Take",
+    discipline: "UX/UI Design",
+    year: "2026",
+    description: "A takeout experience for University of Michigan dining.",
+    tags: ["UX/UI Design", "Food Service", "U-M Dining", "Takeout", "Campus"],
+    color1: "#D5DAA8",
+    color2: "#6E7E3D",
   },
 ];
 
@@ -129,13 +196,7 @@ export default function WorkPage() {
           work
         </h1>
       </header>
-      <section className="px-10 pb-10">
-        <div className="mx-auto grid grid-cols-1 gap-x-8 gap-y-16 md:w-4/5 md:grid-cols-2">
-          {projects.map((p) => (
-            <ProjectCard key={p.name} project={p} />
-          ))}
-        </div>
-      </section>
+      <WorkGrid projects={projects} />
     </>
   );
 }

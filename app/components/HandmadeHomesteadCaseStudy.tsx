@@ -43,22 +43,33 @@ const NOTES = {
 
 // ---------------------------------------------------------------- data
 
+// Section order reads chronologically through the project: meet the people →
+// build the brand → hit the wall → see what the data showed → pivot → win.
+// IDs are kept stable so deep-links don't break; only labels and order change.
 const SECTIONS = [
   { id: "overview", label: "overview" },
   { id: "context", label: "context" },
+  { id: "brand", label: "creating branding and strategy" },
+  { id: "research", label: "research" },
+  { id: "problem", label: "the challenge" },
   { id: "insights", label: "insights" },
-  { id: "problem", label: "the problem" },
-  { id: "brand", label: "the brand" },
-  { id: "pivot", label: "the pivot" },
-  { id: "outcome", label: "the outcome" },
+  { id: "pivot", label: "the pivot and adapt" },
+  { id: "outcome", label: "outcomes" },
   { id: "reflection", label: "reflection" },
 ] as const;
 
-const META = [
-  { label: "Timeline", value: "1 semester" }, // PLACEHOLDER - confirm
-  { label: "Role", value: "Brand, Content & Strategy" },
-  { label: "Team", value: "Amulya, Camila, Jenni & me" },
+// `href` is optional - when present, the value renders as a click-through
+// link (used for the live Instagram pointer below).
+const META: { label: string; value: string; href?: string }[] = [
+  { label: "Timeline", value: "3 weeks" },
+  { label: "Role", value: "Brand, Strategy and Visual Assets" },
+  { label: "Team", value: "Shruthi, Camila, Jenni & Amulya" },
   { label: "Tools", value: "Figma, Illustrator, Adobe Express, Gemini Nano Banana" },
+  {
+    label: "Live",
+    value: "@homesteadhandmadebyus",
+    href: "https://www.instagram.com/homesteadhandmadebyus",
+  },
 ];
 
 // Personas, trimmed to one breath each. `pos` frames the headshot in the crop.
@@ -81,15 +92,49 @@ const PERSONAS = [
   },
 ];
 
-// Insights as short attribute phrases, not paragraphs. Each gets a saturated
-// brand colour so the section reads as a designed moment, not a grid of cards.
+// Insights as a punchy headline + the evidence underneath (from the project
+// deck). Each gets a saturated brand colour so the section reads as a
+// designed moment, not a grid of cards.
 const INSIGHTS = [
-  { text: "They wanted a feeling, not a lecture.", bg: "#C65D3B", fg: "#F9F1E8" },
-  { text: "Reach lived in shares, not posts.", bg: "#E0B75F", fg: "#3B2F2A" },
-  { text: "Motion beat the message.", bg: "#A3B18A", fg: "#1F3A2E" },
+  {
+    text: "They wanted a feeling, not a lecture.",
+    body: "Reels showing the feeling of slow living (aesthetic, process, outcome) drove significantly higher engagement than instructional posts.",
+    bg: "#C65D3B",
+    fg: "#F9F1E8",
+  },
+  {
+    text: "Reach lived in shares, not posts.",
+    body: "Top reels (131K+ views, 640+ shares) spread well beyond our follower base. Relatable, appealing content unlocked organic distribution.",
+    bg: "#E0B75F",
+    fg: "#3B2F2A",
+  },
+  {
+    text: "Motion beat the message.",
+    body: "Content via reels (motion + audio) outperformed static carousels on reach, saves, and shares at every measurement.",
+    bg: "#A3B18A",
+    fg: "#1F3A2E",
+  },
 ];
 
-const VALUES = ["Sustainability", "Education", "Community", "Craftsmanship"];
+// Four values rendered as colored cards. Each pulls a brand palette color so
+// the values block becomes a visual application of the palette - not just a
+// label list. fg is chosen for WCAG-passing contrast on bg.
+const VALUES = [
+  { name: "Sustainability", caption: "Care that lasts.", bg: "#1F3A2E", fg: "#F9F1E8" }, // forest / cream
+  { name: "Education", caption: "Skills that root.", bg: "#C65D3B", fg: "#F9F1E8" },     // terracotta / cream
+  { name: "Community", caption: "Shared hands, shared ground.", bg: "#A3B18A", fg: "#1F3A2E" }, // sage / forest
+  { name: "Craftsmanship", caption: "Made slow, made by hand.", bg: "#E0B75F", fg: "#3B2F2A" }, // golden / brown
+];
+
+// The five visual language principles - the design rules that hold the
+// brand together (sourced from the brand theme deck).
+const VISUAL_LANGUAGE = [
+  "Organic wavy line work",
+  "Nature motifs",
+  "Layered, flowing compositions",
+  "Warm and earthy palette",
+  "Expressive, slightly imperfect forms",
+];
 
 // Native colour swatches, grouped the way the brand guide groups them.
 const PALETTE: { group: string; colors: { name: string; hex: string }[] }[] = [
@@ -143,31 +188,101 @@ const TYPE_SPECIMENS = [
 ];
 
 // The pivot, as short chips not paragraphs.
+// The 5 R's of sustainability - the framework that scoped the original
+// education content. Order matters: it's a waste hierarchy (refuse first,
+// recycle last).
+const FIVE_RS = ["Refuse", "Reduce", "Reuse", "Repurpose (or Rot)", "Recycle"];
+
+// Two goals + three tactics that rolled up to them - the original content
+// strategy before the data forced a pivot. Sourced from the strategy deck.
+const CONTENT_GOALS = [
+  { name: "Goal 1", body: "Expand reach and promote eco-friendly lifestyles.", bg: "#1F3A2E", fg: "#F9F1E8" },
+  { name: "Goal 2", body: "Encourage sign-ups and build a loyal community.", bg: "#A3B18A", fg: "#1F3A2E" },
+];
+
+const CONTENT_TACTICS = [
+  { name: "Carousels", body: "Educational tips, infographics, beginner guides." },
+  { name: "Reels",     body: "ASMR, process videos, eco printing." },
+  { name: "Polls",     body: "Interactive story engagement and in-post comments." },
+];
+
+// What we changed when education-first didn't travel. Each adaptation gets
+// a name + a one-line explanation. Numbered list pattern matches the visual
+// language and 5 R's elsewhere on the page.
+// Three takeaways from the project + three things we'd push further with
+// more time. Both lifted from the project deck.
+const TAKEAWAYS = [
+  {
+    name: "Education-first didn’t match user behavior",
+    body: "Users engaged more with inspiration-led content than structured, informational posts.",
+  },
+  {
+    name: "Platform fit matters",
+    body: "Reels, trends, and motion-driven storytelling significantly improved reach and discoverability.",
+  },
+  {
+    name: "Adaptability drove better results",
+    body: "Shifting from planned content to trend-responsive posting increased engagement and growth.",
+  },
+];
+
+const NEXT_STEPS = [
+  "Build awareness through campus workshops",
+  "Strengthen focus on younger audiences",
+  "Go deeper with tutorial-based content",
+];
+
 const ADAPTATIONS = [
-  "AI-generated video",
-  "Trending audio",
-  "Compilation reels",
-  "Collabs",
-  "Real-time trends",
+  { name: "AI-generated video", body: "Replaced static infographics with dynamic visual content." },
+  { name: "Trending audio",     body: "Aligned content with sounds already resonating on the platform." },
+  { name: "Compilation reels",  body: "Moved from single-topic posts to satisfying multi-clip videos." },
+  { name: "Collabs",            body: "Partnered with other teams to expand reach and credibility." },
+  { name: "Moving with trends", body: "Shifted from planned topics to real-time trend response." },
 ];
 
-// The Inspire gallery, in two clean rows: tall reels on top, square merch below.
-const INSPIRE_REELS = [
-  { file: "handmade-homestead/reel-1.jpg", cursor: "watering season" },
-  { file: "handmade-homestead/reel-2.jpg", cursor: "pass it on" },
-  { file: "handmade-homestead/reel-3.jpg", cursor: "grow your own" },
-];
-const INSPIRE_MERCH = [
-  { file: "handmade-homestead/merch-plush.jpg", cursor: "made by hand" },
-  { file: "handmade-homestead/merch-tees.jpg", cursor: "a community worth wearing" },
-  { file: "handmade-homestead/merch-pots.jpg", cursor: "for the windowsill" },
+// The mark across four brand canvases. Source aspect is 16:9.
+// Order is intentional so the 2x2 grid reads as two stories:
+//   Row 1 - the H-mark on its two canvases (warm + dark)
+//   Row 2 - the wordmark and the full lockup, both on green (system at rest)
+const LOCKUPS = [
+  { file: "handmade-homestead/lockup-1.png", label: "Mark on terracotta", cursor: "mark / warm" },
+  { file: "handmade-homestead/lockup-3.png", label: "Mark on forest green", cursor: "mark / dark" },
+  { file: "handmade-homestead/lockup-2.png", label: "Wordmark on forest green", cursor: "wordmark" },
+  { file: "handmade-homestead/lockup-4.png", label: "Full lockup with vase motifs", cursor: "the lockup" },
 ];
 
-// The real educational posts (the "we taught and it fell flat" evidence).
-const POSTS = [
-  { file: "handmade-homestead/post-1.jpg", cursor: "rice water" },
-  { file: "handmade-homestead/post-2.jpg", cursor: "pasta water" },
-  { file: "handmade-homestead/post-3.jpg", cursor: "egg shells" },
+// Notebook storyboards behind the IG post pivot. Aspects vary (sketch-3 is
+// landscape), so we render them with object-contain on a paper-toned card
+// rather than crop them into a uniform shape.
+const SKETCHES = [
+  { file: "handmade-homestead/sketch-1.jpg", cursor: "post 08 storyboard" },
+  { file: "handmade-homestead/sketch-2.jpg", cursor: "posts 06 & 07" },
+  { file: "handmade-homestead/sketch-3.jpg", cursor: "post 04 premium tax" },
+];
+
+// The four reels - the brand's four pillars, each framed inside the H-mark
+// as a window. Source aspect is ~9:19.5; we render at 9:16 with object-cover.
+const REELS = [
+  { file: "handmade-homestead/reel-grow.png", label: "Grow reel", cursor: "grow" },
+  { file: "handmade-homestead/reel-cook.png", label: "Cook reel", cursor: "cook" },
+  { file: "handmade-homestead/reel-craft.png", label: "Craft reel", cursor: "craft" },
+  { file: "handmade-homestead/reel-learn.png", label: "Learn reel", cursor: "learn" },
+];
+
+// The 7 educational IG posts (the pre-pivot work that didn't travel).
+// Source aspect is 4:5 (1080x1350) - Instagram portrait. Display order:
+// "Benefits of composting" leads as the intro (its general framing reads
+// better as an opener), then the bin-lying hook, then the 4 scrap
+// pairings, then the CTA closer. Filenames stay tied to the source set;
+// only display order changed.
+const INSTAPOSTS = [
+  { file: "handmade-homestead/instapost/6.jpg", cursor: "benefits of composting",  title: "Benefits of composting",        body: "Saves money. Cuts waste. Better for everything." },
+  { file: "handmade-homestead/instapost/1.jpg", cursor: "your bin lying to you",   title: "Your bin has been lying to you", body: "The hook. Kitchen scraps you’ve been throwing away are quietly powerful." },
+  { file: "handmade-homestead/instapost/2.jpg", cursor: "rice water",              title: "Rice water",                     body: "Ferment longer for impact. Boosts microbes, feeds roots." },
+  { file: "handmade-homestead/instapost/3.jpg", cursor: "citrus peels",            title: "Citrus peels",                   body: "Repels ants. Improves nutrition. Becomes compost." },
+  { file: "handmade-homestead/instapost/4.jpg", cursor: "pasta water",             title: "Pasta water",                    body: "Feeds bacteria. Boosts growth. Kills weeds." },
+  { file: "handmade-homestead/instapost/5.jpg", cursor: "egg shells",              title: "Egg shells",                     body: "Feeds calcium. Deters slugs. Strengthens stems." },
+  { file: "handmade-homestead/instapost/7.jpg", cursor: "what's next",             title: "What are you composting next?",  body: "The CTA closer. The post that turned scrolls into shares." },
 ];
 
 const METRICS = [
@@ -246,12 +361,13 @@ function Aside({
   );
 }
 
-// Lowercase section label (Emma-style), with the hand-drawn squiggle.
+// Section eyebrow + hand-drawn squiggle. Uppercase mono accent — matches the
+// pattern used across all case studies.
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <p
-        className="font-mono text-caption-1 lowercase tracking-[0.04em]"
+        className="font-mono text-caption-1 uppercase tracking-wide"
         style={{ color: "var(--accent)" }}
       >
         {children}
@@ -261,12 +377,13 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-// The one big statement per section - the only large type in the column.
-// maxW defaults to ~30ch so statements wrap to 1-2 lines; pass "none" for one.
+// The one big statement per section. Defaults to full section width (no maxW)
+// so headings extend across the whole editorial column; pass an explicit
+// `maxW` if a specific Statement needs to wrap tighter.
 function Statement({
   children,
   className = "",
-  maxW = "30ch",
+  maxW = "none",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -282,11 +399,11 @@ function Statement({
   );
 }
 
-// Sparse supporting copy, held to a digestible line length.
+// Supporting copy — extends to the full section width.
 function Body({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <p
-      className={`max-w-[60ch] font-body leading-relaxed text-muted ${className}`}
+      className={`font-body leading-relaxed text-muted ${className}`}
       style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}
     >
       {children}
@@ -307,7 +424,6 @@ function Figure({
   cursorLabel,
   className = "",
   rounded = "",
-  parallax = true,
 }: {
   src?: string;
   alt?: string;
@@ -318,49 +434,18 @@ function Figure({
   cursorLabel?: string;
   className?: string;
   rounded?: string;
-  parallax?: boolean;
 }) {
   const [errored, setErrored] = useState(false);
   const showImage = !!src && !errored;
-  const frameRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  // Scrubbed parallax: the image is oversized and drifts as the frame passes
-  // through the viewport. Only for real images, big frames, and full motion.
-  useGSAP(
-    () => {
-      if (!showImage || !parallax || prefersReduced()) return;
-      const img = imgRef.current;
-      if (!img) return;
-      gsap.fromTo(
-        img,
-        { yPercent: -6, scale: 1.12 },
-        {
-          yPercent: 6,
-          scale: 1.12,
-          ease: "none",
-          scrollTrigger: {
-            trigger: frameRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          },
-        },
-      );
-    },
-    { dependencies: [showImage, parallax], scope: frameRef },
-  );
 
   if (showImage) {
     return (
       <div
-        ref={frameRef}
         className={`relative w-full overflow-hidden ${aspect} ${rounded} ${className}`}
         data-cursor-label={cursorLabel}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          ref={imgRef}
           src={src}
           alt={alt ?? label}
           className="absolute inset-0 h-full w-full object-cover"
@@ -585,7 +670,7 @@ function SectionRail({ active, onJump }: { active: string; onJump: (id: string) 
               }}
             />
             <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 lowercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
+              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
                 show ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
               }`}
               style={{ color: isActive ? "var(--accent)" : "var(--text)" }}
@@ -623,6 +708,289 @@ function ProgressBar() {
 
 // One section: a lowercase label, sparse copy, then room. Reading column is
 // narrow; media inside can break out to the full content width.
+/**
+ * PinnedPostsSweep - the 7 IG posts as a pinned horizontal-scroll sequence.
+ *
+ * Desktop (md+): the wrap pins for the duration of the sweep; vertical
+ * scroll scrubs the inner track's translateX from 0 to -(scrollWidth - 100vw).
+ * Each card is post (left, ~70vh tall) + caption (right) inside a 75vw
+ * column, so ~1.3 cards are visible at a time and the next one peeks in.
+ *
+ * Mobile (<md) and reduced-motion: pin disabled, cards stack vertically
+ * with image + caption stacked per card. Same content, no scrubbed motion.
+ *
+ * Progress bar at the bottom of the pinned viewport tracks position 1..7.
+ */
+function PinnedPostsSweep() {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const wrap = wrapRef.current;
+      const track = trackRef.current;
+      const progress = progressRef.current;
+      if (!wrap || !track) return;
+      if (prefersReduced()) return;
+
+      // Pinned sweep only at md+ (768px). matchMedia auto-cleans on resize.
+      const mm = gsap.matchMedia();
+      mm.add("(min-width: 768px)", () => {
+        const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+
+        const tween = gsap.to(track, {
+          x: () => -distance(),
+          ease: "none",
+          scrollTrigger: {
+            trigger: wrap,
+            pin: true,
+            scrub: 0.5,
+            start: "top top",
+            end: () => `+=${distance()}`,
+            invalidateOnRefresh: true,
+            anticipatePin: 1,
+            onUpdate: (self) => {
+              if (progress) progress.style.transform = `scaleX(${self.progress})`;
+            },
+          },
+        });
+
+        return () => {
+          tween.scrollTrigger?.kill();
+          tween.kill();
+        };
+      });
+    },
+    { scope: wrapRef },
+  );
+
+  return (
+    <div ref={wrapRef} className="relative w-full overflow-hidden md:h-screen md:min-h-[720px]">
+      {/* Eyebrow above the sweep on desktop, sits inside the pinned area */}
+      <div className="pointer-events-none absolute left-0 right-0 top-6 z-10 hidden md:block">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-10">
+          <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+            seven posts, one story
+          </p>
+          <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">
+            scroll to advance &rarr;
+          </p>
+        </div>
+      </div>
+
+      <div className="md:flex md:h-full md:items-center">
+        <div
+          ref={trackRef}
+          className="flex flex-col gap-12 px-6 sm:px-10 md:flex-row md:items-center md:gap-10 md:px-[6vw] md:py-12 md:will-change-transform"
+        >
+          {INSTAPOSTS.map((p, i) => (
+            <article
+              key={p.file}
+              className="relative flex-shrink-0 md:h-[78vh] md:max-h-[760px]"
+              style={{ aspectRatio: "4 / 5" }}
+            >
+              <Figure
+                src={`/${p.file}`}
+                file={p.file}
+                label="Instagram post"
+                aspect="aspect-[4/5] md:aspect-auto md:h-full"
+                cursorLabel={p.cursor}
+                className="md:h-full"
+              />
+              {/* 01 / 07 counter chip, top-left of each image. The 'rest'
+                  number stays muted so the active position stands out. */}
+              <div className="pointer-events-none absolute left-4 top-4 z-10 flex items-baseline gap-1 rounded-full bg-text/85 px-3 py-1.5 backdrop-blur-sm">
+                <span
+                  className="font-mono text-caption-2 uppercase tracking-wider"
+                  style={{ color: "var(--bg)" }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span
+                  className="font-mono text-caption-2 uppercase tracking-wider"
+                  style={{ color: "var(--bg)", opacity: 0.55 }}
+                >
+                  &nbsp;/&nbsp;07
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      {/* Progress bar - scales via GSAP onUpdate, only visible on desktop */}
+      <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-10 hidden md:block">
+        <div className="mx-auto max-w-7xl px-10">
+          <div className="h-px w-full" style={{ backgroundColor: "color-mix(in srgb, var(--accent) 20%, transparent)" }}>
+            <div
+              ref={progressRef}
+              className="h-px origin-left"
+              style={{ backgroundColor: "var(--accent)", transform: "scaleX(0)" }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * WhatWeChangedTabs - interactive tabbed reveal of the 5 adaptations.
+ *
+ * Row of 5 numbered tabs at top; click any (or use Arrow Left/Right when
+ * focused) to expand one detailed card with name + body. Active tab gets
+ * the accent color + an under-rule that slides between positions. ARIA
+ * tablist/tab/tabpanel roles so the pattern reads correctly to assistive
+ * tech. Stateful — tab choice persists for the session.
+ */
+function WhatWeChangedTabs() {
+  const [active, setActive] = useState(0);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Arrow-key navigation between tabs when one is focused. Left wraps to
+  // last, right wraps to first, so it feels like a single ring of options.
+  const onTabKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const next = e.key === "ArrowRight" ? (active + 1) % ADAPTATIONS.length : (active - 1 + ADAPTATIONS.length) % ADAPTATIONS.length;
+    setActive(next);
+    tabRefs.current[next]?.focus();
+  };
+
+  const item = ADAPTATIONS[active];
+
+  return (
+    <div className="mt-5">
+      {/* Tablist - 5 numbered buttons distributed evenly across the
+          section width. Grid-cols-5 at md+ gives equal columns; collapses
+          to grid-cols-2 (then 3) on small screens so labels never crunch.
+          Each cell stretches to fill its column so the under-rule reads
+          as a continuous segmented bar. */}
+      <div
+        role="tablist"
+        aria-label="What we changed"
+        className="grid grid-cols-2 gap-x-4 gap-y-6 border-b border-border pb-3 sm:grid-cols-3 md:grid-cols-5 md:gap-x-8"
+      >
+        {ADAPTATIONS.map((a, i) => {
+          const isActive = i === active;
+          return (
+            <button
+              key={a.name}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`changed-panel-${i}`}
+              id={`changed-tab-${i}`}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => setActive(i)}
+              onKeyDown={onTabKey}
+              data-cursor-label={a.name.toLowerCase()}
+              // The AI-video tab gets a cursor IMAGE preview - an actual
+              // AI-generated thumbnail floats with the cursor in place of
+              // the text pill. CircleCursor reads `data-cursor-image` and
+              // swaps the pill content for the image.
+              data-cursor-image={i === 0 ? "/handmade-homestead/ai-preview.jpg" : undefined}
+              className="group relative flex w-full flex-col items-start gap-1 pb-2 text-left transition-colors duration-150 outline-none"
+              style={{
+                color: isActive ? "var(--accent)" : "var(--color-muted)",
+              }}
+            >
+              <span
+                className="font-display leading-none"
+                style={{
+                  fontSize: "clamp(1.6rem, 3.2vw, 2.4rem)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  opacity: isActive ? 1 : 0.55,
+                  transition: "opacity 150ms ease",
+                }}
+              >
+                0{i + 1}
+              </span>
+              <span
+                className="font-mono text-caption-2 uppercase tracking-wide"
+                style={{
+                  opacity: isActive ? 1 : 0.7,
+                  transition: "opacity 150ms ease",
+                }}
+              >
+                {a.name}
+              </span>
+              {/* Active under-rule: a 2px line that lives in the active tab.
+                  Drawn here rather than as a sliding element since each tab
+                  has its own width (no easy single moving rule). */}
+              <span
+                aria-hidden
+                className="absolute left-0 right-0 bottom-[-13px] h-[2px] transition-opacity duration-200"
+                style={{
+                  backgroundColor: "var(--accent)",
+                  opacity: isActive ? 1 : 0,
+                }}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Panel - swaps via `key` so React re-renders and the inline
+          keyframe (defined just below) plays each switch. min-h prevents
+          layout jump as bodies vary. */}
+      <style>{`
+        @keyframes hh-tab-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      <div
+        role="tabpanel"
+        id={`changed-panel-${active}`}
+        aria-labelledby={`changed-tab-${active}`}
+        key={active}
+        className="mt-10 grid gap-6 md:grid-cols-[1fr_2fr] md:gap-12"
+        style={{ minHeight: "9rem", animation: "hh-tab-in 360ms ease both" }}
+      >
+        <div>
+          <p
+            className="font-display"
+            style={{
+              color: "var(--accent)",
+              fontSize: "clamp(3rem, 7vw, 5rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              lineHeight: 0.95,
+            }}
+          >
+            0{active + 1}
+          </p>
+          <p
+            className="mt-3 font-mono text-caption-2 uppercase tracking-wide"
+            style={{ color: "var(--accent)" }}
+          >
+            {String(active + 1).padStart(2, "0")} / {String(ADAPTATIONS.length).padStart(2, "0")}
+          </p>
+        </div>
+        <div>
+          <h3
+            className="font-heading leading-tight text-text"
+            style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)", letterSpacing: "-0.01em" }}
+          >
+            {item.name}
+          </h3>
+          <p
+            className="mt-4 font-body leading-snug text-text"
+            style={{ fontSize: "clamp(1.05rem, 1.5vw, 1.2rem)", maxWidth: "52ch" }}
+          >
+            {item.body}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Section({
   id,
   children,
@@ -633,7 +1001,7 @@ function Section({
   className?: string;
 }) {
   return (
-    <section id={id} className={`scroll-mt-24 px-6 py-12 sm:px-10 md:py-20 lg:pl-32 lg:pr-12 ${className}`}>
+    <section id={id} className={`scroll-mt-24 px-6 py-8 sm:px-10 md:py-12 lg:pl-32 lg:pr-12 ${className}`}>
       <div className="mx-auto max-w-6xl">{children}</div>
     </section>
   );
@@ -700,7 +1068,31 @@ export function HandmadeHomesteadCaseStudy() {
                 {META.map((m) => (
                   <div key={m.label}>
                     <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">{m.label}</dt>
-                    <dd className="mt-1 font-body text-body text-text">{m.value}</dd>
+                    <dd className="mt-1 font-body text-body text-text">
+                      {m.href ? (
+                        // External live link - opens in a new tab with rel
+                        // noopener+noreferrer for safety. Inline arrow + accent
+                        // color marks it as actionable vs the static meta rows.
+                        <a
+                          href={m.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-cursor-label="open instagram"
+                          className="group inline-flex items-center gap-1.5 underline decoration-1 underline-offset-4 transition-colors"
+                          style={{ color: "var(--accent)", textDecorationColor: "color-mix(in srgb, var(--accent) 50%, transparent)" }}
+                        >
+                          <span>{m.value}</span>
+                          <span
+                            aria-hidden
+                            className="inline-block transition-transform group-hover:translate-x-0.5"
+                          >
+                            &rarr;
+                          </span>
+                        </a>
+                      ) : (
+                        m.value
+                      )}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -729,7 +1121,7 @@ export function HandmadeHomesteadCaseStudy() {
             </Reveal>
             <Reveal delay={200}>
               <Body className="mt-6">
-                One semester. Four of us. Zero followers, and a homestead to grow from a blank page (no land, no barn, no chickens, just Figma and a lot of opinions).
+                Four of us. Zero followers, and a homestead to grow from a blank page (no land, no barn, no chickens, just Figma and a lot of opinions).
               </Body>
             </Reveal>
           </div>
@@ -761,8 +1153,7 @@ export function HandmadeHomesteadCaseStudy() {
                     position={p.pos}
                     cursorLabel={p.cursor}
                     rounded="rounded-none"
-                    parallax={false}
-                  />
+                    />
                   <div className="p-6">
                     <h3 className="font-heading text-h4 leading-tight text-text">{p.name}</h3>
                     <p className="mt-0.5 font-mono text-caption-2 uppercase tracking-wide text-muted">{p.meta}</p>
@@ -776,72 +1167,10 @@ export function HandmadeHomesteadCaseStudy() {
           </div>
         </Section>
 
-        {/* 3 - INSIGHTS */}
-        <Section id="insights">
-          <Reveal>
-            <Label>insights</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement className="mt-5">Three things the data made impossible to ignore.</Statement>
-          </Reveal>
-          <div className="mt-12 grid gap-5 sm:grid-cols-3">
-            {INSIGHTS.map((c, i) => (
-              <Reveal
-                key={c.text}
-                delay={i * 90}
-                variant={i === 0 ? "left" : i === 2 ? "right" : "up"}
-                className="h-full"
-              >
-                <div
-                  className="flex h-full flex-col gap-10 p-8"
-                  style={{ backgroundColor: c.bg, color: c.fg }}
-                >
-                  <span className="font-display" style={{ fontSize: "2.25rem", fontWeight: 700, lineHeight: 1, opacity: 0.5 }}>
-                    0{i + 1}
-                  </span>
-                  <p className="font-heading leading-snug" style={{ fontSize: "clamp(1.3rem, 1.9vw, 1.6rem)" }}>
-                    {c.text}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </Section>
-
-        {/* 4 - THE PROBLEM */}
-        <Section id="problem">
-          <Reveal>
-            <Label>the problem</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement className="mt-5">We launched education-first. The graph flatlined.</Statement>
-          </Reveal>
-          <Reveal delay={120}>
-            <Body className="mt-5">
-              Carousels and infographics taught well and traveled nowhere. People didn&rsquo;t want to be informed. They wanted to be moved.
-            </Body>
-          </Reveal>
-          {/* the actual educational posts: beautiful, and they didn't travel */}
-          <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
-            {POSTS.map((p, i) => (
-              <Reveal key={p.file} delay={i * 80} variant="scale" className={i === 2 ? "col-span-2 sm:col-span-1" : ""}>
-                <Figure
-                  src={`/${p.file}`}
-                  file={p.file}
-                  label="Educational post"
-                  aspect="aspect-[4/5]"
-                  cursorLabel={p.cursor}
-                  parallax={false}
-                />
-              </Reveal>
-            ))}
-          </div>
-        </Section>
-
-        {/* 5 - THE BRAND (solution): identity shown large */}
+        {/* 3 - CREATING BRANDING AND STRATEGY (the brand) */}
         <Section id="brand">
           <Reveal>
-            <Label>the brand</Label>
+            <Label>creating branding and strategy</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">So we built something you could feel.</Statement>
@@ -850,69 +1179,179 @@ export function HandmadeHomesteadCaseStudy() {
             <Body className="mt-5">Rooted and handcrafted: warm color, organic forms, made by hand.</Body>
           </Reveal>
 
-          {/* the mark, applied */}
-          <div className="mt-12 grid items-center gap-8 md:grid-cols-2">
-            <Reveal variant="left">
-              <Figure
-                src="/handmade-homestead/logo.jpg"
-                file="handmade-homestead/logo.jpg"
-                label="The mark"
-                aspect="aspect-square"
-                cursorLabel="the mark"
-              />
-            </Reveal>
-            <Reveal variant="right" delay={80}>
+          {/* Vision + Mission - the north star, set before any visual decision.
+             Side-by-side at md+; stacks on mobile. The headers sit in the
+             accent eyebrow so the prose can carry weight. */}
+          <Reveal delay={160} className="mt-14">
+            <div className="grid gap-10 md:grid-cols-2 md:gap-14">
               <div>
                 <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-                  the mark
+                  Vision
                 </p>
-                <h3
-                  className="mt-3 font-heading text-text"
-                  style={{ fontSize: "clamp(1.4rem, 2.4vw, 2rem)", lineHeight: 1.15 }}
+                <p
+                  className="mt-4 font-heading text-text"
+                  style={{ fontSize: "clamp(1.2rem, 2vw, 1.55rem)", lineHeight: 1.4 }}
                 >
-                  A bottle and a doorway, in one little H.
-                </h3>
-                <Body className="mt-4">
-                  A ceramic bottle meets an arched home. The whole palette, in a single stamp.
-                </Body>
+                  We are here to create a world where gardens thrive, handmade goods fill our homes, and people live more intentionally.
+                </p>
               </div>
-            </Reveal>
-          </div>
-
-          {/* values - four words, that's it */}
-          <Reveal delay={80} className="mt-12">
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
-              {VALUES.map((v) => (
-                <span key={v} className="font-heading text-text" style={{ fontSize: "clamp(1.3rem, 2.4vw, 1.9rem)" }}>
-                  {v}
-                </span>
-              ))}
+              <div>
+                <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+                  Mission
+                </p>
+                <p
+                  className="mt-4 font-heading text-text"
+                  style={{ fontSize: "clamp(1.2rem, 2vw, 1.55rem)", lineHeight: 1.4 }}
+                >
+                  To bring the spirit of the homestead back into everyday life by teaching modern homesteading skills through hands-on workshops, local pop-ups, and a thoughtfully curated collection of artisanal goods.
+                </p>
+              </div>
             </div>
           </Reveal>
 
-          {/* palette - native swatches */}
-          <div className="mt-14 space-y-6">
-            {PALETTE.map((row, ri) => (
-              <Reveal key={row.group} delay={ri * 60}>
-                <div>
-                  <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">{row.group}</p>
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    {row.colors.map((c) => (
-                      <div key={c.hex} className="w-28">
-                        <div
-                          className="h-24 w-full border border-border"
-                          style={{ backgroundColor: c.hex }}
-                          data-cursor-label={c.name}
-                        />
-                        <p className="mt-2 font-body text-caption-1 text-text">{c.name}</p>
-                        <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">{c.hex}</p>
-                      </div>
-                    ))}
+          {/* The mark across four canvases - one identity that travels.
+             2x2 grid at md+; single column on mobile. Each cell is 16:9 to
+             match the source ratio so nothing crops. */}
+          <div className="mt-14 grid gap-4 md:grid-cols-2 md:gap-6">
+            {LOCKUPS.map((l, i) => (
+              <Reveal
+                key={l.file}
+                delay={(i % 2) * 80}
+                variant={i % 2 === 0 ? "left" : "right"}
+              >
+                <Figure
+                  src={`/${l.file}`}
+                  file={l.file}
+                  label={l.label}
+                  aspect="aspect-[16/9]"
+                  cursorLabel={l.cursor}
+                />
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={120} className="mt-8">
+            <div className="max-w-3xl">
+              <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+                the mark
+              </p>
+              <h3
+                className="mt-3 font-heading text-text"
+                style={{ fontSize: "clamp(1.4rem, 2.4vw, 2rem)", lineHeight: 1.15 }}
+              >
+                A bottle and a doorway, in one little H.
+              </h3>
+              <Body className="mt-4">
+                A ceramic bottle meets an arched home. The whole palette, in a single stamp.
+              </Body>
+            </div>
+          </Reveal>
+
+          {/* The five visual language principles - the design rules that
+             carry across every piece. Sits between the mark explanation and
+             the values cards so the brand section reads as: mark -> language
+             -> values -> palette -> type. */}
+          <Reveal delay={80} className="mt-14">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              the visual language
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+            >
+              Rooted, handcrafted, slightly imperfect.
+            </h3>
+            <Body className="mt-4 max-w-3xl">
+              Every visual choice reflects the care and intentionality at the heart of homesteading life.
+            </Body>
+          </Reveal>
+          <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {VISUAL_LANGUAGE.map((v, i) => (
+              <Reveal key={v} delay={i * 60} variant="up">
+                <div
+                  className="flex h-full items-start gap-3 border-l-2 py-2 pl-4"
+                  style={{ borderColor: "var(--accent)" }}
+                >
+                  <span
+                    className="font-mono text-caption-2 uppercase tracking-wide pt-0.5"
+                    style={{ color: "var(--accent)", opacity: 0.7 }}
+                  >
+                    0{i + 1}
+                  </span>
+                  <p className="font-body text-text" style={{ fontSize: "0.98rem", lineHeight: 1.4 }}>
+                    {v}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* values - 4 palette-tied colored cards. Value name in display
+             type, 1-line meaning underneath. Each card uses a brand color
+             with chosen-for-contrast foreground. 2x2 on small screens, 4-up
+             on md+. */}
+          <Reveal delay={80} className="mt-14">
+            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">values</p>
+          </Reveal>
+          <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
+            {VALUES.map((v, i) => (
+              <Reveal
+                key={v.name}
+                delay={i * 70}
+                variant={i % 2 === 0 ? "left" : "right"}
+              >
+                <div
+                  className="flex h-full flex-col justify-between gap-10 p-6 sm:p-7"
+                  style={{ backgroundColor: v.bg, color: v.fg, minHeight: "13rem" }}
+                  data-cursor-label={v.name.toLowerCase()}
+                >
+                  <span
+                    className="font-display"
+                    style={{ fontSize: "1.5rem", fontWeight: 700, lineHeight: 1, opacity: 0.55 }}
+                  >
+                    0{i + 1}
+                  </span>
+                  <div>
+                    <p
+                      className="font-heading leading-tight"
+                      style={{ fontSize: "clamp(1.3rem, 2.2vw, 1.7rem)" }}
+                    >
+                      {v.name}
+                    </p>
+                    <p
+                      className="mt-2 font-body leading-snug"
+                      style={{ fontSize: "0.98rem", opacity: 0.85 }}
+                    >
+                      {v.caption}
+                    </p>
                   </div>
                 </div>
               </Reveal>
             ))}
           </div>
+
+          {/* palette - all 8 swatches in a single row that fills the section
+             width. CSS grid with grid-cols-4 (mobile) -> grid-cols-8 (md+)
+             gives evenly-distributed swatches that grow with the column,
+             so the row hits the right edge instead of ending in dead space. */}
+          <Reveal className="mt-14">
+            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">palette</p>
+            <div className="mt-4 grid grid-cols-4 gap-3 md:grid-cols-8 md:gap-4">
+              {PALETTE.flatMap((row) => row.colors).map((c, i) => (
+                <Reveal key={c.hex} delay={i * 40}>
+                  <div>
+                    <div
+                      className="aspect-[5/4] w-full border border-border md:aspect-square"
+                      style={{ backgroundColor: c.hex }}
+                      data-cursor-label={c.name}
+                    />
+                    <p className="mt-2 font-body text-caption-1 text-text">{c.name}</p>
+                    <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">{c.hex}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </Reveal>
 
           {/* type - real faces */}
           <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -932,12 +1371,281 @@ export function HandmadeHomesteadCaseStudy() {
               </Reveal>
             ))}
           </div>
+
+          {/* Brand mood board - the closing synthesis. Everything explained
+             above (mark, palette, type, voice), applied to real moments:
+             posts, mockups, totes, products. The "and here it all is
+             together" beat. Source is near-square; rendered at full
+             section width with a small eyebrow + closer caption. */}
+          <Reveal className="mt-20">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              the brand, in the world
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+            >
+              All of it, applied.
+            </h3>
+          </Reveal>
+          <Reveal delay={80} className="mt-7" variant="scale">
+            <Figure
+              src="/handmade-homestead/brand-board.jpg"
+              file="handmade-homestead/brand-board.jpg"
+              label="Brand applications mood board"
+              aspect="aspect-square"
+              cursorLabel="brand at a glance"
+            />
+          </Reveal>
         </Section>
 
-        {/* 6 - THE PIVOT */}
+        {/* 4 - RESEARCH (educate and inform - the strategy that informed the
+             first content engine, before the pivot. Two frameworks: the 80/20
+             split that shaped the content mix, and the 5 R's that shaped the
+             topical scope. Lives between brand and problem so the narrative
+             reads: brand decisions -> the research that drove the strategy ->
+             the strategy that flatlined.) */}
+        <Section id="research">
+          <Reveal>
+            <Label>research</Label>
+          </Reveal>
+          <Reveal delay={60}>
+            <Statement className="mt-5">Before we made anything, we made decisions.</Statement>
+          </Reveal>
+          <Reveal delay={120}>
+            <Body className="mt-5">
+              Two frameworks set the tone. One shaped the content mix. The other shaped what each post was about.
+            </Body>
+          </Reveal>
+
+          {/* Two-up: 80/20 on the left, the 5 R's on the right.
+             Stacks on mobile. Eyebrow + heading + body in each, mirroring
+             the editorial pattern used elsewhere on the page. */}
+          <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-14">
+            <Reveal variant="left">
+              <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+                the 80 / 20 strategy
+              </p>
+              <h3
+                className="mt-3 font-heading leading-tight text-text"
+                style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+              >
+                Educate first, inform second.
+              </h3>
+              <Body className="mt-4">
+                80% of content educated our audience on the benefits and returns of homesteading. 20% informed them about resources, workshops, and ways to get involved.
+              </Body>
+            </Reveal>
+
+            <Reveal variant="right" delay={80}>
+              <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+                the five R&rsquo;s
+              </p>
+              <h3
+                className="mt-3 font-heading leading-tight text-text"
+                style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+              >
+                A hierarchy, not a checklist.
+              </h3>
+              <Body className="mt-4">
+                Investigated current sustainability trends and the waste challenges of retail, then scoped content around the hierarchy: refuse first, recycle last.
+              </Body>
+              {/* The 5 verbs as pills - reads as a single ordered sequence */}
+              <div className="mt-5 flex flex-wrap gap-2">
+                {FIVE_RS.map((r, i) => (
+                  <span
+                    key={r}
+                    className="rounded-full px-4 py-1.5 font-mono text-caption-1 uppercase tracking-wide"
+                    style={{
+                      color: "var(--accent)",
+                      border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)",
+                    }}
+                  >
+                    <span className="opacity-60">0{i + 1}</span>&nbsp;&nbsp;{r}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+
+          {/* Content decisions - two goals, three tactics that rolled up to
+             them. The goal pair lands as colored cards (matching the values
+             cards' visual treatment); the tactics sit below as light cards.
+             This is what we set out to ship; the next section is where it
+             didn't work. */}
+          <Reveal className="mt-16">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              content decisions
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+            >
+              Two goals, three tactics.
+            </h3>
+          </Reveal>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 md:gap-5">
+            {CONTENT_GOALS.map((g, i) => (
+              <Reveal
+                key={g.name}
+                delay={i * 80}
+                variant={i % 2 === 0 ? "left" : "right"}
+              >
+                <div
+                  className="flex h-full flex-col gap-3 p-6 sm:p-7"
+                  style={{ backgroundColor: g.bg, color: g.fg, minHeight: "9rem" }}
+                >
+                  <p
+                    className="font-mono text-caption-2 uppercase tracking-wide"
+                    style={{ opacity: 0.75 }}
+                  >
+                    {g.name}
+                  </p>
+                  <p
+                    className="font-heading leading-snug"
+                    style={{ fontSize: "clamp(1.15rem, 1.9vw, 1.4rem)" }}
+                  >
+                    {g.body}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* Tactics: three cards on light backgrounds, numbered like the
+             other "5 R's"-style sequences for visual rhythm. */}
+          <div className="mt-5 grid gap-4 sm:grid-cols-3 sm:gap-5">
+            {CONTENT_TACTICS.map((t, i) => (
+              <Reveal key={t.name} delay={i * 80} variant="up">
+                <div
+                  className="flex h-full flex-col gap-2 border border-border p-6"
+                  style={{ backgroundColor: "var(--bg)" }}
+                >
+                  <p
+                    className="font-mono text-caption-2 uppercase tracking-wide"
+                    style={{ color: "var(--accent)" }}
+                  >
+                    0{i + 1}&nbsp;&nbsp;{t.name}
+                  </p>
+                  <Body className="mt-1">{t.body}</Body>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </Section>
+
+        {/* 5 - THE CHALLENGE (problem) */}
+        <Section id="problem">
+          <Reveal>
+            <Label>the challenge</Label>
+          </Reveal>
+          <Reveal delay={60}>
+            <Statement className="mt-5">We launched education-first. The graph flatlined.</Statement>
+          </Reveal>
+          <Reveal delay={120}>
+            <Body className="mt-5">
+              Carousels and infographics taught well and traveled nowhere. People didn&rsquo;t want to be informed. They wanted to be moved.
+            </Body>
+          </Reveal>
+
+          {/* The planning behind the educational set: three notebook
+             storyboards (moved here from pivot) - showing how much
+             intentionality went into work that ultimately didn't travel. */}
+          <Reveal delay={140} className="mt-16">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              from sketch to post
+            </p>
+            <p
+              className="mt-3 font-heading text-text"
+              style={{ fontSize: "clamp(1.2rem, 2vw, 1.5rem)", lineHeight: 1.35 }}
+            >
+              Every post started in a notebook.
+            </p>
+          </Reveal>
+          <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+            {SKETCHES.map((s, i) => (
+              <Reveal
+                key={s.file}
+                delay={i * 80}
+                variant={i === 0 ? "left" : i === 2 ? "right" : "up"}
+              >
+                <div
+                  className="relative w-full overflow-hidden border border-border aspect-[4/5]"
+                  style={{ backgroundColor: "#F4ECD8" }}
+                  data-cursor-label={s.cursor}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/${s.file}`}
+                    alt="Instagram post storyboard sketch"
+                    className="absolute inset-0 h-full w-full object-contain p-4"
+                  />
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* The 7 educational IG posts as a pinned horizontal-scroll sweep
+             (moved here from pivot). These ARE the work that didn't travel:
+             beautifully designed, strategically planned, never shared. The
+             pinned sweep makes them feel like a deck the reader is paging
+             through. Full-bleed via margin trick (NOT transform - transforms
+             on ancestors break GSAP's position:fixed pinning). */}
+          <div
+            className="relative mt-16"
+            style={{ width: "100vw", left: "50%", marginLeft: "-50vw" }}
+          >
+            <PinnedPostsSweep />
+          </div>
+        </Section>
+
+        {/* 5 - INSIGHTS */}
+        <Section id="insights">
+          <Reveal>
+            <Label>insights</Label>
+          </Reveal>
+          <Reveal delay={60}>
+            <Statement className="mt-5">Three things the data made impossible to ignore.</Statement>
+          </Reveal>
+          <div className="mt-12 grid gap-5 sm:grid-cols-3">
+            {INSIGHTS.map((c, i) => (
+              <Reveal
+                key={c.text}
+                delay={i * 90}
+                variant={i === 0 ? "left" : i === 2 ? "right" : "up"}
+                className="h-full"
+              >
+                {/* Layout was justify-between, which pushed the title+body
+                   block to the bottom - making title position vary per card
+                   based on body length. Now: number top, title second, body
+                   grows downward. All titles align across the 3 cards. */}
+                <div
+                  className="flex h-full flex-col gap-6 p-8"
+                  style={{ backgroundColor: c.bg, color: c.fg }}
+                >
+                  <span className="font-display" style={{ fontSize: "2.25rem", fontWeight: 700, lineHeight: 1, opacity: 0.5 }}>
+                    0{i + 1}
+                  </span>
+                  <p className="font-heading leading-snug" style={{ fontSize: "clamp(1.3rem, 1.9vw, 1.6rem)" }}>
+                    {c.text}
+                  </p>
+                  <p
+                    className="font-body leading-snug"
+                    style={{ fontSize: "0.95rem", lineHeight: 1.45, opacity: 0.88 }}
+                  >
+                    {c.body}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </Section>
+
+        {/* 6 - THE PIVOT AND ADAPT */}
         <Section id="pivot">
           <Reveal>
-            <Label>the pivot</Label>
+            <Label>the pivot and adapt</Label>
           </Reveal>
           <Reveal delay={60}>
             <div className="mt-5 flex items-start justify-between gap-6">
@@ -950,41 +1658,116 @@ export function HandmadeHomesteadCaseStudy() {
           <Reveal delay={120}>
             <Body className="mt-5">We rebuilt the content engine around feeling, then chased the trends in real time.</Body>
           </Reveal>
-          <Reveal delay={140}>
-            <div className="mt-7 flex flex-wrap gap-2.5">
-              {ADAPTATIONS.map((a) => (
-                <span
-                  key={a}
-                  className="rounded-full px-4 py-1.5 font-mono text-caption-1 lowercase tracking-wide"
-                  style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)" }}
-                >
-                  {a}
-                </span>
-              ))}
-            </div>
+          {/* Five things we changed - tabbed reveal pattern. The 5 tabs
+             across the top double as overview (you scan the numbers + names
+             at a glance); clicking any expands its detail in a big panel
+             below. Keyboard nav (Arrow Left/Right) works once a tab has
+             focus. See `WhatWeChangedTabs` for the full component. */}
+          <Reveal delay={120} className="mt-10">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              what we changed
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+            >
+              Five shifts. Click through.
+            </h3>
+          </Reveal>
+          <WhatWeChangedTabs />
+
+          {/* The mark in motion - now the viral reel alone. The 4 system
+             templates (Grow/Cook/Craft/Learn) moved to reflection so they
+             read as artifacts, not active competitors with the one reel
+             that did the work. Side-by-side layout: video left, story
+             right (eyebrow + headline + metrics chips). */}
+          <Reveal delay={80} className="mt-16">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              the mark in motion
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
+            >
+              One reel did the rest.
+            </h3>
           </Reveal>
 
-          {/* inspire gallery - two clean rows: tall reels, then square merch */}
-          <div className="mt-12 grid grid-cols-3 gap-4 sm:gap-6">
-            {INSPIRE_REELS.map((m, i) => (
-              <Reveal key={m.file} delay={i * 80} variant={i === 0 ? "left" : i === 2 ? "right" : "up"}>
-                <Figure src={`/${m.file}`} file={m.file} label="Reel" aspect="aspect-[2/3]" cursorLabel={m.cursor} />
-              </Reveal>
-            ))}
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-4 sm:mt-6 sm:gap-6">
-            {INSPIRE_MERCH.map((m, i) => (
-              <Reveal key={m.file} delay={i * 80} variant={i === 0 ? "left" : i === 2 ? "right" : "up"}>
-                <Figure src={`/${m.file}`} file={m.file} label="Merch" aspect="aspect-square" cursorLabel={m.cursor} />
-              </Reveal>
-            ))}
-          </div>
+          {/* Hero video laid out as a magazine feature: phone-shape on the
+             left, supporting prose + metrics on the right at the same
+             height. Plays muted on loop with playsInline so autoplay
+             survives on mobile. preload='metadata' keeps the 5.7MB out of
+             the initial bundle until the section is near the viewport. */}
+          <Reveal delay={120} className="mt-8" variant="scale">
+            <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:gap-14">
+              <div className="mx-auto w-full md:mx-0" style={{ maxWidth: "min(420px, 80vw)" }}>
+                <div
+                  className="relative overflow-hidden border border-border"
+                  style={{ aspectRatio: "9 / 16", backgroundColor: "var(--bg)" }}
+                  data-cursor-label="the reel that broke through"
+                >
+                  <video
+                    src="/handmade-homestead/eco-print-reel.mp4"
+                    poster="/handmade-homestead/reel-grow.png"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-label="Eco-print reel: wear your garden fashionably"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">
+                  the reel that broke through
+                </p>
+                <h4
+                  className="mt-3 font-heading leading-tight text-text"
+                  style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", letterSpacing: "-0.01em" }}
+                >
+                  Wear your garden fashionably.
+                </h4>
+                <Body className="mt-4">
+                  Roses pressed into denim, in real-time. No infographic could compete. The reel that turned scrollers into sharers.
+                </Body>
+                {/* Metrics as chips below the prose - the social proof at
+                    a glance, no chart needed. Mobile-tuned: smaller font min
+                    + tighter padding/gap so 3 chips fit cleanly at 320px
+                    (iPhone SE) without overflowing on "4,598". */}
+                <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+                  {[
+                    { value: "22.2K", label: "Likes" },
+                    { value: "260", label: "Saves" },
+                    { value: "4,598", label: "Shares" },
+                  ].map((m) => (
+                    <div
+                      key={m.label}
+                      className="border border-border px-3 py-3 sm:px-4"
+                      style={{ backgroundColor: "var(--bg)" }}
+                    >
+                      <p
+                        className="font-display leading-none text-text"
+                        style={{ fontSize: "clamp(1.05rem, 4vw, 1.7rem)", fontWeight: 700 }}
+                      >
+                        {m.value}
+                      </p>
+                      <p className="mt-1.5 font-mono text-caption-2 uppercase tracking-wide text-muted">
+                        {m.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Reveal>
         </Section>
 
-        {/* 7 - THE OUTCOME */}
+        {/* 7 - OUTCOMES */}
         <Section id="outcome">
           <Reveal>
-            <Label>the outcome</Label>
+            <Label>outcomes</Label>
           </Reveal>
           <Reveal delay={60}>
             <div className="mt-5 flex items-start justify-between gap-6">
@@ -1040,21 +1823,136 @@ export function HandmadeHomesteadCaseStudy() {
           </Reveal>
         </Section>
 
-        {/* 8 - REFLECTION / CLOSE */}
+        {/* 8 - REFLECTION / CLOSE
+             Three nested blocks:
+               1. Takeaways - 3 numbered insights from the project (full width)
+               2. If we had more time - 3 next-step ambitions (full width)
+               3. Closing poem + taglines + sign-off (centered, max-w-2xl) */}
         <Section id="reflection" className="py-28 md:py-40">
-          <div className="mx-auto max-w-2xl text-center">
-            <Reveal variant="fade">
-              <div className="flex flex-col items-center">
-                <Label>reflection</Label>
-              </div>
-            </Reveal>
+          <Reveal variant="fade">
+            <Label>reflection</Label>
+          </Reveal>
+
+          {/* The 4 brand-pillar reels (moved here from pivot). In
+             reflection they read as artifacts of the system we built -
+             Grow / Cook / Craft / Learn - the templates that the brand
+             will keep using. 4-across on desktop, 2-across on mobile. */}
+          <Reveal delay={80} className="mt-10">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              the system we leave behind
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
+            >
+              Four pillars, one window.
+            </h3>
+          </Reveal>
+          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
+            {REELS.map((r, i) => (
+              <Reveal key={r.file} delay={i * 70} variant="up">
+                <Figure
+                  src={`/${r.file}`}
+                  file={r.file}
+                  label={r.label}
+                  aspect="aspect-[9/16]"
+                  cursorLabel={r.cursor}
+                />
+              </Reveal>
+            ))}
+          </div>
+
+          {/* Takeaways - the lessons. 3 numbered cards reading like a
+             chapter break before the closing. */}
+          <Reveal className="mt-20">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              takeaways
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
+            >
+              Through this journey.
+            </h3>
+          </Reveal>
+          <div className="mt-8 grid gap-4 md:grid-cols-3 md:gap-5">
+            {TAKEAWAYS.map((t, i) => (
+              <Reveal
+                key={t.name}
+                delay={i * 80}
+                variant={i === 0 ? "left" : i === 2 ? "right" : "up"}
+              >
+                <div
+                  className="flex h-full flex-col gap-3 border border-border p-6 sm:p-7"
+                  style={{ backgroundColor: "var(--bg)" }}
+                >
+                  <span
+                    className="font-display"
+                    style={{ color: "var(--accent)", fontSize: "1.75rem", fontWeight: 700, lineHeight: 1, opacity: 0.7 }}
+                  >
+                    0{i + 1}
+                  </span>
+                  <p
+                    className="font-heading leading-snug text-text"
+                    style={{ fontSize: "clamp(1.1rem, 1.7vw, 1.3rem)" }}
+                  >
+                    {t.name}
+                  </p>
+                  <Body className="mt-1">{t.body}</Body>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* If we had more time - the unfinished ambitions. Lighter weight,
+             a row of 3 with a soft eyebrow. */}
+          <Reveal className="mt-20">
+            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+              if we had more time
+            </p>
+            <h3
+              className="mt-3 font-heading leading-tight text-text"
+              style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
+            >
+              Where we&rsquo;d push next.
+            </h3>
+          </Reveal>
+          <div className="mt-8 grid gap-4 md:grid-cols-3 md:gap-5">
+            {NEXT_STEPS.map((s, i) => (
+              <Reveal key={s} delay={i * 80} variant="up">
+                <div
+                  className="flex h-full items-start gap-3 border-l-2 py-2 pl-4"
+                  style={{ borderColor: "var(--accent)" }}
+                >
+                  <span
+                    className="font-mono text-caption-2 uppercase tracking-wide pt-0.5"
+                    style={{ color: "var(--accent)", opacity: 0.7 }}
+                  >
+                    0{i + 1}
+                  </span>
+                  <p className="font-body text-text" style={{ fontSize: "1rem", lineHeight: 1.45 }}>
+                    {s}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* Closing - the poem, the taglines, the sign-off. Left-aligned
+             to the section width so this final beat sits in the same column
+             as the rest of the page (was centered in a narrow max-w-2xl,
+             now aligned with the section's editorial column). */}
+          <div className="mt-24">
             <Reveal variant="fade" delay={120}>
-              <p className="mt-8 font-heading leading-[1.5] text-text" style={{ fontSize: "clamp(1.3rem, 2.2vw, 1.8rem)" }}>
+              <p
+                className="font-heading leading-[1.5] text-text"
+                style={{ fontSize: "clamp(1.3rem, 2.2vw, 1.8rem)" }}
+              >
                 A brand is a feeling before it&rsquo;s a logo. The moment we stopped explaining slow living and started showing it, people leaned in, shared it, and stayed.
               </p>
             </Reveal>
             <Reveal variant="fade" delay={200}>
-              <div className="mt-12 flex flex-col items-center gap-3">
+              <div className="mt-12 flex flex-col items-start gap-3">
                 {TAGLINES.map((t) => (
                   <p
                     key={t}
@@ -1067,8 +1965,8 @@ export function HandmadeHomesteadCaseStudy() {
               </div>
             </Reveal>
             <Reveal variant="fade" delay={280}>
-              <p className="mt-12 font-mono text-caption-1 lowercase tracking-wide text-muted">
-                made with soil under our nails, and a lot of love.
+              <p className="mt-12 font-mono text-caption-1 uppercase tracking-wide text-muted">
+                Made with soil under our nails, and a lot of love.
               </p>
             </Reveal>
           </div>

@@ -50,6 +50,12 @@ next-env.d.ts
 /my_pic.jpeg
 /About_images/
 /Handmade_homestead_images/
+/Fleed_images/
+/Ghost_images/
+/Kodif_assets/
+/MSI_expo_images/
+/Onki_images/
+/Theta_assets/
 
 # Rejected day/night reference images (never used)
 /Moon.png

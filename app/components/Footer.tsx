@@ -118,8 +118,14 @@ export function Footer() {
           </div>
         </div>
 
-        <p className="text-center font-mono uppercase text-caption-1 text-[#fdf9f2]/75">
-          Perpetually evolving, designed with Love
+        {/* Colophon — same EB Garamond italic treatment as the home, anchored
+            to the very bottom in the clear foreground below the animals (their
+            feet sit 22px+ up); theme-aware ink keeps it legible day and night. */}
+        <p
+          className="absolute inset-x-0 bottom-2 px-10 text-center text-sm italic text-text opacity-60"
+          style={{ fontFamily: "var(--font-eb-garamond)" }}
+        >
+          Who doesn&rsquo;t love leaving a footprint!
         </p>
       </div>
     </footer>

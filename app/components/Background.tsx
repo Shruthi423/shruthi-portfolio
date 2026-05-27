@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- footer silhouettes are tiny static SVGs, not photos */
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "./ThemeProvider";
@@ -10,7 +11,7 @@ import { gsap, useGSAP } from "../lib/gsap";
  *   <BackgroundStyles />  — the shared <style> block (render once)
  *   <SkyScene />          — sky colour + clouds + birds + plane + stars
  *   <DayNightToggle />    — the day / night bat button (fixed, top-right)
- *   <GrasslandScene />    — hills + sheep + tree + fence + fireflies
+ *   <GrasslandScene />    — hills + acacias + Masai Mara animals + fireflies
  *   <Background />        — default: all of the above, for /background
  *
  * Day / night is keyed off the global `.dark` class (the theme), so the
@@ -44,23 +45,18 @@ const STARS = [
   { x: 72, y: 55, size: 3, star: false, d: 1.5, dur: 3.6 },
 ];
 
-const FIREFLIES = [
-  { x: 7, bottom: 44, d: 0, dur: 4.2, rise: 6 },
-  { x: 19, bottom: 30, d: 1.3, dur: 5.1, rise: 5 },
-  { x: 31, bottom: 56, d: 0.6, dur: 3.4, rise: 7 },
-  { x: 44, bottom: 24, d: 2.1, dur: 4.8, rise: 4 },
-  { x: 56, bottom: 50, d: 0.9, dur: 5.6, rise: 6 },
-  { x: 68, bottom: 34, d: 1.7, dur: 3.8, rise: 5 },
-  { x: 81, bottom: 58, d: 2.6, dur: 4.5, rise: 7 },
-  { x: 92, bottom: 28, d: 0.4, dur: 5.3, rise: 5 },
-  { x: 13, bottom: 62, d: 3.1, dur: 4.0, rise: 6 },
-  { x: 26, bottom: 38, d: 0.2, dur: 5.8, rise: 4 },
-  { x: 38, bottom: 70, d: 2.4, dur: 3.6, rise: 7 },
-  { x: 50, bottom: 34, d: 1.0, dur: 4.9, rise: 5 },
-  { x: 62, bottom: 64, d: 3.5, dur: 4.3, rise: 6 },
-  { x: 74, bottom: 46, d: 0.8, dur: 5.4, rise: 5 },
-  { x: 87, bottom: 68, d: 2.0, dur: 3.9, rise: 7 },
-];
+// Fireflies (night) — a deterministic scatter (no Math.random) so SSR + client
+// markup match. Dense swarm; per-bug size/drift/brightness for a lively shimmer.
+const FIREFLIES = Array.from({ length: 70 }, (_, i) => ({
+  x: 2 + ((i * 23) % 96),
+  bottom: 14 + ((i * 37) % 176),
+  d: ((i * 13) % 90) / 10, // delay 0–8.9s
+  dur: 3.0 + ((i * 7) % 45) / 10, // 3.0–7.4s
+  rise: 5 + (i % 5), // vertical drift px
+  sway: 3 + (i % 4), // horizontal drift px
+  size: 3 + (i % 4), // core diameter 3–6px
+  bright: i % 4 === 0, // ~1 in 4 burns brighter
+}));
 
 // Shooting stars — long cycles, brief streak; ~one every 8-12s (night only).
 const SHOOTING = [
@@ -229,33 +225,70 @@ const CSS = `
 .dark .bg-fireflies { opacity: 1; }
 .bg-firefly {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: var(--size, 5px);
+  height: var(--size, 5px);
   border-radius: 50%;
-  background: #e6c45c;
-  box-shadow: 0 0 8px 2px rgba(230, 196, 92, 0.85);
+  /* white-hot core fading to amber → a glowing bug, not a flat dot */
+  background: radial-gradient(circle at 50% 45%, #fff6dc 0%, #f3d266 45%, rgba(230, 196, 92, 0) 72%);
+  /* layered halo = real bloom */
+  box-shadow:
+    0 0 6px 2px rgba(246, 216, 120, 0.9),
+    0 0 14px 5px rgba(230, 196, 92, 0.5),
+    0 0 28px 9px rgba(230, 196, 92, 0.22);
   will-change: transform, opacity;
   animation:
     bgw-fireflyFloat var(--dur) ease-in-out infinite,
-    bgw-fireflyPulse calc(var(--dur) * 0.6) ease-in-out infinite;
+    bgw-fireflyPulse calc(var(--dur) * 0.55) ease-in-out infinite;
   animation-delay: var(--delay);
 }
+/* the brighter few — a wider, hotter glow that anchors the swarm */
+.bg-firefly-bright {
+  box-shadow:
+    0 0 8px 3px rgba(255, 238, 170, 0.95),
+    0 0 20px 7px rgba(240, 206, 100, 0.6),
+    0 0 40px 14px rgba(230, 196, 92, 0.3);
+}
 
-/* ---- sheep (cross-fade poses by theme) ---- */
-.bg-sheep { position: absolute; bottom: 34px; }
-.bg-sheep .sheep-pose {
+/* ---- savanna palette — golden plains by day, deep & moonlit by night ---- */
+.savanna-hill-back  { fill: #ddca8e; }
+.savanna-hill-mid   { fill: #c7a85f; }
+.savanna-hill-front { fill: #a8863f; }
+.savanna-blade { stroke: #a8863f; }
+.dark .savanna-hill-back  { fill: #3a3326; }
+.dark .savanna-hill-mid   { fill: #322b1d; }
+.dark .savanna-hill-front { fill: #2a2418; }
+.dark .savanna-blade { stroke: #2a2418; }
+/* ---- savanna silhouettes (file-based SVGs: espresso by day, oat by night) ---- */
+.bg-animal { position: absolute; }
+.bg-animal .pose {
   position: absolute;
   bottom: 0;
   left: 0;
+  display: block;
   transition: opacity 0.6s ease;
 }
-.sheep-awake  { opacity: 1; }
-.sheep-asleep { opacity: 0; }
-.dark .sheep-awake  { opacity: 0; }
-.dark .sheep-asleep { opacity: 1; }
-.bg-sheep-1 { left: 14%; }
-.bg-sheep-1 .sheep-awake { animation: bgw-sheepWander 36s ease-in-out infinite; will-change: transform; }
-.bg-sheep-2 { left: 62%; bottom: 30px; }
+.bg-flip .pose { transform: scaleX(-1); }
+.pose-night { opacity: 0; }
+.dark .pose-day { opacity: 0; }
+.dark .pose-night { opacity: 1; }
+/* sizes live here (not on the img width/height attrs) so they beat the
+   Tailwind preflight "img height:auto" rule, which otherwise collapses
+   these viewBox-only SVGs to nothing. */
+.bg-animal .pose { width: auto; height: auto; max-width: none; }
+.bg-elephant      { left: 13%; bottom: 26px; }
+.bg-elephant .pose      { height: 82px; }
+.bg-elephant-baby { left: 25%; bottom: 24px; }
+.bg-elephant-baby .pose { height: 44px; }
+.bg-antelope      { left: 45%; bottom: 30px; }
+.bg-antelope .pose      { height: 52px; }
+.bg-antelope-2    { left: 52%; bottom: 32px; }
+.bg-antelope-2 .pose    { height: 42px; }
+.bg-giraffe       { left: 70%; bottom: 30px; }
+.bg-giraffe .pose       { height: 138px; }
+.bg-acacia-1 { left: 84%; bottom: 22px; }
+.bg-acacia-1 .pose { height: 188px; }
+.bg-acacia-2 { left: 5%;  bottom: 34px; }
+.bg-acacia-2 .pose { height: 150px; }
 
 @keyframes bgw-rayRotate {
   from { transform: rotate(0deg); }
@@ -277,18 +310,18 @@ const CSS = `
   100% { transform: translate(380px, 235px) rotate(32deg); opacity: 0; }
 }
 @keyframes bgw-fireflyFloat {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(calc(var(--rise) * -1px)); }
+  0%   { transform: translate(0, 0) scale(0.85); }
+  25%  { transform: translate(calc(var(--sway) * 1px), calc(var(--rise) * -0.5px)) scale(1); }
+  50%  { transform: translate(0, calc(var(--rise) * -1px)) scale(1.08); }
+  75%  { transform: translate(calc(var(--sway) * -1px), calc(var(--rise) * -0.5px)) scale(0.96); }
+  100% { transform: translate(0, 0) scale(0.85); }
 }
+/* asymmetric peak = a flicker, not a smooth breathe → shimmer */
 @keyframes bgw-fireflyPulse {
-  0%, 100% { opacity: 0.3; }
-  50%      { opacity: 1; }
+  0%, 100% { opacity: 0.12; }
+  45%      { opacity: 1; }
+  60%      { opacity: 0.82; }
 }
-@keyframes bgw-sheepWander {
-  0%, 100% { transform: translateX(0); }
-  50%      { transform: translateX(110px); }
-}
-
 /* ---- bat toggle (day: upside-down · night: upright · wings flap on hover) ---- */
 .bat-wing-l { transform-box: view-box; transform-origin: 41px 40px; }
 .bat-wing-r { transform-box: view-box; transform-origin: 59px 40px; }
@@ -388,7 +421,7 @@ function StarShape({ size }: { size: number }) {
 function HillBack() {
   return (
     <svg className="bg-hill" viewBox="0 0 1440 160" preserveAspectRatio="none" aria-hidden style={{ height: 320 }}>
-      <path d="M0 160 L0 78 C240 28 470 22 720 52 C980 84 1210 38 1440 68 L1440 160 Z" fill="#9fae72" />
+      <path d="M0 160 L0 78 C240 28 470 22 720 52 C980 84 1210 38 1440 68 L1440 160 Z" className="savanna-hill-back" />
     </svg>
   );
 }
@@ -396,7 +429,7 @@ function HillBack() {
 function HillMid() {
   return (
     <svg className="bg-hill" viewBox="0 0 1440 130" preserveAspectRatio="none" aria-hidden style={{ height: 260 }}>
-      <path d="M0 130 L0 72 C300 102 520 38 800 62 C1080 86 1270 48 1440 78 L1440 130 Z" fill="#79894c" />
+      <path d="M0 130 L0 72 C300 102 520 38 800 62 C1080 86 1270 48 1440 78 L1440 130 Z" className="savanna-hill-mid" />
     </svg>
   );
 }
@@ -404,8 +437,8 @@ function HillMid() {
 function HillFront() {
   return (
     <svg className="bg-hill" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden style={{ height: 192 }}>
-      <path d="M0 100 L0 56 C360 72 600 44 920 58 C1180 70 1320 50 1440 60 L1440 100 Z" fill="#5b6a34" />
-      <g stroke="#5b6a34" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M0 100 L0 56 C360 72 600 44 920 58 C1180 70 1320 50 1440 60 L1440 100 Z" className="savanna-hill-front" />
+      <g className="savanna-blade" strokeWidth="2.5" strokeLinecap="round">
         {BLADES.map((b, i) => {
           const x = (b.x / 100) * 1440;
           const topY = 58 - (b.x % 7);
@@ -416,86 +449,6 @@ function HillFront() {
   );
 }
 
-function Fence() {
-  return (
-    <svg
-      className="bg-grass-piece"
-      width="190"
-      height="80"
-      viewBox="0 0 190 80"
-      aria-hidden
-      style={{ left: "26%", bottom: 30 }}
-    >
-      <g stroke="#6b4c2a" strokeWidth="6" strokeLinecap="round" fill="none">
-        <path d="M16 76 L14 20" />
-        <path d="M70 75 L72 18" />
-        <path d="M124 76 L122 21" />
-        <path d="M178 74 L176 19" />
-        <path d="M10 34 C60 30 130 32 184 30" />
-        <path d="M10 56 C60 53 130 55 184 52" />
-      </g>
-    </svg>
-  );
-}
-
-function Tree() {
-  return (
-    <svg
-      className="bg-grass-piece"
-      width="96"
-      height="150"
-      viewBox="0 0 96 150"
-      aria-hidden
-      style={{ left: "76%", bottom: 26 }}
-    >
-      <path
-        d="M40 150 C39 120 36 100 38 78 C39 70 44 66 50 70 C54 73 53 95 52 118 C52 132 53 142 54 150 Z"
-        fill="#3a4520"
-      />
-      <path
-        d="M46 8 C70 4 92 22 88 44 C95 58 80 78 58 76 C40 82 14 70 12 48 C4 32 22 10 46 8 Z"
-        fill="#4f6129"
-      />
-    </svg>
-  );
-}
-
-function SheepAwake({ size }: { size: number }) {
-  return (
-    <svg className="sheep-pose sheep-awake" width={size} height={size * 0.85} viewBox="0 0 60 50" aria-hidden>
-      <g stroke="#2d2a26" strokeWidth="2.5" strokeLinecap="round">
-        <path d="M20 38 L19 48" />
-        <path d="M34 39 L35 48" />
-      </g>
-      <path
-        d="M14 30 C9 22 16 13 26 15 C31 8 46 9 49 19 C57 21 56 33 47 35 C44 41 24 41 20 35 C16 36 13 33 14 30 Z"
-        fill="#fdf9f2"
-      />
-      <path d="M44 20 C50 19 53 24 50 29 C47 33 40 32 39 26 C39 22 41 21 44 20 Z" fill="#2d2a26" />
-      <path d="M41 19 C38 16 35 19 38 22 Z" fill="#2d2a26" />
-    </svg>
-  );
-}
-
-function SheepAsleep({ size }: { size: number }) {
-  return (
-    <svg className="sheep-pose sheep-asleep" width={size} height={size * 0.85} viewBox="0 0 60 50" aria-hidden>
-      <path
-        d="M10 42 C6 35 14 30 24 31 C30 26 44 27 48 34 C56 35 56 44 47 45 C40 48 18 48 10 42 Z"
-        fill="#fdf9f2"
-      />
-      <path d="M44 36 C50 35 52 41 48 44 C44 46 39 43 40 39 C40 37 42 36 44 36 Z" fill="#2d2a26" />
-      <path
-        d="M40 24 L46 24 L40 30 L46 30"
-        stroke="#fdf9f2"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 /* ---- exported pieces ---- */
 
@@ -641,29 +594,51 @@ export function GrasslandScene() {
       <HillMid />
       <HillFront />
 
-      <Fence />
-      <Tree />
-
-      <div className="bg-sheep bg-sheep-1">
-        <SheepAwake size={44} />
-        <SheepAsleep size={44} />
+      <div className="bg-animal bg-acacia-1">
+        <img className="pose pose-day" src="/savanna/acacia-day.svg" alt="" aria-hidden />
+        <img className="pose pose-night" src="/savanna/acacia-night.svg" alt="" aria-hidden />
       </div>
-      <div className="bg-sheep bg-sheep-2">
-        <SheepAwake size={34} />
-        <SheepAsleep size={34} />
+      <div className="bg-animal bg-acacia-2">
+        <img className="pose pose-day" src="/savanna/acacia2-day.svg" alt="" aria-hidden />
+        <img className="pose pose-night" src="/savanna/acacia2-night.svg" alt="" aria-hidden />
+      </div>
+
+      <div className="bg-animal bg-elephant bg-flip">
+        <img className="pose pose-day" src="/savanna/elephant-day.svg" alt="" aria-hidden height={82} />
+        <img className="pose pose-night" src="/savanna/elephant-night.svg" alt="" aria-hidden height={82} />
+      </div>
+      <div className="bg-animal bg-elephant-baby bg-flip">
+        <img className="pose pose-day" src="/savanna/elephant-baby-day.svg" alt="" aria-hidden height={44} />
+        <img className="pose pose-night" src="/savanna/elephant-baby-night.svg" alt="" aria-hidden height={44} />
+      </div>
+
+      <div className="bg-animal bg-antelope">
+        <img className="pose pose-day" src="/savanna/antelope-day.svg" alt="" aria-hidden height={52} />
+        <img className="pose pose-night" src="/savanna/antelope-night.svg" alt="" aria-hidden height={52} />
+      </div>
+      <div className="bg-animal bg-antelope-2">
+        <img className="pose pose-day" src="/savanna/antelope2-day.svg" alt="" aria-hidden height={42} />
+        <img className="pose pose-night" src="/savanna/antelope2-night.svg" alt="" aria-hidden height={42} />
+      </div>
+
+      <div className="bg-animal bg-giraffe">
+        <img className="pose pose-day" src="/savanna/giraffe-day.svg" alt="" aria-hidden height={138} />
+        <img className="pose pose-night" src="/savanna/giraffe-night.svg" alt="" aria-hidden height={138} />
       </div>
 
       <div className="bg-fireflies">
         {FIREFLIES.map((f, i) => (
           <span
             key={i}
-            className="bg-firefly"
+            className={f.bright ? "bg-firefly bg-firefly-bright" : "bg-firefly"}
             style={{
               left: `${f.x}%`,
               bottom: f.bottom,
               ["--dur" as string]: `${f.dur}s`,
               ["--delay" as string]: `${f.d}s`,
               ["--rise" as string]: f.rise,
+              ["--sway" as string]: f.sway,
+              ["--size" as string]: `${f.size}px`,
             }}
           />
         ))}

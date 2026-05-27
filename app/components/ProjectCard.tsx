@@ -15,8 +15,46 @@ export type Project = {
   color1: string; // card fill (light pastel)
   color2: string; // accent — solid pill fill
   image?: string; // floating mockup — wired in later
+  imageFit?: "cover" | "contain"; // default "cover"; use "contain" for portrait mockups where the subject must show in full
+  pillColors?: string[]; // override the auto-derived complement palette (e.g. for dark cards where complement-of-hue doesn't read)
   href?: string;
 };
+
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  let c = hex.replace("#", "");
+  if (c.length === 3) c = c.split("").map((x) => x + x).join("");
+  const r = parseInt(c.slice(0, 2), 16) / 255;
+  const g = parseInt(c.slice(2, 4), 16) / 255;
+  const b = parseInt(c.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  let h = 0;
+  let s = 0;
+  if (d !== 0) {
+    s = d / (1 - Math.abs(2 * l - 1));
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s: s * 100, l: l * 100 };
+}
+
+// Pills that complement the card's image: a trio sitting opposite the card's
+// own hue (split-complement around 180°), so every pill pops against the
+// background instead of melting into it. Held mid-dark + saturated so the
+// white pill text stays legible.
+function pillPalette(accent: string): string[] {
+  const { h } = hexToHsl(accent);
+  const comp = h + 180;
+  const S = 66;
+  const L = 44;
+  const at = (deg: number) => `hsl(${Math.round((((deg % 360) + 360) % 360))} ${S}% ${L}%)`;
+  return [at(comp - 48), at(comp), at(comp + 48)];
+}
 
 export function ProjectCard({ project }: { project: Project }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -30,6 +68,13 @@ export function ProjectCard({ project }: { project: Project }) {
   const spawnDelays = useMemo(
     () => (project.tags ?? []).map(() => Math.random() * 0.4),
     [project.tags],
+  );
+
+  // Pill palette: per-project override wins; otherwise derived as a
+  // split-complement trio opposite the card's hue.
+  const palette = useMemo(
+    () => project.pillColors ?? pillPalette(project.color2),
+    [project.pillColors, project.color2],
   );
 
   useGSAP(
@@ -228,19 +273,23 @@ export function ProjectCard({ project }: { project: Project }) {
   const visual = (
     <div
       ref={frameRef}
-      data-cursor-label={project.href ? "VIEW" : undefined}
+      data-cursor-label={project.href ? "VIEW" : "Coming soon"}
       className="group relative aspect-[4/3] w-full overflow-hidden"
       style={{ backgroundColor: project.color1 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {project.image ? (
-        // Full-bleed cover photo — fills the whole card; pills still rain on hover.
+        // Cover-fill by default (landscape hero photos), or contain when the
+        // mockup must show in full — set the card's `color1` to match the
+        // image's edge colour and contained mockups read as floating on the bg.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={project.image}
           alt={`${project.name} preview`}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+          className={`absolute inset-0 h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.05] ${
+            project.imageFit === "contain" ? "object-contain" : "object-cover"
+          }`}
         />
       ) : (
         <div
@@ -274,8 +323,8 @@ export function ProjectCard({ project }: { project: Project }) {
               ref={(el) => {
                 pillRefs.current[i] = el;
               }}
-              className="absolute left-0 top-0 whitespace-nowrap rounded-full px-3 py-1 font-mono text-caption-2 uppercase tracking-wide text-white opacity-0 will-change-transform"
-              style={{ backgroundColor: project.color2 }}
+              className="absolute left-0 top-0 whitespace-nowrap rounded-full px-4 py-2 font-mono text-caption-1 font-medium uppercase tracking-wide text-white opacity-0 will-change-transform"
+              style={{ backgroundColor: palette[i % palette.length] }}
             >
               {tag}
             </span>

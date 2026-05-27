@@ -828,6 +828,16 @@ export function OnkiCaseStudy() {
                 relationship to design for.
               </p>
             </Reveal>
+            {/* Tagline sign-off — uppercase mono, accent-coloured, matches
+               the pattern used in Feeld and Handmade Homestead. */}
+            <Reveal variant="fade" delay={240}>
+              <p
+                className="mt-16 font-mono text-caption-1 uppercase tracking-wide"
+                style={{ color: "var(--accent)" }}
+              >
+                A good assistant doesn&rsquo;t sell. It remembers.
+              </p>
+            </Reveal>
           </div>
         </SectionWrap>
       </div>

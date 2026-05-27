@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { SkyScene } from "./Background";
+import { Breadcrumbs } from "./Breadcrumbs";
 import { Footer, FOOTER_HEIGHT } from "./Footer";
 import { InnerTopBar } from "./InnerTopBar";
 
@@ -33,6 +34,7 @@ export function SiteFrame({ children }: { children: React.ReactNode }) {
         </div>
       </main>
       <Footer />
+      <Breadcrumbs />
     </>
   );
 }

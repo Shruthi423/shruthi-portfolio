@@ -30,5 +30,12 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "Fleed_images",
+    "Ghost_images",
+    "Kodif_assets",
+    "Onki_images",
+    "Theta_assets"
+  ]
 }

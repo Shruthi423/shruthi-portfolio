@@ -34,6 +34,10 @@ export function CircleCursor() {
   const [ready, setReady] = useState(false);
   const [labeledEl, setLabeledEl] = useState<HTMLElement | null>(null);
   const [label, setLabel] = useState<string | null>(null);
+  // `data-cursor-image` lets a hovered element show a preview image inside
+  // the cursor pill instead of (or alongside) the text label. Used to give
+  // the AI-video tab an actual AI-generated thumbnail at the cursor.
+  const [image, setImage] = useState<string | null>(null);
   const [autoPillSide, setAutoPillSide] = useState<PillSide>("center");
   const [pillSideOverride, setPillSideOverride] = useState<PillSide | null>(
     null,
@@ -42,8 +46,10 @@ export function CircleCursor() {
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springX = useSpring(mouseX, { damping: 25, stiffness: 350, mass: 0.5 });
-  const springY = useSpring(mouseY, { damping: 25, stiffness: 350, mass: 0.5 });
+  // Snappier follow: higher stiffness + lower mass = tracks the mouse tightly
+  // without the floaty trail, while damping keeps it from overshooting.
+  const springX = useSpring(mouseX, { damping: 38, stiffness: 900, mass: 0.35 });
+  const springY = useSpring(mouseY, { damping: 38, stiffness: 900, mass: 0.35 });
 
   useEffect(() => {
     if (!window.matchMedia("(hover: hover)").matches) return;
@@ -88,15 +94,19 @@ export function CircleCursor() {
     };
   }, [mouseX, mouseY]);
 
-  // Re-read label + anchor override when the hovered element's attributes change.
+  // Re-read label + anchor + image override when the hovered element's
+  // attributes change. `data-cursor-image` is a path (e.g. /foo/bar.jpg);
+  // when present, the pill renders the image instead of the text label.
   useEffect(() => {
     if (!labeledEl) {
       setLabel(null);
+      setImage(null);
       setPillSideOverride(null);
       return;
     }
     const read = () => {
       setLabel(labeledEl.getAttribute("data-cursor-label"));
+      setImage(labeledEl.getAttribute("data-cursor-image"));
       setPillSideOverride(
         parsePillSide(labeledEl.getAttribute("data-cursor-anchor")),
       );
@@ -105,7 +115,7 @@ export function CircleCursor() {
     const observer = new MutationObserver(read);
     observer.observe(labeledEl, {
       attributes: true,
-      attributeFilter: ["data-cursor-label", "data-cursor-anchor"],
+      attributeFilter: ["data-cursor-label", "data-cursor-anchor", "data-cursor-image"],
     });
     return () => observer.disconnect();
   }, [labeledEl]);
@@ -126,17 +136,41 @@ export function CircleCursor() {
     >
       <motion.div
         layout
-        className="flex items-center justify-center rounded-full"
+        className="flex items-center justify-center overflow-hidden rounded-full"
         style={{
-          backgroundColor: pillBg,
+          // When an image preview is active, drop the pill background so
+          // the image reads cleanly. Otherwise use the brand pill color.
+          backgroundColor: image ? "transparent" : pillBg,
           transform: `translate(${translateX}, -50%)`,
           minWidth: 12,
           minHeight: 12,
         }}
         transition={{ type: "spring", stiffness: 400, damping: 32, mass: 0.5 }}
       >
-        <AnimatePresence initial={false}>
-          {label && (
+        <AnimatePresence initial={false} mode="wait">
+          {image ? (
+            // Image preview - replaces the text pill. Sized to feel like
+            // a phone-screen thumbnail (it's an IG-style 9:16). Subtle
+            // shadow + border so it reads on any background.
+            <motion.div
+              key={`img-${image}`}
+              className="overflow-hidden rounded-2xl shadow-lg"
+              style={{ border: `2px solid ${pillBg}`, height: 168, aspectRatio: "9 / 16" }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={image}
+                alt=""
+                aria-hidden="true"
+                className="h-full w-full object-cover"
+                draggable={false}
+              />
+            </motion.div>
+          ) : label ? (
             <motion.span
               key="label"
               className="whitespace-nowrap px-4 py-1.5 font-mono lowercase"
@@ -148,7 +182,7 @@ export function CircleCursor() {
             >
               {label}
             </motion.span>
-          )}
+          ) : null}
         </AnimatePresence>
       </motion.div>
     </motion.div>

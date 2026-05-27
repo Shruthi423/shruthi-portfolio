@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { EB_Garamond, Figtree } from "next/font/google";
+import { EB_Garamond, Figtree, Rock_Salt } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -27,6 +27,16 @@ const figtree = Figtree({
   variable: "--font-figtree",
   subsets: ["latin"],
   style: ["normal", "italic"],
+  display: "swap",
+});
+
+// Rock Salt — handwritten cursive, used for scribbled overlay text on case
+// studies (e.g. Feeld's "Through the lens..." overlay on the in-world image,
+// and the per-screen scribbles in the app reel). Single weight, latin only.
+const rockSalt = Rock_Salt({
+  variable: "--font-rocksalt",
+  subsets: ["latin"],
+  weight: "400",
   display: "swap",
 });
 
@@ -95,7 +105,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${ebGaramond.variable} ${figtree.variable} ${dahlia.variable} h-full antialiased`}
+      className={`${ebGaramond.variable} ${figtree.variable} ${dahlia.variable} ${rockSalt.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Script id="theme-init" strategy="beforeInteractive">
