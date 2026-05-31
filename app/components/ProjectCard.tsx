@@ -271,10 +271,12 @@ export function ProjectCard({ project }: { project: Project }) {
   const hasTags = !!project.tags && project.tags.length > 0;
 
   const visual = (
+    // MOCKUP — Emma Wu wide stripe aspect (~2.7:1) + 2px corner radius.
+    // Revert: aspect-[4/3] and drop rounded-[2px].
     <div
       ref={frameRef}
       data-cursor-label={project.href ? "VIEW" : "Coming soon"}
-      className="group relative aspect-[4/3] w-full overflow-hidden"
+      className="group relative aspect-[4/3] w-full overflow-hidden rounded-[2px]"
       style={{ backgroundColor: project.color1 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -287,7 +289,7 @@ export function ProjectCard({ project }: { project: Project }) {
         <img
           src={project.image}
           alt={`${project.name} preview`}
-          className={`absolute inset-0 h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.05] ${
+          className={`absolute inset-0 h-full w-full transition-[filter] duration-500 ease-out group-hover:grayscale ${
             project.imageFit === "contain" ? "object-contain" : "object-cover"
           }`}
         />

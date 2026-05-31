@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { ProjectCard, type Project } from "./ProjectCard";
 
 /**
- * Client-side filter + sort layer for the /work grid. Renders a small row of
- * year chips above the cards (plus a "coming soon" chip for in-progress work),
- * and always sorts the visible cards newest-first.
+ * Client-side filter layer for the /work grid. Renders a small row of year
+ * chips above the cards (plus a "coming soon" chip for in-progress work).
+ * The visible order is whatever's in the source array - the page.tsx
+ * sequence is intentional (not date-sorted), so this component preserves
+ * it on every filter.
  *
  * Kept separate from app/work/page.tsx so the page itself stays a server
  * component and the project array doesn't have to ship as a client bundle from
@@ -39,19 +41,20 @@ export function WorkGrid({ projects }: { projects: Project[] }) {
 
   const [active, setActive] = useState<string>(ALL);
 
-  const visible = useMemo(() => {
-    const filtered = projects.filter((p) => {
-      if (active === ALL) return true;
-      if (active === COMING) return !p.href;
-      return yearKey(p.year) === Number(active);
-    });
-    // Newest-first regardless of filter. Array.sort is stable in modern engines,
-    // so ties (same year) keep their original order in the source array.
-    return [...filtered].sort((a, b) => yearKey(b.year) - yearKey(a.year));
-  }, [projects, active]);
+  const visible = useMemo(
+    () =>
+      projects.filter((p) => {
+        if (active === ALL) return true;
+        if (active === COMING) return !p.href;
+        return yearKey(p.year) === Number(active);
+      }),
+    [projects, active],
+  );
 
   return (
-    <section className="px-10 pb-10">
+    // MOCKUP — Emma Wu / emmiwu.com style: wider page bleed, tighter gutters,
+    // 2-col at md+, max-w-[1700px]. Revert: restore px-10 + md:w-4/5 + gap-x-8.
+    <section className="px-[27px] pb-10 sm:px-6">
       {/* filter chips */}
       <nav
         aria-label="Filter projects by year"
@@ -78,7 +81,7 @@ export function WorkGrid({ projects }: { projects: Project[] }) {
         })}
       </nav>
 
-      <div className="mx-auto grid grid-cols-1 gap-x-8 gap-y-16 md:w-4/5 md:grid-cols-2">
+      <div className="mx-auto grid max-w-[1700px] grid-cols-1 gap-x-6 gap-y-16 md:grid-cols-2">
         {visible.map((p) => (
           <ProjectCard key={p.name} project={p} />
         ))}

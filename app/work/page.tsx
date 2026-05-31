@@ -2,6 +2,37 @@ import type { Project } from "../components/ProjectCard";
 import { WorkGrid } from "../components/WorkGrid";
 
 const projects: Project[] = [
+  // ---- Live case studies (clickable) ----
+  {
+    name: "Kodif",
+    discipline: "UX/UI Design",
+    type: "Internship",
+    year: "2024",
+    description: "AI-powered e-commerce, with the friction designed out.",
+    tags: ["-30% Friction", "3× Referrals", "AI-Powered", "E-commerce", "UX/UI"],
+    color1: "#FFCDF4", // matches the new cover's pink border → seamless edges
+    color2: "#1D6C5C",
+    image: "/kodif/cover.png",
+    href: "/kodif",
+  },
+  {
+    name: "Zuge Electric",
+    discipline: "HMI Design",
+    type: "Full-time",
+    year: "2024",
+    description: "A delivery-first EV dashboard for 2M+ gig riders.",
+    tags: [
+      "2M+ Riders",
+      "-73% Phone Use",
+      "87% Satisfaction",
+      "HMI Design",
+      "EV Mobility",
+    ],
+    color1: "#E2FFCB", // matches the new cover's mint border → seamless edges
+    color2: "#2E6FA3",
+    image: "/zuge/cover.png",
+    href: "/zuge",
+  },
   {
     name: "Temple",
     discipline: "Product Management",
@@ -15,37 +46,10 @@ const projects: Project[] = [
       "Trust & Safety",
       "Ticketing",
     ],
-    color1: "#F7D0BC",
+    color1: "#FFF0A4", // matches the new cover's pale yellow border → seamless edges
     color2: "#C45C3A",
+    image: "/temple/cover.png",
     href: "/temple",
-  },
-  {
-    name: "Zuge",
-    discipline: "HMI Design",
-    type: "Full-time",
-    year: "2024",
-    description: "A delivery-first EV dashboard for 2M+ gig riders.",
-    tags: [
-      "2M+ Riders",
-      "-73% Phone Use",
-      "87% Satisfaction",
-      "HMI Design",
-      "EV Mobility",
-    ],
-    color1: "#AFD9FF",
-    color2: "#2E6FA3",
-    href: "/zuge",
-  },
-  {
-    name: "Kodif",
-    discipline: "UX/UI Design",
-    type: "Internship",
-    year: "2024",
-    description: "AI-powered e-commerce, with the friction designed out.",
-    tags: ["-30% Friction", "3× Referrals", "AI-Powered", "E-commerce", "UX/UI"],
-    color1: "#4A9B6F",
-    color2: "#1D6C5C",
-    href: "/kodif",
   },
   {
     name: "Onki",
@@ -60,19 +64,10 @@ const projects: Project[] = [
       "Voice & Text",
       "In Progress",
     ],
-    color1: "#FCB34F",
+    color1: "#FFCAC9", // matches the new cover's coral pink border → seamless edges
     color2: "#A67C20",
+    image: "/onki/cover.png",
     href: "/onki",
-  },
-  {
-    name: "Theta",
-    discipline: "AI Exploration",
-    year: "2024",
-    description: "An AI exploration — one-liner from you.", // PLACEHOLDER
-    tags: ["AI Exploration", "Generative AI", "Prototype", "R&D", "Concept"],
-    color1: "#E1D5B5",
-    color2: "#8A7D5A",
-    href: "/theta",
   },
   {
     name: "Handmade Homestead",
@@ -86,20 +81,10 @@ const projects: Project[] = [
       "152.6K Views",
       "Content Design",
     ],
-    color1: "#E7E0CE",
-    color2: "#7E6A45",
-    image: "/handmade-homestead/hero.jpg",
+    color1: "#1F3A2E", // matches the new cover's deep forest green → seamless edges
+    color2: "#C45C3A",
+    image: "/handmade-homestead/cover.png",
     href: "/handmade-homestead",
-  },
-  {
-    name: "Indigo Records",
-    discipline: "Graphic Design",
-    year: "2025", // PLACEHOLDER year — confirm
-    description: "Visual identity and assets for an indie record label.", // PLACEHOLDER
-    tags: ["Album Art", "Brand System", "Typography", "Posters", "Print"],
-    color1: "#CCD0EE",
-    color2: "#3D4189",
-    href: "/indigo-records",
   },
   {
     name: "Feeld",
@@ -108,30 +93,73 @@ const projects: Project[] = [
     year: "2026",
     description: "A wearable that lets you read the room, and yourself.",
     tags: ["Speculative UX", "Concept", "Wearable contact lens", "Figma Make", "48-Hr Build"],
-    color1: "#000000", // matches the mockup's black background → seamless edges
+    color1: "#C6E7FF", // matches the new cover's pale blue border → seamless edges
     color2: "#CF4B3B",
-    image: "/feeld/Feeld-Mockup-thumb.png", // 4:3 crop tight on the phone screen
-    // Warm palette on black. Five explicit entries (one per tag). Cream was
-    // failing white-on-light contrast for "Concept" and "Figma Make" — both
-    // swapped to darker warm tones so all pills support white text legibly.
-    //   0 Speculative UX     → red
-    //   1 Concept            → taupe (was cream)
-    //   2 Wearable contact lens → amber
-    //   3 Figma Make         → deep amber (was cream)
-    //   4 48-Hr Build        → red
+    image: "/feeld/cover.png",
+    // Five explicit warm-tone pill entries (one per tag). Cream tones were
+    // dropped earlier for white-on-light contrast on "Concept" and "Figma
+    // Make"; the warm reds/ambers still hold up against the new pale blue
+    // bg, so the override stays.
     pillColors: ["#CF4B3B", "#6B5D3F", "#E89B3A", "#8F6921", "#CF4B3B"],
     href: "/feeld",
   },
-  // ---- Coming soon ---- (no `href` → ProjectCard shows "Coming soon" on hover)
   {
     name: "UMSI Expo Badges",
     discipline: "Brand & Identity",
     year: "2026",
     description: "Conference badges for the University of Michigan SI expo.",
     tags: ["Brand & Identity", "Print Design", "Event", "U-M", "Badges"],
-    color1: "#FFFFEA", // matches the cover image's cream background → seamless edges
+    color1: "#FFFFC0", // matches the new cover's pale yellow border → seamless edges
     color2: "#4B4F58",
-    image: "/umsi-expo-badges/cover.jpg",
+    image: "/umsi-expo-badges/cover.png",
+    href: "/umsi-expo-badges",
+  },
+  // ---- HIDDEN: Campus Take ----
+  // Temporarily removed from the grid. Component, public assets, and page
+  // wrapper code stay on disk; re-enable by uncommenting this block AND
+  // restoring app/campus-take/page.tsx (see git history).
+  // {
+  //   name: "Campus Take",
+  //   discipline: "UX/UI Design",
+  //   year: "2026",
+  //   description: "A daily opinion poll for 53,000+ U-M students.",
+  //   tags: ["53K Students", "Vote · Predict · Reveal", "Mobile First", "Motion Design", "Vibe Coded"],
+  //   color1: "#DAEA9A",
+  //   color2: "#00274C",
+  //   image: "/campus-take/cover.png",
+  //   href: "/campus-take",
+  // },
+
+  // ---- Coming soon ---- (no `href` → ProjectCard shows "Coming soon" on hover)
+  {
+    name: "Indigo Records",
+    discipline: "Graphic Design",
+    year: "2025", // PLACEHOLDER year — confirm
+    description: "Visual identity and assets for an indie record label.", // PLACEHOLDER
+    tags: ["Album Art", "Brand System", "Typography", "Posters", "Print"],
+    color1: "#D8DDFF", // matches the new cover's lavender border → seamless edges
+    color2: "#3D4189",
+    image: "/indigo-records/cover.png",
+  },
+  {
+    name: "Theta",
+    discipline: "AI Exploration",
+    year: "2024",
+    description: "An AI exploration — one-liner from you.", // PLACEHOLDER
+    tags: ["AI Exploration", "Generative AI", "Prototype", "R&D", "Concept"],
+    color1: "#CBCAFF", // matches the new cover's pale periwinkle border → seamless edges
+    color2: "#8A7D5A",
+    image: "/theta/cover.png",
+  },
+  {
+    name: "Umood",
+    discipline: "Logo & Identity",
+    year: "2025",
+    description: "A wellness companion wordmark for U-M students.",
+    tags: ["Wordmark", "Brand & Identity", "Typography", "U-M Wellness", "Logo"],
+    color1: "#FF9A9A", // matches the new cover's coral pink border → seamless edges
+    color2: "#00274C", // U-M Navy, the wordmark's primary
+    image: "/umood/cover.png",
   },
   {
     name: "Ghost",
@@ -139,17 +167,9 @@ const projects: Project[] = [
     year: "2026",
     description: "A Chrome extension that helps you write better prompts.",
     tags: ["AI Tooling", "Browser Extension", "Prompt UX", "Chrome", "AI"],
-    color1: "#D9D1ED",
-    color2: "#5B4DA8",
-  },
-  {
-    name: "Michigan Wellness Wordmark",
-    discipline: "Logo & Identity",
-    year: "2025",
-    description: "Wordmark identity for Michigan Wellness.",
-    tags: ["Logo Design", "Wordmark", "Brand & Identity", "Typography"],
-    color1: "#C6DDC8",
-    color2: "#3E6B49",
+    color1: "#262122", // matches the new cover's near-black background → seamless edges
+    color2: "#FCE49A", // warm yellow accent
+    image: "/ghost/cover.png",
   },
   {
     name: "Gesture-based Website",
@@ -157,8 +177,9 @@ const projects: Project[] = [
     year: "2026",
     description: "A website you navigate with hand gestures.",
     tags: ["Gesture UX", "Interaction", "Web", "ML/Vision", "Prototype"],
-    color1: "#F2C9DA",
+    color1: "#FFBEE9", // matches the new cover's pink border → seamless edges
     color2: "#B6446F",
+    image: "/gesture-based-website/cover.png",
   },
   {
     name: "Gesture-based Games",
@@ -166,17 +187,19 @@ const projects: Project[] = [
     year: "2026",
     description: "Games you play with your hands in the air.",
     tags: ["Gesture UX", "Game Design", "Interaction", "Play", "Prototype"],
-    color1: "#B5E1E5",
+    color1: "#DFFF80", // matches the new cover's lime border → seamless edges
     color2: "#2A7882",
+    image: "/gesture-based-games/cover.png",
   },
   {
-    name: "Campus Take",
-    discipline: "UX/UI Design",
-    year: "2026",
-    description: "A takeout experience for University of Michigan dining.",
-    tags: ["UX/UI Design", "Food Service", "U-M Dining", "Takeout", "Campus"],
-    color1: "#D5DAA8",
-    color2: "#6E7E3D",
+    name: "Talking Maize and Blue",
+    discipline: "Brand & Identity", // PLACEHOLDER — confirm
+    year: "2026", // PLACEHOLDER — confirm
+    description: "Brand & identity for Talking Maize and Blue.", // PLACEHOLDER
+    tags: ["Brand & Identity", "U-M", "TBD"], // PLACEHOLDER
+    color1: "#E6FFD1", // matches the new cover's mint border → seamless edges
+    color2: "#00274C", // U-M Blue
+    image: "/talking-maize-and-blue/cover.png",
   },
 ];
 
