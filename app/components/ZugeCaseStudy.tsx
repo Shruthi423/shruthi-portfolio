@@ -101,21 +101,12 @@ const prefersReduced = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function Squiggle({ className = "" }: { className?: string }) {
-  return (
-    <svg width="58" height="6" viewBox="0 0 58 6" fill="none" className={className} aria-hidden>
-      <path d="M1 3.6C9 1.4 16 1.4 24 3.4S42 5.8 50 3.2 56 2.2 57 3.2" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <p className="font-mono text-caption-1 lowercase tracking-[0.04em]" style={{ color: "var(--accent)" }}>
         {children}
       </p>
-      <Squiggle className="mt-1.5" />
     </div>
   );
 }

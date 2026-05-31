@@ -316,19 +316,6 @@ const prefersReduced = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function Squiggle({ className = "" }: { className?: string }) {
-  return (
-    <svg width="58" height="6" viewBox="0 0 58 6" fill="none" className={className} aria-hidden>
-      <path
-        d="M1 3.6C9 1.4 16 1.4 24 3.4S42 5.8 50 3.2 56 2.2 57 3.2"
-        stroke="var(--accent)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function ArrowDoodle({ className = "" }: { className?: string }) {
   return (
     <svg width="44" height="34" viewBox="0 0 44 34" fill="none" className={className} aria-hidden>
@@ -372,7 +359,6 @@ function Label({ children }: { children: React.ReactNode }) {
       >
         {children}
       </p>
-      <Squiggle className="mt-1.5" />
     </div>
   );
 }
@@ -1071,23 +1057,16 @@ export function HandmadeHomesteadCaseStudy() {
                     <dd className="mt-1 font-body text-body text-text">
                       {m.href ? (
                         // External live link - opens in a new tab with rel
-                        // noopener+noreferrer for safety. Inline arrow + accent
-                        // color marks it as actionable vs the static meta rows.
+                        // noopener+noreferrer for safety. Shared format across
+                        // every case study: underline at rest, accent on hover.
                         <a
                           href={m.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          data-cursor-label="open instagram"
-                          className="group inline-flex items-center gap-1.5 underline decoration-1 underline-offset-4 transition-colors"
-                          style={{ color: "var(--accent)", textDecorationColor: "color-mix(in srgb, var(--accent) 50%, transparent)" }}
+                          data-cursor-label={`visit ${m.value}`}
+                          className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
                         >
-                          <span>{m.value}</span>
-                          <span
-                            aria-hidden
-                            className="inline-block transition-transform group-hover:translate-x-0.5"
-                          >
-                            &rarr;
-                          </span>
+                          {m.value}
                         </a>
                       ) : (
                         m.value

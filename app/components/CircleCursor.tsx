@@ -173,7 +173,7 @@ export function CircleCursor() {
           ) : label ? (
             <motion.span
               key="label"
-              className="whitespace-nowrap px-4 py-1.5 font-mono lowercase"
+              className="whitespace-nowrap px-4 py-1.5 font-mono uppercase tracking-wide"
               style={{ fontSize: 15, color: pillText }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

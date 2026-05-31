@@ -53,11 +53,12 @@ const OVERVIEW_TAGS = [
   "Interaction Design",
 ];
 
-const META = [
+const META: { label: string; value: string; href?: string }[] = [
   { label: "Company", value: "Onki AI, NYC" },
   { label: "Role", value: "UI/UX Design Intern" },
   { label: "Duration", value: "Apr – Jun 2024" },
   { label: "Tools", value: "Figma, FigJam" },
+  { label: "Live", value: "onki.ai", href: "https://onki.ai/" },
 ];
 
 const INSIGHTS = [
@@ -149,19 +150,6 @@ const prefersReduced = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Hand-drawn squiggle underline (accent) - the hand-made touch under eyebrows.
-function Squiggle({ className = "" }: { className?: string }) {
-  return (
-    <svg width="58" height="6" viewBox="0 0 58 6" fill="none" className={className} aria-hidden>
-      <path
-        d="M1 3.6C9 1.4 16 1.4 24 3.4S42 5.8 50 3.2 56 2.2 57 3.2"
-        stroke="var(--accent)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 // Hand-drawn arrow for the margin asides.
 function ArrowDoodle({ className = "" }: { className?: string }) {
   return (
@@ -204,7 +192,6 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
       >
         {children}
       </p>
-      <Squiggle className="mt-1.5" />
     </div>
   );
 }
@@ -598,7 +585,21 @@ export function OnkiCaseStudy() {
                       <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">
                         {m.label}
                       </dt>
-                      <dd className="mt-1 font-body text-body text-text">{m.value}</dd>
+                      <dd className="mt-1 font-body text-body text-text">
+                        {m.href ? (
+                          <a
+                            href={m.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-cursor-label={`visit ${m.value}`}
+                            className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
+                          >
+                            {m.value}
+                          </a>
+                        ) : (
+                          m.value
+                        )}
+                      </dd>
                     </div>
                   ))}
                 </dl>

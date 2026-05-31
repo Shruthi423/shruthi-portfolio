@@ -116,47 +116,6 @@ const prefersReduced = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// Squiggle that draws itself on scroll-into-view via stroke-dasharray. The
-// path length is measured at runtime so a future path tweak doesn't break
-// the animation length. Reduced-motion users see it pre-drawn.
-function Squiggle({ className = "" }: { className?: string }) {
-  const pathRef = useRef<SVGPathElement>(null);
-  useGSAP(
-    () => {
-      const path = pathRef.current;
-      if (!path) return;
-      const len = path.getTotalLength();
-      gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
-      if (prefersReduced()) {
-        gsap.set(path, { strokeDashoffset: 0 });
-        return;
-      }
-      gsap.to(path, {
-        strokeDashoffset: 0,
-        duration: 0.8,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: path,
-          start: "top 88%",
-          toggleActions: "play none none reverse",
-        },
-      });
-    },
-    { scope: pathRef },
-  );
-  return (
-    <svg width="58" height="6" viewBox="0 0 58 6" fill="none" className={className} aria-hidden>
-      <path
-        ref={pathRef}
-        d="M1 3.6C9 1.4 16 1.4 24 3.4S42 5.8 50 3.2 56 2.2 57 3.2"
-        stroke="var(--accent)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 /**
  * Section eyebrow + squiggle. Default alignment is left to match the editorial
  * pattern used in Temple/Onki/Kodif/Zuge/HandmadeHomestead; pass align="center"
@@ -178,7 +137,6 @@ function Label({
       >
         {children}
       </p>
-      <Squiggle className={`mt-1.5 block ${isCenter ? "mx-auto" : ""}`} />
     </div>
   );
 }

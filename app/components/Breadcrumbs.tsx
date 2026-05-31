@@ -29,6 +29,7 @@ const CASE_STUDIES: Record<string, string> = {
   "/handmade-homestead": "Handmade homestead",
   "/indigo-records": "Indigo records",
   "/feeld": "Feeld",
+  "/umsi-expo-badges": "UMSI expo badges",
 };
 
 export function Breadcrumbs() {

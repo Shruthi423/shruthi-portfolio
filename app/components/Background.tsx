@@ -487,53 +487,8 @@ export function DayNightToggle() {
 export function SkyScene() {
   const sky = useRef<HTMLDivElement>(null);
 
-  useGSAP(
-    () => {
-      const clouds = gsap.utils.toArray<HTMLElement>(".bg-cloud", sky.current!);
-
-      clouds.forEach((cloud) => {
-        const fromLeft = cloud.dataset.cloudDir === "left";
-        const depth = Number(cloud.dataset.cloudDepth ?? 0.3);
-
-        // enter from side → hold mid-frame → exit back the way it came.
-        // Scrubbed timeline across one viewport of hero scroll; ratios = 30/40/30.
-        gsap
-          .timeline({
-            scrollTrigger: {
-              trigger: sky.current,
-              start: "top top",
-              end: "bottom top",
-              scrub: 1,
-            },
-          })
-          .fromTo(
-            cloud,
-            { xPercent: fromLeft ? -160 : 160, autoAlpha: 0 },
-            { xPercent: 0, autoAlpha: 1, duration: 3, ease: "none" },
-          )
-          .to(cloud, { duration: 4 }) // hold — empty tween acts as a pause
-          .to(cloud, {
-            xPercent: fromLeft ? -160 : 160,
-            autoAlpha: 0,
-            duration: 3,
-            ease: "none",
-          });
-
-        // parallax — vertical drift over the whole page; depth sets the rate
-        gsap.to(cloud, {
-          yPercent: -depth * 120,
-          ease: "none",
-          scrollTrigger: {
-            trigger: document.body,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 1,
-          },
-        });
-      });
-    },
-    { scope: sky },
-  );
+  // Clouds were extracted to <Clouds /> (now lives in the Footer). The sky
+  // backdrop here keeps the colour, stars, and shooting stars.
 
   return (
     <div className="bg-sky" ref={sky}>
@@ -575,14 +530,55 @@ export function SkyScene() {
         ))}
       </div>
 
-      {/* clouds (hidden at night) */}
-      <div className="bg-clouds">
-        <Cloud shape={CLOUD_SHAPES[0]} className="bg-cloud bg-cloud-1" dir="left" depth={0.18} />
-        <Cloud shape={CLOUD_SHAPES[1]} className="bg-cloud bg-cloud-2" dir="right" depth={0.5} />
-        <Cloud shape={CLOUD_SHAPES[2]} className="bg-cloud bg-cloud-3" dir="left" depth={0.32} />
-        <Cloud shape={CLOUD_SHAPES[3]} className="bg-cloud bg-cloud-4" dir="right" depth={0.4} />
-      </div>
+    </div>
+  );
+}
 
+/**
+ * Clouds — extracted from SkyScene so they can live in the Footer.
+ *
+ * Animation: a continuous, time-based horizontal drift loop per cloud.
+ * Each one floats from one edge to the other and resets, infinitely.
+ * Shallower clouds (lower depth) drift slowly, deeper clouds drift faster —
+ * a soft parallax that suggests depth without being scroll-bound.
+ *
+ * (The previous behaviour was a GSAP ScrollTrigger scrubbed timeline:
+ * enter-from-side → hold → exit, plus a vertical parallax. That only made
+ * sense over a scrolling viewport. The footer is fixed-bottom and doesn't
+ * scroll, so the same trigger logic wouldn't fire — drift loop fits better.)
+ */
+export function Clouds() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const clouds = gsap.utils.toArray<HTMLElement>(".bg-cloud", ref.current!);
+      clouds.forEach((cloud) => {
+        const fromLeft = cloud.dataset.cloudDir === "left";
+        const depth = Number(cloud.dataset.cloudDepth ?? 0.3);
+        // 60s for shallowest, 30s for deepest. Wider range = more depth feel.
+        const duration = 60 - depth * 40;
+        gsap.fromTo(
+          cloud,
+          { xPercent: fromLeft ? -120 : 120, autoAlpha: 1 },
+          {
+            xPercent: fromLeft ? 120 : -120,
+            duration,
+            ease: "none",
+            repeat: -1,
+          },
+        );
+      });
+    },
+    { scope: ref },
+  );
+
+  return (
+    <div className="bg-clouds" ref={ref}>
+      <Cloud shape={CLOUD_SHAPES[0]} className="bg-cloud bg-cloud-1" dir="left" depth={0.18} />
+      <Cloud shape={CLOUD_SHAPES[1]} className="bg-cloud bg-cloud-2" dir="right" depth={0.5} />
+      <Cloud shape={CLOUD_SHAPES[2]} className="bg-cloud bg-cloud-3" dir="left" depth={0.32} />
+      <Cloud shape={CLOUD_SHAPES[3]} className="bg-cloud bg-cloud-4" dir="right" depth={0.4} />
     </div>
   );
 }
