@@ -132,6 +132,16 @@ const projects: Project[] = [
 
   // ---- Coming soon ---- (no `href` → ProjectCard shows "Coming soon" on hover)
   {
+    name: "PCS Global",
+    discipline: "UX/UI Design", // PLACEHOLDER — confirm
+    year: "2026", // PLACEHOLDER — confirm
+    description: "PCS Global — one-liner from you.", // PLACEHOLDER
+    tags: ["TBD", "TBD", "TBD", "TBD", "TBD"], // PLACEHOLDER
+    color1: "#C9FFF2", // matches the new cover's mint border → seamless edges
+    color2: "#1F5E52", // placeholder darker teal complement — confirm
+    image: "/pcs-global/cover.png",
+  },
+  {
     name: "Indigo Records",
     discipline: "Graphic Design",
     year: "2025", // PLACEHOLDER year — confirm
@@ -170,16 +180,6 @@ const projects: Project[] = [
     color1: "#262122", // matches the new cover's near-black background → seamless edges
     color2: "#FCE49A", // warm yellow accent
     image: "/ghost/cover.png",
-  },
-  {
-    name: "Gesture-based Website",
-    discipline: "Interaction Design",
-    year: "2026",
-    description: "A website you navigate with hand gestures.",
-    tags: ["Gesture UX", "Interaction", "Web", "ML/Vision", "Prototype"],
-    color1: "#FFBEE9", // matches the new cover's pink border → seamless edges
-    color2: "#B6446F",
-    image: "/gesture-based-website/cover.png",
   },
   {
     name: "Gesture-based Games",
