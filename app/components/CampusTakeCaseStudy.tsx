@@ -148,7 +148,7 @@ function Figure({
   position = "center",
   cursorLabel,
   className = "",
-  parallax = true,
+  parallax = false,
   fit = "cover",
 }: {
   src?: string;

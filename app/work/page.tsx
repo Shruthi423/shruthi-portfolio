@@ -31,6 +31,7 @@ const projects: Project[] = [
     color1: "#E2FFCB", // matches the new cover's mint border → seamless edges
     color2: "#2E6FA3",
     image: "/zuge/cover.png",
+    hoverLabel: "Updating now",
     href: "/zuge",
   },
   {
@@ -67,6 +68,7 @@ const projects: Project[] = [
     color1: "#FFCAC9", // matches the new cover's coral pink border → seamless edges
     color2: "#A67C20",
     image: "/onki/cover.png",
+    hoverLabel: "Updating now",
     href: "/onki",
   },
   {

@@ -104,7 +104,7 @@ const prefersReduced = () =>
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <p className="font-mono text-caption-1 lowercase tracking-[0.04em]" style={{ color: "var(--accent)" }}>
+      <p className="font-mono text-caption-1 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
         {children}
       </p>
     </div>
@@ -132,7 +132,7 @@ function Statement({
 
 function Body({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className={`max-w-[60ch] font-body leading-relaxed text-muted ${className}`} style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}>
+    <p className={`font-body leading-relaxed text-muted ${className}`} style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}>
       {children}
     </p>
   );
@@ -153,7 +153,7 @@ function Figure({
   position = "center",
   cursorLabel,
   className = "",
-  parallax = true,
+  parallax = false,
 }: {
   src?: string;
   alt?: string;
@@ -442,7 +442,7 @@ export function ZugeCaseStudy() {
               </h1>
             </Reveal>
             <Reveal delay={80}>
-              <p className="mt-4 max-w-[52ch] font-heading italic text-muted" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.6rem)" }}>
+              <p className="mt-4 font-heading italic text-muted" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.6rem)" }}>
                 India&rsquo;s delivery riders run 30+ orders a day with a phone taped to the handlebar. I led the UX and interaction design for the dashboard that replaced it.
               </p>
             </Reveal>
@@ -463,7 +463,7 @@ export function ZugeCaseStudy() {
             </Reveal>
 
             <Reveal delay={120}>
-              <p className="mt-12 max-w-[22ch] font-heading leading-[1.12] text-text" style={{ fontSize: "clamp(1.6rem, 3.4vw, 2.6rem)", letterSpacing: "-0.01em" }}>
+              <p className="mt-12 font-heading leading-[1.12] text-text" style={{ fontSize: "clamp(1.6rem, 3.4vw, 2.6rem)", letterSpacing: "-0.01em" }}>
                 At 40km/h, a two-second glance is <span className="italic" style={{ color: "var(--accent)" }}>22 metres</span> travelled blind.
               </p>
             </Reveal>
@@ -481,7 +481,7 @@ export function ZugeCaseStudy() {
             <Label>the problem</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement className="mt-5">Every rider was doing this job with a phone taped to the handlebar.</Statement>
+            <Statement maxW="none" className="mt-5">Every rider was doing this job with a phone taped to the handlebar.</Statement>
           </Reveal>
           <Reveal delay={120}>
             <Body className="mt-5">Across 20+ ride-alongs, the same patterns kept surfacing. None of them were about taste. All of them were about safety.</Body>
@@ -506,7 +506,7 @@ export function ZugeCaseStudy() {
             <Label>research</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement className="mt-5">How might we give riders back the space to just ride?</Statement>
+            <Statement maxW="none" className="mt-5">How might we give riders back the space to just ride?</Statement>
           </Reveal>
           <Reveal delay={120}>
             <Body className="mt-5">
@@ -532,7 +532,7 @@ export function ZugeCaseStudy() {
             <Label>what didn&rsquo;t work</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement className="mt-5">The obvious layout was the wrong one.</Statement>
+            <Statement maxW="none" className="mt-5">The obvious layout was the wrong one.</Statement>
           </Reveal>
           <div className="mt-12 flex flex-col gap-4">
             {ITERATIONS.map((it, i) => {
@@ -571,7 +571,7 @@ export function ZugeCaseStudy() {
             <Label>the dashboard</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement className="mt-5">Navigation owns the screen. Everything else waits its turn.</Statement>
+            <Statement maxW="none" className="mt-5">Navigation owns the screen. Everything else waits its turn.</Statement>
           </Reveal>
 
           <Reveal delay={100} variant="fade" className="mt-10">
@@ -591,12 +591,12 @@ export function ZugeCaseStudy() {
           <Reveal delay={80} className="mt-14">
             <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">the dashboard, across states</p>
           </Reveal>
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 flex flex-col gap-10">
             {SCREENS.map((s, i) => (
-              <Reveal key={s.file} delay={(i % 3) * 70}>
+              <Reveal key={s.file} delay={i * 40}>
                 <div>
                   <Figure src={`/${s.file}`} file={s.file} label={s.label} aspect="aspect-video" cursorLabel={s.cursor} parallax={false} className="border border-border" />
-                  <p className="mt-2 font-mono text-caption-2 uppercase tracking-wide text-muted">{s.label}</p>
+                  <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">{s.label}</p>
                 </div>
               </Reveal>
             ))}
@@ -609,7 +609,7 @@ export function ZugeCaseStudy() {
             <Label>the outcome</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement className="mt-5">Less looking down, more riding.</Statement>
+            <Statement maxW="none" className="mt-5">Less looking down, more riding.</Statement>
           </Reveal>
           <div className="mt-12 grid gap-6 sm:grid-cols-3">
             {METRICS.map((m, i) => (
@@ -641,23 +641,39 @@ export function ZugeCaseStudy() {
             <Label>reflection</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement className="mt-5">What I&rsquo;d carry into the next one.</Statement>
+            <Statement maxW="none" className="mt-5">What I&rsquo;d carry into the next one.</Statement>
           </Reveal>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {/* lessons as wide editorial rows: big accent numeral on the
+              left, lesson title in heading + body in the gutter. Top &
+              bottom hairlines for rhythm. */}
+          <div className="mt-12 border-t border-border">
             {REFLECTIONS.map((r, i) => (
               <Reveal key={r.title} delay={i * 80}>
-                <div className="h-full border border-border p-7" style={{ backgroundColor: "var(--bg)" }}>
-                  <h3 className="font-heading text-h4 leading-snug text-text">{r.title}</h3>
-                  <Body className="mt-3 !max-w-none">{r.body}</Body>
+                <div className="grid grid-cols-1 gap-4 border-b border-border py-9 sm:grid-cols-[auto_1fr] sm:gap-10 sm:py-12">
+                  <span
+                    className="font-display tabular-nums sm:w-24"
+                    style={{
+                      color: "var(--accent)",
+                      fontSize: "clamp(2.5rem, 5vw, 3.75rem)",
+                      fontWeight: 700,
+                      lineHeight: 0.9,
+                    }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <h3
+                      className="font-heading leading-tight text-text"
+                      style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+                    >
+                      {r.title}
+                    </h3>
+                    <Body className="mt-3 !max-w-none">{r.body}</Body>
+                  </div>
                 </div>
               </Reveal>
             ))}
           </div>
-          <Reveal variant="fade" delay={140} className="mt-16">
-            <p className="mx-auto max-w-2xl text-center font-heading leading-[1.5] text-text" style={{ fontSize: "clamp(1.2rem, 2vw, 1.6rem)" }}>
-              The instinct to add is strong. The discipline to remove is what makes a dashboard safe at speed.
-            </p>
-          </Reveal>
         </Section>
       </div>
     </div>

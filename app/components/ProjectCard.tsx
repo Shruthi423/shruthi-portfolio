@@ -17,6 +17,7 @@ export type Project = {
   image?: string; // floating mockup — wired in later
   imageFit?: "cover" | "contain"; // default "cover"; use "contain" for portrait mockups where the subject must show in full
   pillColors?: string[]; // override the auto-derived complement palette (e.g. for dark cards where complement-of-hue doesn't read)
+  hoverLabel?: string; // override the cursor pill on hover (default: "VIEW" when live, "Coming soon" otherwise)
   href?: string;
 };
 
@@ -275,7 +276,7 @@ export function ProjectCard({ project }: { project: Project }) {
     // Revert: aspect-[4/3] and drop rounded-[2px].
     <div
       ref={frameRef}
-      data-cursor-label={project.href ? "VIEW" : "Coming soon"}
+      data-cursor-label={project.hoverLabel ?? (project.href ? "VIEW" : "Coming soon")}
       className="group relative aspect-[4/3] w-full overflow-hidden rounded-[2px]"
       style={{ backgroundColor: project.color1 }}
       onMouseEnter={() => setHovered(true)}

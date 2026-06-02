@@ -340,7 +340,7 @@ function Figure({
   position = "center",
   cursorLabel,
   className = "",
-  parallax = true,
+  parallax = false,
 }: {
   src?: string;
   alt?: string;
