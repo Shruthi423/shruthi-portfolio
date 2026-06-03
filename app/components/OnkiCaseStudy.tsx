@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- case-study screens are optimized PNGs in /public, not gallery photos */
 
 import { useEffect, useRef, useState } from "react";
 import { Rock_Salt } from "next/font/google";
@@ -23,7 +24,6 @@ const rockSalt = Rock_Salt({ weight: "400", subsets: ["latin"], display: "swap" 
 // Onki's signature colour (from its /work card), split light/dark for contrast.
 const ACCENT_LIGHT = "#A67C20"; // amber - readable on morning mist
 const ACCENT_DARK = "#FCB34F"; // lighter amber - readable on warm midnight
-const INK = "#3b2a1c"; // espresso - handwriting on the white polaroids
 
 // Handwritten asides - DRAFTS in Shruthi's voice. Swap for your real ones.
 const NOTES = {
@@ -35,14 +35,13 @@ const NOTES = {
 // ---------------------------------------------------------------- data
 
 const SECTIONS = [
-  { id: "overview", label: "Overview" },
-  { id: "context", label: "Context" },
-  { id: "insights", label: "Insights" },
-  { id: "problem", label: "Problem" },
-  { id: "design", label: "Design" },
-  { id: "screens", label: "Screens" },
-  { id: "outcome", label: "Outcome" },
-  { id: "reflection", label: "Reflection" },
+  { id: "overview", label: "overview" },
+  { id: "context", label: "context" },
+  { id: "insights", label: "insights" },
+  { id: "problem", label: "problem" },
+  { id: "design", label: "design" },
+  { id: "outcome", label: "outcome" },
+  { id: "reflection", label: "reflection" },
 ] as const;
 
 const OVERVIEW_TAGS = [
@@ -106,32 +105,37 @@ const DESIGN = [
 
 const SCREENS = [
   {
+    src: "/onki/screen-greeting.png",
     label: "Screen: Welcome / greeting",
     caption: "The kiosk greets every shopper who walks by.",
     cursor: "the hello",
     tilt: -3,
   },
   {
+    src: "/onki/screen-preference.png",
     label: "Screen: Preference input",
     caption: "Simple questions, one at a time.",
     cursor: "one question at a time",
     tilt: 2.5,
   },
   {
+    src: "/onki/screen-recommendations.png",
     label: "Screen: Recommendation cards",
     caption: "3 curated options, like a sommelier's pick.",
     cursor: "the magic three",
     tilt: -2,
   },
   {
+    src: "/onki/screen-detail.png",
     label: "Screen: Wine detail",
     caption: "Tasting notes, pairings, winery origin.",
     cursor: "the nerdy details",
     tilt: 3,
   },
   {
-    label: "Screen: Save / Text me / Item location",
-    caption: "Closing the loop between discovery and purchase.",
+    src: "/onki/screen-location.png",
+    label: "Screen: Find this wine",
+    caption: "Aisle and shelf, or text it to yourself. The loop closes.",
     cursor: "don't lose them",
     tilt: -2.5,
   },
@@ -187,7 +191,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <p
-        className="font-mono text-caption-1 uppercase tracking-[0.18em]"
+        className="font-mono text-caption-1 uppercase tracking-wide"
         style={{ color: "var(--accent)" }}
       >
         {children}
@@ -236,79 +240,62 @@ function Body({
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-border px-3 py-1 font-mono text-caption-2 uppercase tracking-wide text-muted">
+    <span className="border border-border px-3 py-1 font-mono text-caption-2 uppercase tracking-wide text-muted">
       {children}
     </span>
   );
 }
 
-// Branded placeholder - amber-tinted dashed frame + a witty cursor label.
-function ImagePlaceholder({
+// Real image in an aspect frame, with a branded dashed placeholder as a
+// fallback when the src is missing or fails. fit="contain" centers tall or
+// off-ratio art on a surface; default "cover" fills the frame.
+function Figure({
+  src,
   label,
-  ratio = "16 / 9",
+  aspect = "aspect-[16/9]",
+  position = "center",
   cursorLabel,
   className = "",
+  fit = "cover",
 }: {
+  src?: string;
   label: string;
-  ratio?: string;
+  aspect?: string;
+  position?: string;
   cursorLabel?: string;
   className?: string;
+  fit?: "cover" | "contain";
 }) {
+  const [errored, setErrored] = useState(false);
+  if (src && !errored) {
+    return (
+      <div
+        className={`relative w-full overflow-hidden ${aspect} ${className}`}
+        data-cursor-label={cursorLabel}
+      >
+        <img
+          src={src}
+          alt={label}
+          className={`absolute inset-0 h-full w-full ${fit === "contain" ? "object-contain" : "object-cover"}`}
+          style={{ objectPosition: position }}
+          onError={() => setErrored(true)}
+        />
+      </div>
+    );
+  }
   return (
     <div
-      className={`flex w-full items-center justify-center rounded-2xl border-2 border-dashed bg-surface/50 ${className}`}
-      style={{
-        aspectRatio: ratio,
-        borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)",
-      }}
+      className={`flex w-full flex-col items-center justify-center border-2 border-dashed bg-surface/50 px-4 ${aspect} ${className}`}
+      style={{ borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)" }}
       aria-label={label}
       data-cursor-label={cursorLabel}
     >
       <span
-        className="max-w-[80%] text-center font-mono text-caption-1 uppercase tracking-wide"
+        className="max-w-[85%] text-center font-mono text-caption-1 uppercase tracking-wide"
         style={{ color: "color-mix(in srgb, var(--accent) 75%, var(--color-muted))" }}
       >
         {label}
       </span>
-    </div>
-  );
-}
-
-// A screen rendered as a pinned polaroid (tape + tilt + Rock Salt caption).
-function PolaroidScreen({
-  label,
-  caption,
-  tilt,
-  cursorLabel,
-}: {
-  label: string;
-  caption: string;
-  tilt: number;
-  cursorLabel: string;
-}) {
-  return (
-    <div
-      className="relative mx-auto w-full max-w-3xl bg-white p-4 pb-12 shadow-[0_28px_60px_-18px_rgba(0,0,0,0.4)]"
-      style={{ transform: `rotate(${tilt}deg)` }}
-      data-cursor-label={cursorLabel}
-    >
-      {/* tape */}
-      <span
-        aria-hidden
-        className="absolute -top-3 left-1/2 h-6 w-24 -translate-x-1/2 -rotate-2 rounded-[2px]"
-        style={{ backgroundColor: "color-mix(in srgb, var(--accent) 30%, transparent)" }}
-      />
-      <div className="flex aspect-[16/10] w-full items-center justify-center overflow-hidden bg-[#ece8e0]">
-        <span className="max-w-[80%] text-center font-mono text-caption-1 uppercase tracking-wide text-[#9b958a]">
-          {label}
-        </span>
-      </div>
-      <p
-        className={`${rockSalt.className} mt-5 text-center text-[clamp(1rem,1.5vw,1.3rem)] leading-none`}
-        style={{ color: INK }}
-      >
-        {caption}
-      </p>
     </div>
   );
 }
@@ -495,6 +482,8 @@ function ProgressBar() {
   );
 }
 
+// Mirrors Feeld's Section: one shared editorial column (max-w-6xl), uniform
+// px/py rhythm so Onki sits in the same family as the other case studies.
 function SectionWrap({
   id,
   children,
@@ -505,8 +494,11 @@ function SectionWrap({
   className?: string;
 }) {
   return (
-    <section id={id} className={`scroll-mt-24 px-6 sm:px-10 lg:pl-32 lg:pr-12 ${className}`}>
-      {children}
+    <section
+      id={id}
+      className={`scroll-mt-24 px-6 py-14 sm:px-10 md:py-20 lg:px-20 xl:px-24 ${className}`}
+    >
+      <div className="mx-auto max-w-6xl">{children}</div>
     </section>
   );
 }
@@ -552,149 +544,163 @@ export function OnkiCaseStudy() {
       <ProgressBar />
 
       <div className="relative z-10">
-        {/* 1 - OVERVIEW */}
-        <SectionWrap id="overview" className="pb-20 pt-28 md:pb-28 md:pt-36">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
-            <div>
-              <Reveal>
-                <h1
-                  className="font-display leading-[1.05] text-text"
-                  style={{ fontSize: "clamp(2.25rem, 4vw, 3.75rem)", fontWeight: 700, letterSpacing: "-0.02em" }}
-                >
-                  Designing an AI sommelier for the wine aisle.
-                </h1>
-              </Reveal>
-              <Reveal delay={100}>
-                <Body className="mt-6 max-w-xl">
-                  AICap is a voice + touch retail kiosk that helps shoppers discover
-                  wine through conversational AI, built by Onki, a NYC startup
-                  founded by ex-Amazon innovators.
-                </Body>
-              </Reveal>
-              <Reveal delay={200}>
-                <div className="mt-7 flex flex-wrap gap-2">
-                  {OVERVIEW_TAGS.map((t) => (
-                    <Pill key={t}>{t}</Pill>
-                  ))}
-                </div>
-              </Reveal>
-              <Reveal delay={300}>
-                <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
-                  {META.map((m) => (
-                    <div key={m.label}>
-                      <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">
-                        {m.label}
-                      </dt>
-                      <dd className="mt-1 font-body text-body text-text">
-                        {m.href ? (
-                          <a
-                            href={m.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            data-cursor-label={`visit ${m.value}`}
-                            className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
-                          >
-                            {m.value}
-                          </a>
-                        ) : (
-                          m.value
-                        )}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </Reveal>
+        {/* 1 - OVERVIEW — single editorial column, title leads (matches Feeld). */}
+        <SectionWrap id="overview" className="pt-28 md:pt-32">
+          <Reveal>
+            <h1
+              className="text-left font-display leading-[1.05] text-text"
+              style={{ fontSize: "clamp(2.25rem, 4vw, 3.75rem)", fontWeight: 700, letterSpacing: "-0.02em" }}
+            >
+              Designing an AI sommelier for the wine aisle.
+            </h1>
+          </Reveal>
+          <Reveal delay={100}>
+            <Body className="mt-6">
+              AICap is a voice + touch retail kiosk that helps shoppers discover
+              wine through conversational AI, built by Onki, a NYC startup
+              founded by ex-Amazon innovators.
+            </Body>
+          </Reveal>
+          <Reveal delay={200}>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {OVERVIEW_TAGS.map((t) => (
+                <Pill key={t}>{t}</Pill>
+              ))}
             </div>
-            <Reveal delay={150}>
-              <ImagePlaceholder
-                label="Hero: AICap kiosk in retail environment"
-                ratio="16 / 9"
-                cursorLabel="say hi to AICap"
-              />
-            </Reveal>
-          </div>
+          </Reveal>
+          <Reveal delay={300}>
+            <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-5 border-y border-border py-7 sm:grid-cols-3 md:grid-cols-5">
+              {META.map((m) => (
+                <div key={m.label}>
+                  <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">
+                    {m.label}
+                  </dt>
+                  <dd className="mt-1 font-body text-body text-text">
+                    {m.href ? (
+                      <a
+                        href={m.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-cursor-label={`visit ${m.value}`}
+                        className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
+                      >
+                        {m.value}
+                      </a>
+                    ) : (
+                      m.value
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
+          <Reveal delay={150} variant="scale" className="mt-14">
+            <Figure
+              src="/onki/hero.png"
+              label="AiCap greeting screen"
+              aspect="aspect-[16/9]"
+              fit="contain"
+              cursorLabel="say hi to AiCap"
+              className="border border-border bg-surface/40"
+            />
+          </Reveal>
         </SectionWrap>
 
         {/* 2 - CONTEXT */}
-        <SectionWrap id="context" className="py-20 md:py-28">
-          <div className="mx-auto max-w-5xl">
-            <Reveal>
-              <Statement className="max-w-3xl">
-                Wine aisles have hundreds of choices and zero guidance.
-              </Statement>
+        <SectionWrap id="context">
+          <Reveal>
+            <Statement className="max-w-3xl">
+              Wine aisles have hundreds of choices and zero guidance.
+            </Statement>
+          </Reveal>
+          <div className="flex items-end justify-between gap-6">
+            <Reveal delay={100}>
+              <Body className="mt-6 max-w-2xl">
+                Younger shoppers (low-to-medium wine knowledge) consistently
+                freeze at the shelf. Too many options, no personalization, no one
+                to ask.
+              </Body>
             </Reveal>
-            <div className="flex items-end justify-between gap-6">
-              <Reveal delay={100}>
-                <Body className="mt-6 max-w-2xl">
-                  Younger shoppers (low-to-medium wine knowledge) consistently
-                  freeze at the shelf. Too many options, no personalization, no one
-                  to ask.
-                </Body>
-              </Reveal>
-              <Aside className="mb-1 shrink-0" rotate={-4}>
-                {NOTES.context}
-              </Aside>
-            </div>
-            <Reveal variant="scale" className="mt-12">
-              <ImagePlaceholder
-                label="Context: Overwhelmed shopper in wine aisle"
-                ratio="21 / 9"
-                cursorLabel="the wall of wine"
-              />
-            </Reveal>
+            <Aside className="mb-1 shrink-0" rotate={-4}>
+              {NOTES.context}
+            </Aside>
           </div>
+          <Reveal variant="scale" className="mt-12">
+            <div className="mx-auto max-w-xl">
+              <Figure
+                src="/onki/context-sketch.png"
+                label="Storyboard: the overwhelmed-shopper journey"
+                aspect="aspect-square"
+                cursorLabel="the overwhelm"
+                className="border border-border"
+              />
+            </div>
+          </Reveal>
         </SectionWrap>
 
-        {/* 3 - INSIGHTS (warm band) */}
-        <SectionWrap id="insights" className="py-20 md:py-28">
-          <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <Eyebrow>Key insights</Eyebrow>
-            </Reveal>
-            <div className="mt-8 grid gap-6 md:grid-cols-3">
-              {INSIGHTS.map((c, i) => (
-                <Reveal key={c.title} delay={i * 80}>
-                  <div
-                    className="h-full rounded-2xl border border-border p-8"
-                    style={{ backgroundColor: "var(--bg)" }}
-                  >
-                    <h3 className="font-heading text-h4 leading-snug text-text">{c.title}</h3>
-                    <Body className="mt-3">{c.body}</Body>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
+        {/* 3 - INSIGHTS */}
+        <SectionWrap id="insights">
+          <Reveal>
+            <Eyebrow>Key insights</Eyebrow>
+          </Reveal>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {INSIGHTS.map((c, i) => (
+              <Reveal key={c.title} delay={i * 80}>
+                <div
+                  className="h-full border border-border p-8"
+                  style={{ backgroundColor: "var(--bg)" }}
+                >
+                  <h3 className="font-heading text-h4 leading-snug text-text">{c.title}</h3>
+                  <Body className="mt-3">{c.body}</Body>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </SectionWrap>
 
         {/* 4 - PROBLEM */}
-        <SectionWrap id="problem" className="py-20 md:py-28">
-          <div className="mx-auto max-w-4xl">
+        <SectionWrap id="problem">
+          <Reveal>
+            <Statement className="max-w-3xl">
+              Today&rsquo;s retail shelves are passive. AICap makes them talk back.
+            </Statement>
+          </Reveal>
+          <Reveal delay={100}>
+            <Body className="mt-6 max-w-2xl">
+              Static labels and understaffed stores can&rsquo;t deliver
+              personalized guidance at scale. We designed the experience that
+              bridges that gap, from first greeting to the right bottle.
+            </Body>
+          </Reveal>
+          <div className="mt-12 grid items-start gap-6 sm:grid-cols-2">
             <Reveal>
-              <Statement center className="mx-auto max-w-3xl">
-                Today&rsquo;s retail shelves are passive. AICap makes them talk back.
-              </Statement>
-            </Reveal>
-            <Reveal delay={100}>
-              <Body center className="mx-auto mt-6 max-w-[600px]">
-                Static labels and understaffed stores can&rsquo;t deliver
-                personalized guidance at scale. We designed the experience that
-                bridges that gap, from first greeting to the right bottle.
-              </Body>
-            </Reveal>
-            <Reveal className="mt-12">
-              <ImagePlaceholder
-                label="Problem: Static shelf label vs AICap screen (before/after)"
-                ratio="16 / 9"
-                cursorLabel="before / after"
+              <Figure
+                src="/onki/before-sarah.png"
+                label="Before: the earlier in-store assistant"
+                aspect="aspect-[3/4]"
+                fit="contain"
+                cursorLabel="before"
+                className="border border-border bg-surface/40"
               />
+              <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">before</p>
+            </Reveal>
+            <Reveal delay={80}>
+              <Figure
+                src="/onki/after-aicap.png"
+                label="After: the AiCap redesign"
+                aspect="aspect-[3/4]"
+                fit="contain"
+                cursorLabel="after"
+                className="border border-border bg-surface/40"
+              />
+              <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">after</p>
             </Reveal>
           </div>
         </SectionWrap>
 
         {/* 5 - DESIGN DECISIONS */}
-        <SectionWrap id="design" className="py-20 md:py-28">
-          <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.45fr]">
+        <SectionWrap id="design">
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.45fr]">
             <div className="lg:sticky lg:top-28 lg:self-start">
               <Eyebrow>Design decisions</Eyebrow>
               <Statement className="mt-4">The reasoning behind the work.</Statement>
@@ -706,7 +712,7 @@ export function OnkiCaseStudy() {
             <div className="flex flex-col gap-6">
               {DESIGN.map((c) => (
                 <Reveal key={c.title}>
-                  <div className="rounded-2xl border border-border bg-surface p-8">
+                  <div className="border border-border bg-surface p-8">
                     <h3 className="font-heading text-h4 leading-snug text-text">{c.title}</h3>
                     <Body className="mt-3">{c.body}</Body>
                     <div className="mt-5">
@@ -717,129 +723,123 @@ export function OnkiCaseStudy() {
               ))}
             </div>
           </div>
+
+          {/* Information architecture — the full conversation flow, full-width. */}
+          <Reveal variant="scale" className="mt-14">
+            <Figure
+              src="/onki/ia.png"
+              label="Information architecture: the full conversation flow"
+              aspect="aspect-[16/9]"
+              fit="contain"
+              cursorLabel="the whole flow"
+              className="border border-border bg-surface/40"
+            />
+          </Reveal>
+          <Reveal delay={80}>
+            <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">
+              information architecture
+            </p>
+          </Reveal>
         </SectionWrap>
 
-        {/* 6 - SCREENS (sticky polaroid stack) */}
-        <SectionWrap id="screens" className="py-20 md:py-28">
-          <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <Eyebrow>Key screens</Eyebrow>
-            </Reveal>
-            <Reveal delay={80}>
-              <Statement className="mt-4">End-to-end, across every touchpoint.</Statement>
-            </Reveal>
+        {/* 6 - OUTCOME */}
+        <SectionWrap id="outcome">
+          <Reveal>
+            <Statement>Designs shipped. Numbers followed.</Statement>
+          </Reveal>
+          <Reveal delay={100}>
+            <Body className="mt-6 max-w-2xl">
+              The designs contributed to AICap&rsquo;s real in-store deployment.
+              Early retail data showed strong commercial impact.
+            </Body>
+          </Reveal>
+          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+            {METRICS.map((m, i) => (
+              <Reveal key={m.label} delay={i * 80}>
+                <div
+                  className="h-full border border-border p-8"
+                  style={{ backgroundColor: "var(--bg)" }}
+                  data-cursor-label={i === 1 ? "the one I'm proud of" : undefined}
+                >
+                  <p
+                    className="font-display"
+                    style={{
+                      color: "var(--accent)",
+                      fontSize: "clamp(3rem, 7vw, 5.25rem)",
+                      fontWeight: 700,
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1,
+                    }}
+                  >
+                    <CountUp value={m.value} suffix={m.suffix} />
+                  </p>
+                  <Body className="mt-3">{m.label}</Body>
+                </div>
+              </Reveal>
+            ))}
           </div>
-          <div className="relative mt-10">
+          <div className="mt-8 flex items-start justify-between gap-6">
+            <Reveal delay={120}>
+              <p className="max-w-2xl font-body text-caption-2 leading-relaxed text-muted">
+                Post-deployment metrics from Onki&rsquo;s published retail data.
+                Deployment occurred after the internship concluded.
+              </p>
+            </Reveal>
+            <Aside className="shrink-0" rotate={3}>
+              {NOTES.outcome}
+            </Aside>
+          </div>
+          {/* What shipped — the journey storyboard, then every screen visible. */}
+          <Reveal className="mt-14">
+            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">
+              the screens, end to end
+            </p>
+          </Reveal>
+          <Reveal variant="scale" delay={80} className="mt-5">
+            <Figure
+              src="/onki/storyboard.png"
+              label="The shopper journey, greeting to bottle"
+              aspect="aspect-[3/2]"
+              cursorLabel="the whole journey"
+              className="border border-border"
+            />
+          </Reveal>
+          <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
             {SCREENS.map((s, i) => (
-              <div
-                key={s.label}
-                className="sticky top-[10vh] flex h-[82vh] items-center justify-center"
-                style={{ zIndex: i + 1 }}
-              >
-                <Reveal variant="scale" className="w-full">
-                  <PolaroidScreen
+              <Reveal key={s.src} delay={i * 60}>
+                <div>
+                  <Figure
+                    src={s.src}
                     label={s.label}
-                    caption={s.caption}
-                    tilt={s.tilt}
+                    aspect="aspect-[9/16]"
                     cursorLabel={s.cursor}
+                    className="border border-border"
                   />
-                </Reveal>
-              </div>
+                  <p className="mt-2 font-mono text-caption-2 uppercase tracking-wide text-muted">
+                    {s.label.replace("Screen: ", "")}
+                  </p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </SectionWrap>
 
-        {/* 7 - OUTCOME (warm band) */}
-        <SectionWrap id="outcome" className="py-20 md:py-28">
-          <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <Statement>Designs shipped. Numbers followed.</Statement>
-            </Reveal>
-            <Reveal delay={100}>
-              <Body className="mt-6 max-w-2xl">
-                The designs contributed to AICap&rsquo;s real in-store deployment.
-                Early retail data showed strong commercial impact.
-              </Body>
-            </Reveal>
-            <div className="mt-12 grid gap-6 sm:grid-cols-3">
-              {METRICS.map((m, i) => (
-                <Reveal key={m.label} delay={i * 80}>
-                  <div
-                    className="h-full rounded-2xl border border-border p-8"
-                    style={{ backgroundColor: "var(--bg)" }}
-                    data-cursor-label={i === 1 ? "the one I'm proud of" : undefined}
-                  >
-                    <p
-                      className="font-display"
-                      style={{
-                        color: "var(--accent)",
-                        fontSize: "clamp(3rem, 7vw, 5.25rem)",
-                        fontWeight: 700,
-                        letterSpacing: "-0.02em",
-                        lineHeight: 1,
-                      }}
-                    >
-                      <CountUp value={m.value} suffix={m.suffix} />
-                    </p>
-                    <Body className="mt-3">{m.label}</Body>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-            <div className="mt-8 flex items-start justify-between gap-6">
-              <Reveal delay={120}>
-                <p className="max-w-2xl font-body text-caption-2 leading-relaxed text-muted">
-                  Post-deployment metrics from Onki&rsquo;s published retail data.
-                  Deployment occurred after the internship concluded.
-                </p>
-              </Reveal>
-              <Aside className="shrink-0" rotate={3}>
-                {NOTES.outcome}
-              </Aside>
-            </div>
-            <Reveal className="mt-12">
-              <ImagePlaceholder
-                label="Outcome: AICap deployed in-store"
-                ratio="16 / 9"
-                cursorLabel="it's real!"
-              />
-            </Reveal>
-          </div>
-        </SectionWrap>
-
-        {/* 8 - REFLECTION */}
-        <SectionWrap id="reflection" className="py-28 md:py-40">
-          <div className="mx-auto max-w-3xl text-center">
-            <Reveal variant="fade">
-              <div className="flex flex-col items-center">
-                <Eyebrow>Reflection</Eyebrow>
-              </div>
-            </Reveal>
-            <Reveal variant="fade" delay={120}>
-              <p
-                className="mt-8 font-heading leading-[1.6] text-text"
-                style={{ fontSize: "clamp(1.2rem, 1.8vw, 1.6rem)" }}
-              >
-                Designing for conversational AI taught me that the hardest decisions
-                aren&rsquo;t visual, they&rsquo;re behavioral. What does the AI say
-                when a user hesitates? How do you make a stranger comfortable talking
-                to a kiosk in public? How do you reduce cognitive load without making
-                the experience feel patronizing? This project shaped how I think about
-                human-AI interaction: not as a feature to design around, but as a
-                relationship to design for.
-              </p>
-            </Reveal>
-            {/* Tagline sign-off — uppercase mono, accent-coloured, matches
-               the pattern used in Feeld and Handmade Homestead. */}
-            <Reveal variant="fade" delay={240}>
-              <p
-                className="mt-16 font-mono text-caption-1 uppercase tracking-wide"
-                style={{ color: "var(--accent)" }}
-              >
-                A good assistant doesn&rsquo;t sell. It remembers.
-              </p>
-            </Reveal>
-          </div>
+        {/* 8 - REFLECTION — left-aligned Label + Body + sign-off, matching Feeld. */}
+        <SectionWrap id="reflection">
+          <Reveal variant="fade">
+            <Eyebrow>Reflection</Eyebrow>
+          </Reveal>
+          <Reveal variant="fade" delay={120}>
+            <Body className="mt-10">
+              Designing for conversational AI taught me that the hardest decisions
+              aren&rsquo;t visual, they&rsquo;re behavioral. What does the AI say
+              when a user hesitates? How do you make a stranger comfortable talking
+              to a kiosk in public? How do you reduce cognitive load without making
+              the experience feel patronizing? This project shaped how I think about
+              human-AI interaction: not as a feature to design around, but as a
+              relationship to design for.
+            </Body>
+          </Reveal>
         </SectionWrap>
       </div>
     </div>
