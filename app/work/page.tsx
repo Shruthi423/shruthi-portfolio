@@ -114,6 +114,7 @@ const projects: Project[] = [
     color1: "#FFFFC0", // matches the new cover's pale yellow border → seamless edges
     color2: "#4B4F58",
     image: "/umsi-expo-badges/cover.png",
+    hoverLabel: "Updating Now",
     href: "/umsi-expo-badges",
   },
   // ---- HIDDEN: Campus Take ----
@@ -142,6 +143,7 @@ const projects: Project[] = [
     color1: "#C9FFF2", // matches the new cover's mint border → seamless edges
     color2: "#1F5E52", // placeholder darker teal complement — confirm
     image: "/pcs-global/cover.png",
+    hoverLabel: "Updating Now",
   },
   {
     name: "Indigo Records",
@@ -152,6 +154,7 @@ const projects: Project[] = [
     color1: "#D8DDFF", // matches the new cover's lavender border → seamless edges
     color2: "#3D4189",
     image: "/indigo-records/cover.png",
+    hoverLabel: "Updating Now",
   },
   {
     name: "Theta",
@@ -162,6 +165,7 @@ const projects: Project[] = [
     color1: "#CBCAFF", // matches the new cover's pale periwinkle border → seamless edges
     color2: "#8A7D5A",
     image: "/theta/cover.png",
+    hoverLabel: "Coming soon",
   },
   {
     name: "Umood",
@@ -172,6 +176,7 @@ const projects: Project[] = [
     color1: "#FF9A9A", // matches the new cover's coral pink border → seamless edges
     color2: "#00274C", // U-M Navy, the wordmark's primary
     image: "/umood/cover.png",
+    hoverLabel: "Coming soon",
   },
   {
     name: "Ghost",
@@ -182,6 +187,7 @@ const projects: Project[] = [
     color1: "#262122", // matches the new cover's near-black background → seamless edges
     color2: "#FCE49A", // warm yellow accent
     image: "/ghost/cover.png",
+    hoverLabel: "Building Now",
   },
   {
     name: "Gesture-based Games",
@@ -192,6 +198,7 @@ const projects: Project[] = [
     color1: "#DFFF80", // matches the new cover's lime border → seamless edges
     color2: "#2A7882",
     image: "/gesture-based-games/cover.png",
+    hoverLabel: "Updating Now",
   },
   {
     name: "Talking Maize and Blue",
@@ -202,6 +209,7 @@ const projects: Project[] = [
     color1: "#E6FFD1", // matches the new cover's mint border → seamless edges
     color2: "#00274C", // U-M Blue
     image: "/talking-maize-and-blue/cover.png",
+    hoverLabel: "Building Now",
   },
 ];
 

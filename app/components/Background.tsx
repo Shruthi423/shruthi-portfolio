@@ -85,7 +85,7 @@ const CSS = `
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: #FFFAF2;
+  background-color: #FDF9F2;
   transition: background-color 1.2s ease;
 }
 .dark .bg-sky { background-color: #171520; }
@@ -94,7 +94,7 @@ const CSS = `
 .bg-skyfill {
   position: absolute;
   inset: 0;
-  background-color: #FFFAF2;
+  background-color: #FDF9F2;
   transition: background-color 1.2s ease;
 }
 .dark .bg-skyfill { background-color: #171520; }
@@ -485,13 +485,22 @@ export function DayNightToggle() {
 }
 
 export function SkyScene() {
-  const sky = useRef<HTMLDivElement>(null);
+  // Clouds → <Clouds /> and stars/shooting stars → <NightSky />, both now live
+  // in the Footer. This backdrop is just the sky colour that content scrolls
+  // over (oat by day, warm midnight by night, via `.bg-sky`).
+  return <div className="bg-sky" />;
+}
 
-  // Clouds were extracted to <Clouds /> (now lives in the Footer). The sky
-  // backdrop here keeps the colour, stars, and shooting stars.
-
+/**
+ * NightSky — the stars + shooting stars, extracted from SkyScene so they can
+ * live in the Footer (mirrors how <Clouds /> was relocated). Pure CSS
+ * animations (twinkle + shoot); they reveal only in dark mode via the
+ * `.dark .bg-stars` / `.dark .bg-shooting` rules — the night counterpart to
+ * the day-only clouds.
+ */
+export function NightSky() {
   return (
-    <div className="bg-sky" ref={sky}>
+    <>
       {/* stars (night) */}
       <div className="bg-stars">
         {STARS.map((s, i) => (
@@ -529,8 +538,7 @@ export function SkyScene() {
           />
         ))}
       </div>
-
-    </div>
+    </>
   );
 }
 

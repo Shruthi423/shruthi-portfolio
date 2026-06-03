@@ -4,7 +4,7 @@
 
 @theme {
   /* Colors — base (shared earthy palette, home + inner pages) */
-  --color-bg-light: #FFFAF2;  /* morning mist — matches the home */
+  --color-bg-light: var(--color-oatmilk);  /* oat milk — matches the home */
   --color-bg-dark: #171520;   /* warm midnight — one shared night */
   --color-surface-light: #eceae4;
   --color-surface-dark: #211f2a;
@@ -13,6 +13,7 @@
   --color-text-light: #3b2a1c;  /* espresso ink */
   --color-text-dark: #eae0ce;   /* warm oat ink */
   --color-text-secondary: #888780;
+  --color-oatmilk: #FDF9F2;  /* oat milk — the light background */
   /* Accent — earthier olive (was grass green), sits with terracotta */
   --color-accent: #5b6a34;
   /* Heading / link accent — terracotta by day, clay by night (= home links) */

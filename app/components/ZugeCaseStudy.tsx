@@ -23,16 +23,18 @@ const SECTIONS = [
   { id: "research", label: "research" },
   { id: "iterations", label: "what didn't work" },
   { id: "dashboard", label: "the dashboard" },
+  { id: "context", label: "in context" },
   { id: "outcome", label: "the outcome" },
   { id: "reflection", label: "reflection" },
 ] as const;
 
-const META = [
+const META: { label: string; value: string; href?: string }[] = [
   { label: "Role", value: "Design Consultant (UX/UI)" },
   { label: "Team", value: "1 Product Lead, 2 Senior UX, 3 stakeholders, me" },
   { label: "Duration", value: "6 months · Jun 2023 – Jul 2024" },
   { label: "Company", value: "Sharp × Zuge Electric" },
   { label: "Platform", value: "7-inch TFT touchscreen" },
+  { label: "Live", value: "zugeelectric.com", href: "https://zugeelectric.com/we-are/" },
 ];
 
 const FINDINGS = [
@@ -60,13 +62,31 @@ const ITERATIONS = [
 ];
 
 const SCREENS = [
-  { file: "zuge/screen-speed.jpg", label: "Speed, nav & music", cursor: "one glance" },
-  { file: "zuge/screen-call.jpg", label: "Order / call overlay", cursor: "present when needed" },
+  { file: "zuge/screen-lock.jpg", label: "Lock screen", cursor: "enter passcode" },
+  { file: "zuge/screen-drive.jpg", label: "On the road: speed, nav & music", cursor: "one glance" },
   { file: "zuge/screen-ride.jpg", label: "Ride mode", cursor: "just ride" },
   { file: "zuge/screen-parked.jpg", label: "Parked", cursor: "take off your stand" },
   { file: "zuge/screen-settings.jpg", label: "Settings", cursor: "deep, but out of the way" },
-  { file: "zuge/screen-a11y.jpg", label: "Accessibility", cursor: "dark / mono / high-contrast" },
+  { file: "zuge/screen-access.jpg", label: "Accessibility", cursor: "dark / mono / high-contrast" },
 ];
+
+// The overlays the rider actually touches mid-shift, shown as standalone
+// components rather than full screens. Each sits centred in a uniform tile so
+// the landscape and portrait pieces read as one consistent set.
+const COMPONENTS = [
+  { file: "zuge/meter.png", label: "Battery & range", cursor: "96% · 145 km" },
+  { file: "zuge/orders.png", label: "Incoming order", cursor: "₹350 · accept" },
+  { file: "zuge/location.png", label: "Rider location", cursor: "500 m away" },
+];
+
+// The shipped UI rendered on the real chassis, across the colourways riders buy.
+const PROTOTYPES = [
+  { file: "zuge/prototype-1.png", label: "Turn-by-turn at 48 km/h", cursor: "650 m to turn" },
+  { file: "zuge/prototype-3.png", label: "Settings & vehicle health", cursor: "parked" },
+  { file: "zuge/prototype-4.png", label: "Navigation, normal mode", cursor: "350 m ahead" },
+  { file: "zuge/prototype-2.png", label: "Parked · CO₂ avoided", cursor: "2.2 g saved" },
+];
+const PROTOTYPE_WIDE = { file: "zuge/prototype-5.png", label: "Settings, full menu", cursor: "deep, out of the way" };
 
 const METRICS = [
   { prefix: "", value: 73, decimals: 0, suffix: "%", label: "less phone use on the road" },
@@ -154,6 +174,7 @@ function Figure({
   cursorLabel,
   className = "",
   parallax = false,
+  fit = "cover",
 }: {
   src?: string;
   alt?: string;
@@ -164,6 +185,7 @@ function Figure({
   cursorLabel?: string;
   className?: string;
   parallax?: boolean;
+  fit?: "cover" | "contain";
 }) {
   const [errored, setErrored] = useState(false);
   const showImage = !!src && !errored;
@@ -188,7 +210,7 @@ function Figure({
     return (
       <div ref={frameRef} className={`relative w-full overflow-hidden ${aspect} ${className}`} data-cursor-label={cursorLabel}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={imgRef} src={src} alt={alt ?? label} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: position }} onError={() => setErrored(true)} />
+        <img ref={imgRef} src={src} alt={alt ?? label} className={`absolute inset-0 h-full w-full ${fit === "contain" ? "object-contain" : "object-cover"}`} style={{ objectPosition: position }} onError={() => setErrored(true)} />
       </div>
     );
   }
@@ -452,14 +474,28 @@ export function ZugeCaseStudy() {
                 {META.map((m) => (
                   <div key={m.label}>
                     <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">{m.label}</dt>
-                    <dd className="mt-1 font-body text-body text-text">{m.value}</dd>
+                    <dd className="mt-1 font-body text-body text-text">
+                      {m.href ? (
+                        <a
+                          href={m.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-cursor-label="visit"
+                          className="underline decoration-1 underline-offset-4 transition-colors hover:[color:var(--accent)]"
+                        >
+                          {m.value}
+                        </a>
+                      ) : (
+                        m.value
+                      )}
+                    </dd>
                   </div>
                 ))}
               </dl>
             </Reveal>
 
             <Reveal delay={240} variant="scale" className="mt-10">
-              <Figure src="/zuge/hero.jpg" file="zuge/hero.jpg" label="Hero: the Zuge dashboard" aspect="aspect-video" cursorLabel="34 km/h" />
+              <Figure src="/zuge/hero.png" file="zuge/hero.png" label="Hero: the Zuge dashboard" aspect="aspect-video" cursorLabel="tap to begin" />
             </Reveal>
 
             <Reveal delay={120}>
@@ -521,8 +557,11 @@ export function ZugeCaseStudy() {
               ))}
             </div>
           </Reveal>
-          <Reveal delay={150} variant="scale" className="mt-12">
-            <Figure src="/zuge/approach.jpg" file="zuge/approach.jpg" label="Our approach, 5 steps" aspect="aspect-[16/9]" cursorLabel="define → ship" parallax={false} className="border border-border" />
+          <Reveal delay={120} className="mt-12">
+            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">form studies: finding the screen&rsquo;s silhouette</p>
+          </Reveal>
+          <Reveal delay={150} variant="scale" className="mt-5">
+            <Figure src="/zuge/form-studies.png" file="zuge/form-studies.png" label="Hand-drawn form studies" aspect="aspect-[7/3]" cursorLabel="finding the form" className="border border-border" />
           </Reveal>
         </Section>
 
@@ -589,6 +628,20 @@ export function ZugeCaseStudy() {
           </Reveal>
 
           <Reveal delay={80} className="mt-14">
+            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">the overlays, as components</p>
+          </Reveal>
+          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {COMPONENTS.map((c, i) => (
+              <Reveal key={c.file} delay={i * 70}>
+                <div>
+                  <Figure src={`/${c.file}`} file={c.file} label={c.label} aspect="aspect-[4/3]" cursorLabel={c.cursor} fit="contain" className="border border-border bg-surface/40" />
+                  <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">{c.label}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={80} className="mt-14">
             <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">the dashboard, across states</p>
           </Reveal>
           <div className="mt-6 flex flex-col gap-10">
@@ -603,7 +656,38 @@ export function ZugeCaseStudy() {
           </div>
         </Section>
 
-        {/* 6 - THE OUTCOME */}
+        {/* 6 - IN CONTEXT */}
+        <Section id="context">
+          <Reveal>
+            <Label>in context</Label>
+          </Reveal>
+          <Reveal delay={60}>
+            <Statement maxW="none" className="mt-5">Final screens, on the bike.</Statement>
+          </Reveal>
+          <Reveal delay={120}>
+            <Body className="mt-5">
+              Rendered on the real chassis, across the colourways riders actually buy. The hierarchy that held up at a desk had to hold up here too: at a glance, in sun, mid-shift.
+            </Body>
+          </Reveal>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2">
+            {PROTOTYPES.map((p, i) => (
+              <Reveal key={p.file} delay={i * 60}>
+                <div>
+                  <Figure src={`/${p.file}`} file={p.file} label={p.label} aspect="aspect-[5/4]" cursorLabel={p.cursor} fit="contain" className="border border-border bg-surface/40" />
+                  <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">{p.label}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={80} variant="scale" className="mt-6">
+            <div>
+              <Figure src={`/${PROTOTYPE_WIDE.file}`} file={PROTOTYPE_WIDE.file} label={PROTOTYPE_WIDE.label} aspect="aspect-[2/1]" cursorLabel={PROTOTYPE_WIDE.cursor} fit="contain" className="border border-border bg-surface/40" />
+              <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">{PROTOTYPE_WIDE.label}</p>
+            </div>
+          </Reveal>
+        </Section>
+
+        {/* 7 - THE OUTCOME */}
         <Section id="outcome">
           <Reveal>
             <Label>the outcome</Label>
@@ -635,7 +719,7 @@ export function ZugeCaseStudy() {
           </Reveal>
         </Section>
 
-        {/* 7 - REFLECTION */}
+        {/* 8 - REFLECTION */}
         <Section id="reflection">
           <Reveal>
             <Label>reflection</Label>

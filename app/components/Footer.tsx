@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clouds, GrasslandScene } from "./Background";
+import { Clouds, NightSky, GrasslandScene } from "./Background";
 
 type FooterLink = {
   label: string;
@@ -82,11 +82,13 @@ export function Footer() {
       className="fixed inset-x-0 bottom-0 z-0"
       style={{ height: FOOTER_HEIGHT }}
     >
-      {/* sky-coloured fill + drifting clouds + grassland scene as the
-          footer's backdrop. Clouds were relocated from the page-level
-          SkyScene; they hide automatically in dark mode via .dark .bg-clouds. */}
+      {/* sky-coloured fill + drifting clouds (day) + stars & shooting stars
+          (night) + grassland scene as the footer's backdrop. Clouds and the
+          night sky were relocated from the page-level SkyScene; each hides in
+          the opposite theme via .dark .bg-clouds / .dark .bg-stars. */}
       <div className="bg-skyfill" />
       <Clouds />
+      <NightSky />
       <GrasslandScene />
 
       {/* footer content — sits above the backdrop */}

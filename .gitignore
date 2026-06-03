@@ -56,6 +56,7 @@ next-env.d.ts
 /MSI_expo_images/
 /Onki_images/
 /Theta_assets/
+/Zuge_images/
 
 # Rejected day/night reference images (never used)
 /Moon.png

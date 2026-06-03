@@ -42,10 +42,10 @@ type Palette = {
   paw: Record<Animal, string>; // footprint color per animal
 };
 
-// Light — morning mist + earthy ink.
+// Light — oat milk + earthy ink.
 const LIGHT: Palette = {
-  bg: "#FFFAF2",
-  fog: "rgba(255,250,242,0.72)",
+  bg: "#FDF9F2",
+  fog: "rgba(253,249,242,0.72)",
   font: "#963417", // terracota
   chrome: "#3b2a1c", // espresso
   pickerActive: "rgba(150,52,23,0.10)",
