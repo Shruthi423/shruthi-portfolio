@@ -613,7 +613,7 @@ export default function FootprintsHome() {
                 aria-label={label}
                 className="block opacity-70 transition-opacity hover:opacity-100"
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-8 w-8" />
               </a>
             </li>
           ))}
