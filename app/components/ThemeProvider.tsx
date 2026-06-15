@@ -78,6 +78,33 @@ function applyHue(color: PaperColor) {
   document.documentElement.style.setProperty("--hue", PAPER_COLORS[color]);
 }
 
+// Phosphor paw, 256 viewBox — shared with the static favicon files.
+const PAW_PATH =
+  "M240,108a28,28,0,1,1-28-28A28,28,0,0,1,240,108ZM72,108a28,28,0,1,0-28,28A28,28,0,0,0,72,108ZM92,88A28,28,0,1,0,64,60,28,28,0,0,0,92,88Zm72,0a28,28,0,1,0-28-28A28,28,0,0,0,164,88Zm23.12,60.86a35.3,35.3,0,0,1-16.87-21.14,44,44,0,0,0-84.5,0A35.25,35.25,0,0,1,69,148.82,40,40,0,0,0,88,224a39.48,39.48,0,0,0,15.52-3.13,64.09,64.09,0,0,1,48.87,0,40,40,0,0,0,34.73-72Z";
+
+// Dynamic favicon: a two-tone tile (paper bg + ink paw) so the chosen pastel
+// shows in BOTH modes — pastel tile/charcoal paw in light, charcoal tile/pastel
+// paw in dark. Updated live on every color + light/dark change.
+function applyFavicon(color: PaperColor, dark: boolean) {
+  const hue = PAPER_COLORS[color];
+  const paper = dark ? CHARCOAL : hue;
+  const ink = dark ? hue : CHARCOAL;
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">` +
+    `<rect width="256" height="256" rx="60" fill="${paper}"/>` +
+    `<path d="${PAW_PATH}" fill="${ink}"/></svg>`;
+  const href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  const head = document.head;
+  // Drop any existing icon links (the static media-query ones) so only the
+  // live tile remains.
+  head.querySelectorAll('link[rel~="icon"]').forEach((l) => l.remove());
+  const link = document.createElement("link");
+  link.rel = "icon";
+  link.type = "image/svg+xml";
+  link.href = href;
+  head.appendChild(link);
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>("light");
@@ -103,6 +130,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     applyThemeClass(resolvedTheme);
   }, [resolvedTheme]);
+
+  // Keep the favicon in sync with the chosen pastel + polarity.
+  useEffect(() => {
+    applyFavicon(color, resolvedTheme === "dark");
+  }, [color, resolvedTheme]);
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
