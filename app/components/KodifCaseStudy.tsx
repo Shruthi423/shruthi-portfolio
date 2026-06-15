@@ -622,7 +622,7 @@ export function KodifCaseStudy() {
         <section id="overview" className="scroll-mt-24 px-6 pb-8 pt-28 sm:px-10 md:pt-32 lg:pl-32 lg:pr-12">
           <div className="mx-auto max-w-6xl">
             <Reveal>
-              <h1 className="whitespace-nowrap font-display leading-[1.02] text-text" style={{ fontSize: "clamp(0.9rem, 4.4vw, 3.8rem)", fontWeight: 700, letterSpacing: "-0.02em" }}>
+              <h1 className="whitespace-nowrap font-display leading-[1.02] text-text" style={{ fontSize: "clamp(0.9rem, 4.4vw, 3.8rem)", fontWeight: 500, letterSpacing: "-0.02em" }}>
                 Shaping an AI concierge for e-commerce.
               </h1>
             </Reveal>

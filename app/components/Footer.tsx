@@ -118,6 +118,7 @@ export function Footer({ variant = "curtain" }: { variant?: "curtain" | "panel" 
               data-cursor-label="I respond fast"
               style={{
                 fontWeight: 700,
+                fontStyle: "italic",
                 letterSpacing: "-0.02em",
                 color: "var(--text)",
               }}

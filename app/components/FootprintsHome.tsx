@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { gsap } from "../lib/gsap";
 import {
@@ -155,7 +155,13 @@ function PawShapes() {
   );
 }
 
-export default function FootprintsHome() {
+export default function FootprintsHome({
+  variant = "home",
+  children,
+}: {
+  variant?: "home" | "hero";
+  children?: ReactNode;
+} = {}) {
   const root = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
@@ -190,11 +196,16 @@ export default function FootprintsHome() {
   const isDark = resolvedTheme === "dark";
   const paper = isDark ? CHARCOAL : hue;
   const ink = isDark ? hue : CHARCOAL;
+  // The hero panel runs at the OPPOSITE polarity, so its frost + prints invert
+  // (dark frost + paper prints on a light page, and the reverse in dark mode).
+  const hero = variant === "hero";
+  const bg = hero ? ink : paper;
+  const fg = hero ? paper : ink;
   const pal: Palette = {
-    bg: paper,
-    fog: `rgba(${rgbTriplet(paper)}, 0.72)`,
-    ink,
-    pickerActive: `rgba(${rgbTriplet(ink)}, 0.12)`,
+    bg,
+    fog: `rgba(${rgbTriplet(bg)}, 0.72)`,
+    ink: fg,
+    pickerActive: `rgba(${rgbTriplet(fg)}, 0.12)`,
   };
   const palRef = useRef(pal);
   useEffect(() => {
@@ -550,6 +561,19 @@ export default function FootprintsHome() {
       {/* Top bar (socials + wordmark) lives in HomeTopBar at the slider level
           now, so it persists across all three panels. */}
 
+      {/* Hero variant: the slider's intro statement, centered over the frost. */}
+      {hero && (
+        <div
+          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center"
+          style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.1s" }}
+        >
+          {children}
+        </div>
+      )}
+
+      {/* Home chrome — nav, colour rail, footprint picker. Hidden on the hero. */}
+      {!hero && (
+        <>
       {/* Big links — idle: all sharp. Hover one: it stays clear, the rest frost. */}
       <nav
         aria-label="Sections"
@@ -670,6 +694,8 @@ export default function FootprintsHome() {
           Who doesn&rsquo;t love leaving a footprint!
         </p>
       </div>
+        </>
+      )}
     </div>
   );
 }
