@@ -100,7 +100,7 @@ function Illustration({ img }: { img: Img }) {
         className="overflow-hidden rounded-xl shadow-sm transition-transform duration-200 ease-out will-change-transform"
       >
         <Image
-          src={`/playground/illustrations/${img.f}`}
+          src={`/the-lab/illustrations/${img.f}`}
           alt={`${prettify(img.f)} — illustration`}
           width={img.w}
           height={img.h}
@@ -112,7 +112,7 @@ function Illustration({ img }: { img: Img }) {
   );
 }
 
-export default function Playground() {
+export default function TheLab() {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -153,7 +153,7 @@ export default function Playground() {
               letterSpacing: "-0.01em",
             }}
           >
-            playground
+            side quests
           </h1>
           <p className="mx-auto mt-10 w-full max-w-[34rem] text-balance font-body text-[15px] leading-relaxed text-muted md:text-[17px]">
             I illustrate what&rsquo;s around me, imperfect and hand-drawn,

@@ -5,6 +5,7 @@ const projects: Project[] = [
   // ---- Live case studies (clickable) ----
   {
     name: "Kodif",
+    status: "built",
     discipline: "UX/UI Design",
     type: "Internship",
     year: "2024",
@@ -15,6 +16,7 @@ const projects: Project[] = [
   },
   {
     name: "Zuge Electric",
+    status: "built",
     discipline: "HMI Design",
     type: "Full-time",
     year: "2024",
@@ -27,11 +29,11 @@ const projects: Project[] = [
       "EV Mobility",
     ],
     image: "/zuge/cover.png",
-    hoverLabel: "Updating now",
     href: "/zuge",
   },
   {
     name: "Temple",
+    status: "built",
     discipline: "Product Management",
     type: "Full-time",
     year: "2024",
@@ -48,6 +50,7 @@ const projects: Project[] = [
   },
   {
     name: "Onki",
+    status: "built",
     discipline: "UX/UI Design",
     type: "Internship",
     year: "2024",
@@ -60,11 +63,11 @@ const projects: Project[] = [
       "In Progress",
     ],
     image: "/onki/cover.png",
-    hoverLabel: "Updating now",
     href: "/onki",
   },
   {
     name: "Handmade Homestead",
+    status: "built",
     discipline: "Brand & Social",
     year: "2025", // PLACEHOLDER year — confirm
     description: "A homestead brand, grown from identity to 152.6K views.",
@@ -80,6 +83,7 @@ const projects: Project[] = [
   },
   {
     name: "Feeld",
+    status: "built",
     discipline: "Speculative UX",
     type: "Designathon",
     year: "2026",
@@ -94,6 +98,7 @@ const projects: Project[] = [
   },
   {
     name: "UMSI Expo Badges",
+    status: "built",
     discipline: "Brand & Identity",
     year: "2026",
     description: "Conference badges for the University of Michigan SI expo.",
@@ -108,6 +113,7 @@ const projects: Project[] = [
   // restoring app/campus-take/page.tsx (see git history).
   // {
   //   name: "Campus Take",
+  //   status: "built",
   //   discipline: "UX/UI Design",
   //   year: "2026",
   //   description: "A daily opinion poll for 53,000+ U-M students.",
@@ -119,6 +125,7 @@ const projects: Project[] = [
   // ---- Coming soon ---- (no `href` → ProjectCard shows "Coming soon" on hover)
   {
     name: "PCS Global",
+    status: "soon",
     discipline: "UX/UI Design", // PLACEHOLDER — confirm
     year: "2026", // PLACEHOLDER — confirm
     description: "PCS Global — one-liner from you.", // PLACEHOLDER
@@ -128,6 +135,7 @@ const projects: Project[] = [
   },
   {
     name: "Indigo Records",
+    status: "soon",
     discipline: "Graphic Design",
     year: "2025", // PLACEHOLDER year — confirm
     description: "Visual identity and assets for an indie record label.", // PLACEHOLDER
@@ -137,6 +145,7 @@ const projects: Project[] = [
   },
   {
     name: "Theta",
+    status: "soon",
     discipline: "AI Exploration",
     year: "2024",
     description: "An AI exploration — one-liner from you.", // PLACEHOLDER
@@ -146,6 +155,7 @@ const projects: Project[] = [
   },
   {
     name: "Umood",
+    status: "soon",
     discipline: "Logo & Identity",
     year: "2025",
     description: "A wellness companion wordmark for U-M students.",
@@ -155,6 +165,7 @@ const projects: Project[] = [
   },
   {
     name: "Ghost",
+    status: "building",
     discipline: "AI / Browser Extension",
     year: "2026",
     description: "A Chrome extension that helps you write better prompts.",
@@ -164,6 +175,7 @@ const projects: Project[] = [
   },
   {
     name: "Gesture-based Games",
+    status: "building",
     discipline: "Interaction Design",
     year: "2026",
     description: "Games you play with your hands in the air.",
@@ -173,6 +185,7 @@ const projects: Project[] = [
   },
   {
     name: "Talking Maize and Blue",
+    status: "building",
     discipline: "Brand & Identity", // PLACEHOLDER — confirm
     year: "2026", // PLACEHOLDER — confirm
     description: "Brand & identity for Talking Maize and Blue.", // PLACEHOLDER

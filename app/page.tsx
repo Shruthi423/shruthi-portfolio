@@ -1,5 +1,5 @@
-import FootprintsHome from "./components/FootprintsHome";
+import HomeSlider from "./components/HomeSlider";
 
 export default function HomePage() {
-  return <FootprintsHome />;
+  return <HomeSlider />;
 }

@@ -36,8 +36,8 @@ const SAY_HI_LINKS: FooterLink[] = [
 ];
 
 const PAGE_LINKS: FooterLink[] = [
-  { label: "Work", href: "/", cursorLabel: "The good stuff" },
-  { label: "Playground", href: "/playground", cursorLabel: "Off-the-record" },
+  { label: "Work", href: "/", cursorLabel: "Okay, the actual work" },
+  { label: "Side Quests", href: "/the-lab", cursorLabel: "Off-the-record" },
   { label: "About", href: "/about", cursorLabel: "Who's Shruthi?" },
 ];
 
@@ -82,16 +82,21 @@ function LinkColumn({ label, links }: { label: string; links: FooterLink[] }) {
   );
 }
 
-export function Footer() {
+export function Footer({ variant = "curtain" }: { variant?: "curtain" | "panel" } = {}) {
+  // "curtain" (default): the fixed footer revealed behind scrolling main on
+  // inner pages. "panel": a normal full-height block, used as section 3 of the
+  // home slider.
+  const panel = variant === "panel";
   return (
     <footer
-      className="fixed inset-x-0 bottom-0 z-0"
-      style={{ height: FOOTER_HEIGHT }}
+      className={panel ? "relative h-full w-full overflow-hidden" : "fixed inset-x-0 bottom-0 z-0"}
+      style={panel ? undefined : { height: FOOTER_HEIGHT }}
     >
-      {/* sky-coloured fill + drifting clouds (day) + stars & shooting stars
-          (night) + grassland scene as the footer's backdrop. Clouds and the
-          night sky were relocated from the page-level SkyScene; each hides in
-          the opposite theme via .dark .bg-clouds / .dark .bg-stars. */}
+      {/* sky-coloured fill + slow-drifting chalk clouds (day) + stars &
+          shooting stars (night) + grassland scene as the footer's backdrop.
+          The main → footer transition itself is the paper-fog <FogReveal /> at
+          the bottom of <main> (see SiteFrame); these clouds are just the
+          footer's own gently drifting horizon. */}
       <div className="bg-skyfill" />
       <Clouds />
       <NightSky />

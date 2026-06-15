@@ -10,6 +10,7 @@ export type Project = {
   discipline: string; // primary category
   type?: string; // Full-time / Internship / etc.
   year: string;
+  status: "built" | "building" | "soon"; // drives the /work filter chips (shipped / cooking / on the way)
   description?: string; // one-line summary
   tags?: string[]; // bite-size pills that rain + pile in on hover
   image?: string; // floating mockup — wired in later
@@ -122,6 +123,7 @@ export function ProjectCard({ project }: { project: Project }) {
 
       const engine = Engine.create();
       engine.gravity.y = 1.2;
+      engine.enableSleeping = true; // let the pile come fully to rest (no jitter)
 
       const t = 80; // wall thickness (kept off-screen)
       Composite.add(engine.world, [
@@ -131,11 +133,14 @@ export function ProjectCard({ project }: { project: Project }) {
       ]);
 
       const bodies: (Body | null)[] = pills.map(() => null);
-      // Option B — "weighted bottom": a soft spring-damper rights each pill
-      // toward upright every step, so they settle readable but keep wobbling.
+      // Each pill is nudged upright only for a short window right after it
+      // lands, then left alone so friction + sleeping bring it fully to rest.
+      // (Righting every frame forever was what kept the pile twitching.)
+      const rightUntil: number[] = pills.map(() => 0);
       const TWO_PI = Math.PI * 2;
-      const RIGHT_SPRING = 0.05; // pull toward upright
-      const RIGHT_DAMP = 0.9; // angular damping (lower = more viscous)
+      const RIGHT_SPRING = 0.08; // pull toward upright
+      const RIGHT_DAMP = 0.88; // angular damping (lower = more viscous)
+      const RIGHT_WINDOW = 1800; // ms of active righting after a pill spawns
 
       pills.forEach((el, i) => {
         const to = setTimeout(
@@ -146,13 +151,14 @@ export function ProjectCard({ project }: { project: Project }) {
             const x = w / 2 + pad + Math.random() * Math.max(1, W - w - pad * 2);
             const body = Bodies.rectangle(x, -h - Math.random() * 60, w, h, {
               chamfer: { radius: h / 2 }, // pill (capsule) collision shape
-              restitution: 0.7, // bouncy / rubbery landing
-              friction: 0.3,
+              restitution: 0.2, // soft landing, minimal bounce
+              friction: 0.55,
               frictionAir: 0.012,
               density: 0.0014,
             });
-            MBody.setAngularVelocity(body, (Math.random() - 0.5) * 0.12);
+            MBody.setAngularVelocity(body, (Math.random() - 0.5) * 0.06);
             bodies[i] = body;
+            rightUntil[i] = performance.now() + RIGHT_WINDOW;
             Composite.add(engine.world, body);
             el.style.opacity = "1";
           },
@@ -163,9 +169,11 @@ export function ProjectCard({ project }: { project: Project }) {
 
       const tick = () => {
         if (stopped) return;
-        // Weighted-bottom righting: spring each body toward the nearest upright.
-        bodies.forEach((b) => {
-          if (!b) return;
+        const now = performance.now();
+        // Nudge each pill toward upright, but ONLY during its righting window
+        // and while it's awake — once settled it sleeps and stays put.
+        bodies.forEach((b, i) => {
+          if (!b || b.isSleeping || now > rightUntil[i]) return;
           const target = Math.round(b.angle / TWO_PI) * TWO_PI;
           const av =
             (b.angularVelocity + (target - b.angle) * RIGHT_SPRING) *

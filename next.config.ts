@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot, // used by Turbopack dev
   },
+  // The Playground page was renamed to "The Lab" and moved to /the-lab.
+  // 308-redirect the old URL so existing links / bookmarks don't 404.
+  async redirects() {
+    return [
+      { source: "/playground", destination: "/the-lab", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

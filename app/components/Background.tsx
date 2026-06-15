@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- footer silhouettes are tiny static SVGs, not photos */
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "./ThemeProvider";
@@ -9,12 +8,14 @@ import { gsap, useGSAP } from "../lib/gsap";
  * Background — an animated, hand-drawn illustrated world, split into
  * composable pieces so it can integrate with the real site:
  *   <BackgroundStyles />  — the shared <style> block (render once)
- *   <SkyScene />          — sky colour + clouds + birds + plane + stars
+ *   <SkyScene />          — the flat sky-colour backdrop content scrolls over
  *   <DayNightToggle />    — the day / night bat button (fixed, top-right)
- *   <GrasslandScene />    — acacias + Masai Mara animals + fireflies
+ *   <Clouds /> <NightSky /> <GrasslandScene /> — the footer's backdrop
+ *                           (drifting clouds, stars, savanna animals + fireflies)
+ *   <FogReveal />         — the paper-fog main → footer scroll transition
  *
  * Day / night is keyed off the global `.dark` class (the theme), so the
- * sun/moon toggle drives the whole site's light/dark theme.
+ * bat toggle drives the whole site's light/dark theme.
  * ------------------------------------------------------------------ */
 
 // Static, deterministic scatter data (no Math.random — SSR-safe).
@@ -115,30 +116,78 @@ const CSS = `
 }
 .dark .bat-flip { transform: rotate(0deg); } /* night → upright */
 .bg-toggle:hover .bat-flip { opacity: 1; }
-.bg-sun-rays { transform-origin: 50px 50px; animation: bgw-rayRotate 12s linear infinite; will-change: transform; }
-.bg-moon-bob { animation: bgw-moonBob 4s ease-in-out infinite; will-change: transform; }
 
 /* ---- clouds ---- */
-/* wrapper owns the day/night fade so GSAP can freely drive each cloud's opacity */
 .bg-clouds {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transition: opacity 0.8s ease;
+  overflow: hidden; /* clip clouds that extend past the footer edges */
 }
-.dark .bg-clouds { opacity: 0; }
+.bg-cloud { position: absolute; }
+.bg-cloud svg { display: block; width: 100%; height: auto; overflow: visible; }
+/* soft filled clouds (the live look) — a faint tint of ink over the paper, no
+   stroke. Always in harmony with the chosen hue in either polarity. */
+.bg-cloud path {
+  fill: color-mix(in srgb, var(--ink) 10%, var(--paper));
+}
+/* a single horizon line across the footer — clouds overlap to read as one band.
+   Each drifts very slowly + a touch out of phase (alternating direction) for a
+   calm, living parallax. Tunable per cloud via --cdur / --cdelay / --cdrift. */
 .bg-cloud {
-  position: absolute;
-  will-change: transform, opacity;
-  visibility: hidden; /* GSAP reveals via autoAlpha — avoids an SSR flash */
+  animation: bgw-cloudDrift var(--cdur, 30s) ease-in-out var(--cdelay, 0s) infinite alternate;
 }
-.bg-cloud svg { display: block; width: 100%; height: auto; }
-/* a faint tint of the ink over the paper — soft, always in-harmony with the hue */
-.bg-cloud path { fill: color-mix(in srgb, var(--ink) 10%, var(--paper)); }
-.bg-cloud-1 { top: 13%; left: 1%;   width: 420px; }
-.bg-cloud-2 { top: 30%; right: 3%;  width: 380px; }
-.bg-cloud-3 { top: 52%; left: 11%;  width: 240px; }
-.bg-cloud-4 { top: 6%;  right: 19%; width: 300px; }
+.bg-cloud-1 { top: 43%; left: -6%; width: 420px; --cdur: 34s; --cdelay: 0s;   --cdrift: 26px;  --cdriftY: -5px; }
+.bg-cloud-2 { top: 40%; left: 20%; width: 380px; --cdur: 27s; --cdelay: 1.5s; --cdrift: -20px; --cdriftY: 4px; }
+.bg-cloud-3 { top: 44%; left: 48%; width: 240px; --cdur: 39s; --cdelay: 0.8s; --cdrift: 22px;  --cdriftY: -3px; }
+.bg-cloud-4 { top: 41%; left: 72%; width: 300px; --cdur: 31s; --cdelay: 2.2s; --cdrift: -24px; --cdriftY: 5px; }
+
+@keyframes bgw-cloudDrift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(var(--cdrift, 22px), var(--cdriftY, 0)); }
+}
+
+/* ---- atmospheric haze: the footer emerges from a soft paper fog ----
+   No literal cloud shapes. A fixed, paper-toned veil over the bottom of the
+   viewport, painted BEHIND main's page content (z-index:-1 inside the z-indexed
+   content layer) but ABOVE the fixed footer — so it mists ONLY the revealed
+   footer, never the page content in front of it. A scrubbed ScrollTrigger fades
+   it in then out across the seam (see FogReveal), so the footer surfaces out of
+   a fog that builds then dissipates. Subtle: opacity + a touch of blur, no
+   sliding. */
+.fog-sentinel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px; /* invisible scroll marker at the very bottom of main's content */
+  pointer-events: none;
+}
+.fog-veil {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 72vh;
+  z-index: -1; /* behind page content (same layer), still above the fixed footer */
+  opacity: 0; /* JS scrubs this up then back down across the seam */
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    var(--paper) 0%,
+    var(--paper) 34%,
+    color-mix(in srgb, var(--paper) 58%, transparent) 68%,
+    transparent 100%
+  );
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+@media (max-width: 640px) {
+  .fog-veil { height: 60vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fog-veil { opacity: 0 !important; } /* no scrub → stay clear */
+}
 
 /* ---- stars (night) ---- */
 .bg-stars {
@@ -199,6 +248,31 @@ const CSS = `
   .bg-grassland { height: 200px; }
 }
 
+/* ---- savanna hills (layered for depth) ----
+   Three rolling ridges, each a flat-bottomed SVG stretched full width and
+   anchored to the grassland floor. Depth comes from color-mix: the back ridge
+   is the faintest tint of ink, the front the strongest, so they read as
+   receding planes rather than one flat band. On-theme in day + night. */
+.bg-hill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.bg-hill path { transition: fill 1.2s ease; }
+.savanna-hill-back  { fill: color-mix(in srgb, var(--ink) 8%,  var(--paper)); }
+.savanna-hill-mid   { fill: color-mix(in srgb, var(--ink) 15%, var(--paper)); }
+.savanna-hill-front { fill: color-mix(in srgb, var(--ink) 24%, var(--paper)); }
+.bg-hill-back  { height: 360px; }
+.bg-hill-mid   { height: 290px; }
+.bg-hill-front { height: 210px; }
+@media (max-width: 640px) {
+  .bg-hill-back  { height: 156px; }
+  .bg-hill-mid   { height: 125px; }
+  .bg-hill-front { height: 92px; }
+}
+
 /* ---- fireflies (night) ---- */
 .bg-fireflies {
   position: absolute;
@@ -234,22 +308,33 @@ const CSS = `
     0 0 40px 14px rgba(230, 196, 92, 0.3);
 }
 
-/* ---- savanna silhouettes (file-based SVGs: espresso by day, oat by night) ---- */
+/* ---- savanna silhouettes ---- */
+/* Each silhouette SVG is used as a MASK over a var(--ink) fill, so every animal
+   and tree takes the font color and flips charcoal<->pastel with the theme,
+   keeping the footer in harmony with the text. The SVG's own (baked) color is
+   irrelevant — only its shape matters as the mask. */
 .bg-animal { position: absolute; }
 .bg-animal .pose {
   position: absolute;
   bottom: 0;
   left: 0;
   display: block;
-  transition: opacity 0.6s ease;
 }
 .bg-flip .pose { transform: scaleX(-1); }
-.pose-night { opacity: 0; }
-.dark .pose-day { opacity: 0; }
-.dark .pose-night { opacity: 1; }
-/* sizes live here (not on the img width/height attrs) so they beat the
-   Tailwind preflight "img height:auto" rule, which otherwise collapses
-   these viewBox-only SVGs to nothing. */
+.pose-mask {
+  background-color: var(--ink);
+  -webkit-mask-image: var(--sil);
+          mask-image: var(--sil);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center bottom;
+          mask-position: center bottom;
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  transition: background-color 0.6s ease;
+}
+/* heights live here (the aspect-ratio is set inline per shape from its viewBox)
+   so width resolves correctly without intrinsic-image sizing. */
 .bg-animal .pose { width: auto; height: auto; max-width: none; }
 .bg-elephant      { left: 13%; bottom: 26px; }
 .bg-elephant .pose      { height: 82px; }
@@ -283,14 +368,6 @@ const CSS = `
   .bg-acacia-1 .pose { height: 118px; }
 }
 
-@keyframes bgw-rayRotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-@keyframes bgw-moonBob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
-}
 @keyframes bgw-twinkle {
   0%, 100% { opacity: 0.4; }
   50%      { opacity: 1; }
@@ -382,16 +459,12 @@ const CLOUD_SHAPES = [
 function Cloud({
   shape,
   className,
-  dir,
-  depth,
 }: {
   shape: { viewBox: string; d: string };
   className: string;
-  dir: "left" | "right";
-  depth: number;
 }) {
   return (
-    <div className={className} data-cloud-dir={dir} data-cloud-depth={depth}>
+    <div className={className}>
       <svg viewBox={shape.viewBox} aria-hidden>
         <path d={shape.d} />
       </svg>
@@ -520,77 +593,98 @@ export function NightSky() {
  * scroll, so the same trigger logic wouldn't fire — drift loop fits better.)
  */
 export function Clouds() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useGSAP(
-    () => {
-      const clouds = gsap.utils.toArray<HTMLElement>(".bg-cloud", ref.current!);
-      clouds.forEach((cloud) => {
-        const fromLeft = cloud.dataset.cloudDir === "left";
-        const depth = Number(cloud.dataset.cloudDepth ?? 0.3);
-        // 60s for shallowest, 30s for deepest. Wider range = more depth feel.
-        const duration = 60 - depth * 40;
-        gsap.fromTo(
-          cloud,
-          { xPercent: fromLeft ? -120 : 120, autoAlpha: 1 },
-          {
-            xPercent: fromLeft ? 120 : -120,
-            duration,
-            ease: "none",
-            repeat: -1,
-          },
-        );
-      });
-    },
-    { scope: ref },
+  // Lined chalk clouds forming the footer's horizon band. Bodies are paper-fill
+  // so they occlude what's behind them; each drifts very slowly (see the
+  // .bg-cloud / bgw-cloudDrift CSS) for a calm, living parallax.
+  return (
+    <div className="bg-clouds" aria-hidden>
+      <Cloud shape={CLOUD_SHAPES[0]} className="bg-cloud bg-cloud-1" />
+      <Cloud shape={CLOUD_SHAPES[1]} className="bg-cloud bg-cloud-2" />
+      <Cloud shape={CLOUD_SHAPES[2]} className="bg-cloud bg-cloud-3" />
+      <Cloud shape={CLOUD_SHAPES[3]} className="bg-cloud bg-cloud-4" />
+    </div>
   );
+}
+
+/**
+ * FogReveal — the atmospheric-haze transition between <main> and the curtain
+ * footer. No literal clouds. Renders an invisible sentinel at the bottom of
+ * main's content plus a fixed paper-toned fog veil (.fog-veil) painted behind
+ * the page content but above the fixed footer. A scrubbed ScrollTrigger fades
+ * the veil IN then back OUT across the seam, so the footer surfaces out of a
+ * paper fog (with a touch of backdrop blur) that builds then dissipates.
+ *
+ * Honors prefers-reduced-motion (veil stays clear; footer reveals via normal
+ * scroll). SiteFrame remounts this per route (key={path}) so the trigger
+ * geometry is rebuilt fresh after client-side navigation.
+ */
+export function FogReveal() {
+  const sentinel = useRef<HTMLDivElement>(null);
+  const veil = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    // Fog builds as the footer starts to show, then clears as it fully reveals.
+    gsap
+      .timeline({
+        scrollTrigger: {
+          trigger: sentinel.current,
+          start: "top bottom", // seam enters the viewport → fog begins
+          end: "top top", // seam reaches the top → footer fully out of fog
+          scrub: true,
+        },
+      })
+      .fromTo(veil.current, { opacity: 0 }, { opacity: 0.92, ease: "none" })
+      .to(veil.current, { opacity: 0, ease: "none" });
+  });
 
   return (
-    <div className="bg-clouds" ref={ref}>
-      <Cloud shape={CLOUD_SHAPES[0]} className="bg-cloud bg-cloud-1" dir="left" depth={0.18} />
-      <Cloud shape={CLOUD_SHAPES[1]} className="bg-cloud bg-cloud-2" dir="right" depth={0.5} />
-      <Cloud shape={CLOUD_SHAPES[2]} className="bg-cloud bg-cloud-3" dir="left" depth={0.32} />
-      <Cloud shape={CLOUD_SHAPES[3]} className="bg-cloud bg-cloud-4" dir="right" depth={0.4} />
-    </div>
+    <>
+      <div ref={sentinel} className="fog-sentinel" aria-hidden />
+      <div ref={veil} className="fog-veil" aria-hidden />
+    </>
   );
 }
 
 export function GrasslandScene() {
   return (
     <div className="bg-grassland">
-      {/* No hills — the stretched front hill read as a flat band across the
-          width, so the animals + acacias stand on the bare paper horizon. */}
+      {/* Layered hills behind the herd — three receding ridges for depth.
+          Rendered first so the animals + acacias paint in front of them. */}
+      <svg className="bg-hill bg-hill-back" viewBox="0 0 1440 200" preserveAspectRatio="none" aria-hidden>
+        <path className="savanna-hill-back" d="M0 200 L0 118 C260 70 520 78 760 108 C1000 138 1220 92 1440 116 L1440 200 Z" />
+      </svg>
+      <svg className="bg-hill bg-hill-mid" viewBox="0 0 1440 170" preserveAspectRatio="none" aria-hidden>
+        <path className="savanna-hill-mid" d="M0 170 L0 104 C320 144 560 64 840 96 C1080 124 1290 84 1440 110 L1440 170 Z" />
+      </svg>
+      <svg className="bg-hill bg-hill-front" viewBox="0 0 1440 140" preserveAspectRatio="none" aria-hidden>
+        <path className="savanna-hill-front" d="M0 140 L0 86 C380 116 640 58 980 84 C1210 102 1340 74 1440 88 L1440 140 Z" />
+      </svg>
 
       <div className="bg-animal bg-acacia-1">
-        <img className="pose pose-day" src="/savanna/acacia-day.svg" alt="" aria-hidden />
-        <img className="pose pose-night" src="/savanna/acacia-night.svg" alt="" aria-hidden />
+        <span className="pose pose-mask" aria-hidden style={{ ["--sil" as string]: "url(/savanna/acacia-day.svg)", aspectRatio: "124 / 129.6" }} />
       </div>
       <div className="bg-animal bg-acacia-2">
-        <img className="pose pose-day" src="/savanna/acacia2-day.svg" alt="" aria-hidden />
-        <img className="pose pose-night" src="/savanna/acacia2-night.svg" alt="" aria-hidden />
+        <span className="pose pose-mask" aria-hidden style={{ ["--sil" as string]: "url(/savanna/acacia2-day.svg)", aspectRatio: "204 / 184" }} />
       </div>
 
       <div className="bg-animal bg-elephant bg-flip">
-        <img className="pose pose-day" src="/savanna/elephant-day.svg" alt="" aria-hidden height={82} />
-        <img className="pose pose-night" src="/savanna/elephant-night.svg" alt="" aria-hidden height={82} />
+        <span className="pose pose-mask" aria-hidden style={{ ["--sil" as string]: "url(/savanna/elephant-day.svg)", aspectRatio: "229.9 / 151.4" }} />
       </div>
       <div className="bg-animal bg-elephant-baby bg-flip">
-        <img className="pose pose-day" src="/savanna/elephant-baby-day.svg" alt="" aria-hidden height={44} />
-        <img className="pose pose-night" src="/savanna/elephant-baby-night.svg" alt="" aria-hidden height={44} />
+        <span className="pose pose-mask" aria-hidden style={{ ["--sil" as string]: "url(/savanna/elephant-baby-day.svg)", aspectRatio: "107.3 / 56.7" }} />
       </div>
 
       <div className="bg-animal bg-antelope">
-        <img className="pose pose-day" src="/savanna/antelope-day.svg" alt="" aria-hidden height={52} />
-        <img className="pose pose-night" src="/savanna/antelope-night.svg" alt="" aria-hidden height={52} />
+        <span className="pose pose-mask" aria-hidden style={{ ["--sil" as string]: "url(/savanna/antelope-day.svg)", aspectRatio: "107.5 / 110.9" }} />
       </div>
       <div className="bg-animal bg-antelope-2">
-        <img className="pose pose-day" src="/savanna/antelope2-day.svg" alt="" aria-hidden height={42} />
-        <img className="pose pose-night" src="/savanna/antelope2-night.svg" alt="" aria-hidden height={42} />
+        <span className="pose pose-mask" aria-hidden style={{ ["--sil" as string]: "url(/savanna/antelope2-day.svg)", aspectRatio: "86.2 / 56.7" }} />
       </div>
 
       <div className="bg-animal bg-giraffe">
-        <img className="pose pose-day" src="/savanna/giraffe-day.svg" alt="" aria-hidden height={138} />
-        <img className="pose pose-night" src="/savanna/giraffe-night.svg" alt="" aria-hidden height={138} />
+        <span className="pose pose-mask" aria-hidden style={{ ["--sil" as string]: "url(/savanna/giraffe-day.svg)", aspectRatio: "176.2 / 216.2" }} />
       </div>
 
       <div className="bg-fireflies">

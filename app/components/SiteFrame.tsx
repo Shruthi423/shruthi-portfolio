@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { SkyScene } from "./Background";
+import { SkyScene, FogReveal } from "./Background";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Footer, FOOTER_HEIGHT } from "./Footer";
 import { InnerTopBar } from "./InnerTopBar";
@@ -31,6 +31,11 @@ export function SiteFrame({ children }: { children: React.ReactNode }) {
         {/* Content pulled up to overlap the sky backdrop. */}
         <div className="relative" style={{ zIndex: 1, marginTop: "-100vh" }}>
           {children}
+          {/* Atmospheric haze transition: a fixed paper-fog veil (behind page
+              content, above the fixed footer) that fades in then out across the
+              seam, so the footer surfaces out of mist. Keyed by route so the
+              scroll trigger geometry rebuilds fresh on navigation. */}
+          <FogReveal key={path} />
         </div>
       </main>
       <Footer />

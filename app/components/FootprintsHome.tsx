@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { gsap } from "../lib/gsap";
-import { GitHubIcon, LinkedInIcon, MailIcon } from "./Icons";
 import {
   useTheme,
   PAPER_COLORS,
@@ -32,19 +31,9 @@ const REVEAL_EASE = [0.16, 1, 0.3, 1] as const;
 // (not CSS vars), so the two themes are defined as plain objects and swapped.
 
 const LINKS = [
-  { label: "Work", href: "/work", cursor: "The good stuff" },
-  { label: "Playground", href: "/playground", cursor: "Off-the-record" },
+  { label: "Work", href: "/work", cursor: "Okay, the actual work" },
+  { label: "Side Quests", href: "/the-lab", cursor: "Off-the-record" },
   { label: "About", href: "/about", cursor: "Who's Shruthi?" },
-] as const;
-
-const SOCIALS = [
-  {
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/in/shruthi-a-/",
-    Icon: LinkedInIcon,
-  },
-  { label: "GitHub", href: "https://github.com/Shruthi423", Icon: GitHubIcon },
-  { label: "Email", href: "mailto:shruthy@umich.edu", Icon: MailIcon },
 ] as const;
 
 // Five characterful tracks, one per picker slot. (Monochrome now — the print
@@ -89,7 +78,7 @@ const SPEED_MAX = 2.0; // px/ms above which a step reads as "light"
 const WIPE_R = 85;
 const REFOG_MS = 1700;
 const WIPE_MIN = 14; // min cursor travel between fog wipes
-const GRAIN = 0.07; // speckle strength baked into the frost
+const GRAIN = 0; // frost speckle removed — the home section stays grain-free
 const QUIET_FADE = 110; // px band around the menu where prints/wipes ramp down
 const QUIET_PAD = 40; // padding around the link box that stays calm
 // Minimum pocket so tiny chrome (wordmark, icons) gets the same calm as the links.
@@ -170,8 +159,6 @@ export default function FootprintsHome() {
   const root = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
-  const wordmarkRef = useRef<HTMLSpanElement>(null);
-  const iconsRef = useRef<HTMLUListElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const quietBoxes = useRef<
@@ -417,8 +404,6 @@ export default function FootprintsHome() {
       if (!rt) return;
       const o = rt.getBoundingClientRect();
       const els = [
-        wordmarkRef.current,
-        iconsRef.current,
         stackRef.current,
         bottomRef.current,
         railRef.current,
@@ -532,7 +517,7 @@ export default function FootprintsHome() {
       onPointerMove={onMove}
       onPointerDown={onDown}
       onPointerLeave={onLeave}
-      className="fixed inset-0 z-0 flex flex-col"
+      className="absolute inset-0 z-0 flex flex-col"
       style={{
         backgroundColor: pal.bg,
         color: pal.ink,
@@ -562,36 +547,8 @@ export default function FootprintsHome() {
         className="pointer-events-none absolute inset-0 z-10"
       />
 
-      {/* Top bar — socials left, centered wordmark (the bat toggle, rendered
-          globally from layout, sits top-right and flips light/dark). */}
-      <div
-        className="relative z-30 flex h-16 shrink-0 items-center justify-start px-5 sm:px-8"
-        style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.1s" }}
-      >
-        <span
-          ref={wordmarkRef}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap lowercase tracking-tight"
-          style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "clamp(16px, 4.6vw, 22px)" }}
-        >
-          shruthi aragonda
-        </span>
-        <ul ref={iconsRef} className="flex items-center gap-4 sm:gap-5">
-          {SOCIALS.map(({ label, href, Icon }) => (
-            <li key={label}>
-              <a
-                href={href}
-                target={href.startsWith("mailto:") ? undefined : "_blank"}
-                rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
-                aria-label={label}
-                data-cursor-label={label}
-                className="block opacity-70 transition-opacity hover:opacity-100"
-              >
-                <Icon className="h-[18px] w-[18px]" />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Top bar (socials + wordmark) lives in HomeTopBar at the slider level
+          now, so it persists across all three panels. */}
 
       {/* Big links — idle: all sharp. Hover one: it stays clear, the rest frost. */}
       <nav
