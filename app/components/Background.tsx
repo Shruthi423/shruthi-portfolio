@@ -100,6 +100,12 @@ const CSS = `
   transition: transform 0.2s ease;
 }
 .bg-toggle:hover { transform: scale(1.08); }
+/* keep the bat quiet — smaller than its 64px hit-area, smaller still on mobile */
+.bg-toggle svg { width: 32px; height: 32px; }
+@media (max-width: 640px) {
+  .bg-toggle { width: 48px; height: 48px; right: 18px; }
+  .bg-toggle svg { width: 24px; height: 24px; }
+}
 .bat-flip {
   display: block;
   opacity: 0.7;
