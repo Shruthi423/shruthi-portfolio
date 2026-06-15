@@ -1,25 +1,5 @@
-import localFont from "next/font/local";
 import { DM_Mono } from "next/font/google";
 import PhotoStory from "./PhotoStory";
-
-// Switzer — body, labels, table text. Self-hosted variable font already in
-// public/fonts. (next/font, not @import — this project mandates next/font.)
-const switzer = localFont({
-  variable: "--font-switzer",
-  display: "swap",
-  src: [
-    {
-      path: "../../public/fonts/Switzer-Variable.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/Switzer-VariableItalic.woff2",
-      weight: "100 900",
-      style: "italic",
-    },
-  ],
-});
 
 // DM Mono — dates, role/meta labels, contact links.
 const dmMono = DM_Mono({
@@ -110,10 +90,10 @@ function Table({ title, rows }: { title: string; rows: Row[] }) {
 export default function About() {
   return (
     <div
-      className={`${switzer.variable} ${dmMono.variable}`}
+      className={`${dmMono.variable}`}
       style={{
         backgroundColor: "var(--bg)",
-        fontFamily: "var(--font-switzer)",
+        fontFamily: "var(--font-figtree)",
       }}
     >
       {/* Full-bleed two-panel: text left, filmstrip right (touches the edge). */}

@@ -583,6 +583,7 @@ export default function FootprintsHome() {
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
                 rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
                 aria-label={label}
+                data-cursor-label={label}
                 className="block opacity-70 transition-opacity hover:opacity-100"
               >
                 <Icon className="h-[18px] w-[18px]" />
@@ -655,7 +656,7 @@ export default function FootprintsHome() {
               onClick={() => setColor(c)}
               aria-label={`${c} background`}
               aria-pressed={active}
-              data-cursor-label={c[0].toUpperCase() + c.slice(1)}
+              data-cursor-label={c === "blush" ? "Salmon" : c[0].toUpperCase() + c.slice(1)}
               className="grid h-6 w-6 place-items-center rounded-full transition-transform hover:scale-110 sm:h-7 sm:w-7"
               style={{
                 boxShadow: active ? `0 0 0 1.5px ${pal.ink}, 0 0 0 4px ${pal.bg}` : "none",

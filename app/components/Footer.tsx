@@ -27,6 +27,12 @@ const SAY_HI_LINKS: FooterLink[] = [
     external: true,
     cursorLabel: "Code lives here",
   },
+  {
+    label: "Substack",
+    href: "https://substack.com/@shruthi29",
+    external: true,
+    cursorLabel: "Words & musings",
+  },
 ];
 
 const PAGE_LINKS: FooterLink[] = [

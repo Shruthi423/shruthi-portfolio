@@ -11,8 +11,7 @@ import { gsap, useGSAP } from "../lib/gsap";
  *   <BackgroundStyles />  — the shared <style> block (render once)
  *   <SkyScene />          — sky colour + clouds + birds + plane + stars
  *   <DayNightToggle />    — the day / night bat button (fixed, top-right)
- *   <GrasslandScene />    — hills + acacias + Masai Mara animals + fireflies
- *   <Background />        — default: all of the above, for /background
+ *   <GrasslandScene />    — acacias + Masai Mara animals + fireflies
  *
  * Day / night is keyed off the global `.dark` class (the theme), so the
  * sun/moon toggle drives the whole site's light/dark theme.
@@ -65,14 +64,6 @@ const SHOOTING = [
 ];
 
 const CSS = `
-/* ---- test-route container ---- */
-.bg-root {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  overflow: hidden;
-}
-
 /* ---- sky scene (fills whatever it's placed in) ---- */
 .bg-sky {
   position: absolute;
@@ -613,17 +604,6 @@ export function GrasslandScene() {
           />
         ))}
       </div>
-    </div>
-  );
-}
-
-export default function Background() {
-  return (
-    <div className="bg-root">
-      <BackgroundStyles />
-      <SkyScene />
-      <DayNightToggle />
-      <GrasslandScene />
     </div>
   );
 }

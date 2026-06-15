@@ -45,6 +45,7 @@ export function InnerTopBar() {
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
                 rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
                 aria-label={label}
+                data-cursor-label={label}
                 className="block text-text/70 transition-opacity duration-150 hover:text-text"
               >
                 <Icon className="h-5 w-5" />

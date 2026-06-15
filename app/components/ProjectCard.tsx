@@ -12,11 +12,8 @@ export type Project = {
   year: string;
   description?: string; // one-line summary
   tags?: string[]; // bite-size pills that rain + pile in on hover
-  color1: string; // card fill (light pastel)
-  color2: string; // accent — solid pill fill
   image?: string; // floating mockup — wired in later
   imageFit?: "cover" | "contain"; // default "cover"; use "contain" for portrait mockups where the subject must show in full
-  pillColors?: string[]; // override the auto-derived complement palette (e.g. for dark cards where complement-of-hue doesn't read)
   hoverLabel?: string; // override the cursor pill on hover (default: "VIEW" when live, "Coming soon" otherwise)
   href?: string;
 };
@@ -243,9 +240,8 @@ export function ProjectCard({ project }: { project: Project }) {
       onMouseLeave={() => setHovered(false)}
     >
       {project.image ? (
-        // Cover-fill by default (landscape hero photos), or contain when the
-        // mockup must show in full — set the card's `color1` to match the
-        // image's edge colour and contained mockups read as floating on the bg.
+        // Cover-fill by default (landscape hero photos), or contain for portrait
+        // mockups that must show in full (they float on the monochrome surface).
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={project.image}
