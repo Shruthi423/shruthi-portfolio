@@ -86,7 +86,6 @@ const PROTOTYPES = [
   { file: "zuge/prototype-4.png", label: "Navigation, normal mode", cursor: "350 m ahead" },
   { file: "zuge/prototype-2.png", label: "Parked · CO₂ avoided", cursor: "2.2 g saved" },
 ];
-const PROTOTYPE_WIDE = { file: "zuge/prototype-5.png", label: "Settings, full menu", cursor: "deep, out of the way" };
 
 const METRICS = [
   { prefix: "", value: 73, decimals: 0, suffix: "%", label: "less phone use on the road" },
@@ -679,12 +678,6 @@ export function ZugeCaseStudy() {
               </Reveal>
             ))}
           </div>
-          <Reveal delay={80} variant="scale" className="mt-6">
-            <div>
-              <Figure src={`/${PROTOTYPE_WIDE.file}`} file={PROTOTYPE_WIDE.file} label={PROTOTYPE_WIDE.label} aspect="aspect-[2/1]" cursorLabel={PROTOTYPE_WIDE.cursor} fit="contain" className="border border-border bg-surface/40" />
-              <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">{PROTOTYPE_WIDE.label}</p>
-            </div>
-          </Reveal>
         </Section>
 
         {/* 7 - THE OUTCOME */}
