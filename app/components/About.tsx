@@ -30,7 +30,7 @@ const dmMono = DM_Mono({
 });
 
 const MONO = { fontFamily: "var(--font-dm-mono)" } as const;
-const DISPLAY = { fontFamily: "var(--font-dahlia)", fontWeight: 700 } as const;
+const DISPLAY = { fontFamily: "var(--font-display)", fontWeight: 700 } as const;
 const SERIF = { fontFamily: "var(--font-eb-garamond)", fontWeight: 400 } as const;
 const HEADING = "var(--color-heading)"; // terracotta (day) → clay (night)
 

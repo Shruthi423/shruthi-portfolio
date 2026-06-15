@@ -85,19 +85,17 @@ const CSS = `
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: #FDF9F2;
+  background-color: var(--paper);
   transition: background-color 1.2s ease;
 }
-.dark .bg-sky { background-color: #171520; }
 
-/* flat sky-coloured fill (used behind the footer) */
+/* flat sky-coloured fill (used behind the footer) — the chosen paper */
 .bg-skyfill {
   position: absolute;
   inset: 0;
-  background-color: #FDF9F2;
+  background-color: var(--paper);
   transition: background-color 1.2s ease;
 }
-.dark .bg-skyfill { background-color: #171520; }
 
 /* ---- sun / moon toggle ---- */
 .bg-toggle {
@@ -114,12 +112,10 @@ const CSS = `
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3b2a1c; /* espresso — matches the top-right icons, visible on light + sky */
+  color: var(--ink); /* the ink — charcoal on light paper, the pastel at night */
   transition: transform 0.2s ease;
 }
 .bg-toggle:hover { transform: scale(1.08); }
-/* moonlit oat at night so the bat stays visible on the dark home */
-.dark .bg-toggle { color: #eae0ce; }
 .bat-flip {
   display: block;
   opacity: 0.7;
@@ -147,7 +143,8 @@ const CSS = `
   visibility: hidden; /* GSAP reveals via autoAlpha — avoids an SSR flash */
 }
 .bg-cloud svg { display: block; width: 100%; height: auto; }
-.bg-cloud path { fill: #e9e3d4; }
+/* a faint tint of the ink over the paper — soft, always in-harmony with the hue */
+.bg-cloud path { fill: color-mix(in srgb, var(--ink) 10%, var(--paper)); }
 .bg-cloud-1 { top: 13%; left: 1%;   width: 420px; }
 .bg-cloud-2 { top: 30%; right: 3%;  width: 380px; }
 .bg-cloud-3 { top: 52%; left: 11%;  width: 240px; }
@@ -161,7 +158,7 @@ const CSS = `
   transition: opacity 0.9s ease 0.6s;
   pointer-events: none;
 }
-.dark .bg-stars { opacity: 1; }
+.dark .bg-stars { opacity: 1; color: var(--ink); }
 .bg-star {
   position: absolute;
   animation: bgw-twinkle var(--dur) ease-in-out infinite;
@@ -183,7 +180,7 @@ const CSS = `
   width: 90px;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(to left, #ffffff, rgba(255, 255, 255, 0));
+  background: linear-gradient(to left, var(--ink), transparent);
   will-change: transform, opacity;
   animation: bgw-shoot var(--dur) ease-in infinite;
   animation-delay: var(--delay);
@@ -196,8 +193,8 @@ const CSS = `
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8);
+  background: var(--ink);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--ink) 75%, transparent);
 }
 
 /* ---- grassland ---- */
@@ -250,14 +247,12 @@ const CSS = `
 }
 
 /* ---- savanna palette — golden plains by day, deep & moonlit by night ---- */
-.savanna-hill-back  { fill: #ddca8e; }
-.savanna-hill-mid   { fill: #c7a85f; }
-.savanna-hill-front { fill: #a8863f; }
-.savanna-blade { stroke: #a8863f; }
-.dark .savanna-hill-back  { fill: #3a3326; }
-.dark .savanna-hill-mid   { fill: #322b1d; }
-.dark .savanna-hill-front { fill: #2a2418; }
-.dark .savanna-blade { stroke: #2a2418; }
+/* monochrome tonal layers — ink over paper, deepening front-to-back. Flips with
+   the theme on its own (paper/ink swap), so no .dark overrides needed. */
+.savanna-hill-back  { fill: color-mix(in srgb, var(--ink) 8%,  var(--paper)); }
+.savanna-hill-mid   { fill: color-mix(in srgb, var(--ink) 14%, var(--paper)); }
+.savanna-hill-front { fill: color-mix(in srgb, var(--ink) 22%, var(--paper)); }
+.savanna-blade { stroke: color-mix(in srgb, var(--ink) 30%, var(--paper)); }
 /* ---- savanna silhouettes (file-based SVGs: espresso by day, oat by night) ---- */
 .bg-animal { position: absolute; }
 .bg-animal .pose {
@@ -289,6 +284,23 @@ const CSS = `
 .bg-acacia-1 .pose { height: 188px; }
 .bg-acacia-2 { left: 5%;  bottom: 34px; }
 .bg-acacia-2 .pose { height: 150px; }
+
+/* Mobile — thin the herd (drop the baby elephant + second antelope), shrink the
+   survivors, and spread them across the narrow stage so nothing piles up. */
+@media (max-width: 640px) {
+  .bg-elephant-baby,
+  .bg-antelope-2 { display: none; }
+  .bg-acacia-2 { left: 2%;  bottom: 16px; }
+  .bg-acacia-2 .pose { height: 104px; }
+  .bg-elephant { left: 17%; bottom: 12px; }
+  .bg-elephant .pose { height: 54px; }
+  .bg-antelope { left: 46%; bottom: 14px; }
+  .bg-antelope .pose { height: 36px; }
+  .bg-giraffe { left: 64%; bottom: 14px; }
+  .bg-giraffe .pose { height: 92px; }
+  .bg-acacia-1 { left: 85%; bottom: 10px; }
+  .bg-acacia-1 .pose { height: 118px; }
+}
 
 @keyframes bgw-rayRotate {
   from { transform: rotate(0deg); }
@@ -407,16 +419,18 @@ function Cloud({
 }
 
 function StarShape({ size }: { size: number }) {
+  // currentColor so stars take the ink (the chosen pastel) at night.
   if (size <= 3) {
-    return <circle cx={size / 2} cy={size / 2} r={size / 2} fill="#ffffff" />;
+    return <circle cx={size / 2} cy={size / 2} r={size / 2} fill="currentColor" />;
   }
   return (
     <path
       d="M5 0 C5.6 3 7 4.4 10 5 C7 5.6 5.6 7 5 10 C4.4 7 3 5.6 0 5 C3 4.4 4.4 3 5 0 Z"
-      fill="#ffffff"
+      fill="currentColor"
     />
   );
 }
+
 
 function HillBack() {
   return (
@@ -448,7 +462,6 @@ function HillFront() {
     </svg>
   );
 }
-
 
 /* ---- exported pieces ---- */
 

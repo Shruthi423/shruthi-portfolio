@@ -3,59 +3,49 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Colors — base (shared earthy palette, home + inner pages) */
-  --color-bg-light: var(--color-oatmilk);  /* oat milk — matches the home */
-  --color-bg-dark: #171520;   /* warm midnight — one shared night */
-  --color-surface-light: #eceae4;
-  --color-surface-dark: #211f2a;
-  --color-border-light: #e0ded8;
-  --color-border-dark: #2a2733;
-  --color-text-light: #3b2a1c;  /* espresso ink */
-  --color-text-dark: #eae0ce;   /* warm oat ink */
-  --color-text-secondary: #888780;
-  --color-oatmilk: #FDF9F2;  /* oat milk — the light background */
-  /* Accent — earthier olive (was grass green), sits with terracotta */
-  --color-accent: #5b6a34;
-  /* Heading / link accent — terracotta by day, clay by night (= home links) */
-  --color-heading: var(--heading);
+  /* ── Monochrome two-tone system ───────────────────────────────────────────
+   * Every theme is exactly TWO colors: the chosen pastel (--hue) + charcoal.
+   * Light:  paper = hue,  ink = charcoal.
+   * Dark:   paper = charcoal,  ink = hue.   (the hue swaps roles, never absent)
+   * The five pastels below are the picker options; --hue is set live by
+   * ThemeProvider (defaults here for SSR / no-JS). Charcoal is the constant. */
+  --color-paper-white: #fbfbf9;
+  --color-blush: #f4ccd0;
+  --color-butter: #fbe9a8;
+  --color-mint: #cdebc5;
+  --color-sky: #c8e8f6;
+  --color-charcoal: #17171b;
 
-  /* Project cards */
-  --color-temple-bg: #f7d0bc;
-  --color-temple-fg: #c45c3a;
-  --color-zuge-bg: #afd9ff;
-  --color-zuge-fg: #2e6fa3;
-  --color-kodif-bg: #4a9b6f;
-  --color-kodif-fg: #1d6c5c;
-  --color-onki-bg: #fcb34f;
-  --color-onki-fg: #a67c20;
-  --color-theta-bg: #e1d5b5;
-  --color-theta-fg: #8a7d5a;
-  --color-placeholder: #eceae4;
+  --hue: var(--color-paper-white); /* chosen pastel — overridden by JS */
+  --char: var(--color-charcoal);
 
-  /* Semantic tokens — resolve via CSS variables so dark mode can swap them */
+  /* Project cards — collapsed to the two-tone surface; refined per-page later. */
+  --color-placeholder: var(--surface);
+
+  /* Semantic tokens — resolve via CSS variables so polarity can swap them */
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-border: var(--border);
   --color-text: var(--text);
-  --color-muted: var(--color-text-secondary);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-heading: var(--heading);
 
   /* Fonts — 3 families across 4 role tokens:
-   *   display  → Dahlia    (statement only: hero, big CTA — bold weight)
+   *   display  → EB Garamond (the big statement type — was Dahlia, now serif)
    *   heading  → EB Garamond (section + case-study titles, italic leads)
    *   body     → Figtree   (body, cards, metrics — default body font)
-   *   mono     → Figtree   (legacy token name; nav, footer links, tags, cursor)
+   *   mono     → DM Mono   (the label face: nav, footer links, tags, cursor)
    */
-  --font-display: var(--font-dahlia), "Dahlia", "Helvetica Neue", Helvetica,
-    Arial, sans-serif;
+  --font-display: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
   --font-heading: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
   --font-body: var(--font-figtree), "Figtree", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
-  /* `--font-mono` is a legacy token name — it now points at Figtree (a
-   * sans-serif), same family as --font-body. Token kept so the `font-mono`
-   * consumers (nav, footer links, tags, cursor pill) keep working without a
-   * rename. Rename to `--font-labels` if a refactor ever comes through. */
-  --font-mono: var(--font-figtree), "Figtree", "Helvetica Neue", Helvetica,
-    Arial, sans-serif;
+  /* `--font-mono` — the small-label face. Now a true monospace (DM Mono); the
+   * `font-mono` consumers (nav, footer links, tags, cursor pill, micro labels)
+   * pick it up automatically. */
+  --font-mono: var(--font-dm-mono), ui-monospace, "DM Mono", "SFMono-Regular",
+    Menlo, monospace;
 
   /* NOTE: do NOT add named spacing tokens like --spacing-xl (xs/sm/md/lg/xl/2xl/3xl).
    * In Tailwind v4 they hijack the named max-width and width scale — e.g.
@@ -96,24 +86,52 @@
   --text-body--line-height: 1.2;
 }
 
-/* Light theme (default) */
+/* Light polarity (default): paper = chosen pastel, ink = charcoal. */
 :root {
-  --bg: var(--color-bg-light);
-  --surface: var(--color-surface-light);
-  --border: var(--color-border-light);
-  --text: var(--color-text-light);
-  --heading: #963417; /* terracotta */
+  --paper: var(--hue);
+  --ink: var(--char);
   color-scheme: light;
 }
 
-/* Dark theme — applied when <html> has class "dark" */
+/* Dark polarity: paper = charcoal, ink = chosen pastel. */
 .dark {
-  --bg: var(--color-bg-dark);
-  --surface: var(--color-surface-dark);
-  --border: var(--color-border-dark);
-  --text: var(--color-text-dark);
-  --heading: #e0905a; /* clay glow */
+  --paper: var(--char);
+  --ink: var(--hue);
   color-scheme: dark;
+}
+
+/* Semantic tokens derived from the two tones. Surface/border/muted are the ink
+ * mixed into the paper, so they ride along with whatever pastel is chosen. */
+:root,
+.dark {
+  --bg: var(--paper);
+  --text: var(--ink);
+  --heading: var(--ink);
+  --accent: var(--ink);
+  --surface: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  --border: color-mix(in srgb, var(--ink) 16%, var(--paper));
+  --muted: color-mix(in srgb, var(--ink) 55%, var(--paper));
+}
+
+/* Section inversion — a block that runs at the OPPOSITE polarity to the page
+ * around it. Light page → this block is charcoal-on-pastel; dark page → this
+ * block is pastel-on-charcoal. Apply `.section-invert` to a section wrapper. */
+.section-invert {
+  --paper: var(--char);
+  --ink: var(--hue);
+  --bg: var(--paper);
+  --text: var(--ink);
+  --heading: var(--ink);
+  --accent: var(--ink);
+  --surface: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  --border: color-mix(in srgb, var(--ink) 16%, var(--paper));
+  --muted: color-mix(in srgb, var(--ink) 55%, var(--paper));
+  background-color: var(--bg);
+  color: var(--text);
+}
+.dark .section-invert {
+  --paper: var(--hue);
+  --ink: var(--char);
 }
 
 html,

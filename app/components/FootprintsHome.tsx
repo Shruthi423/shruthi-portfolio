@@ -5,8 +5,25 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { gsap } from "../lib/gsap";
 import { GitHubIcon, LinkedInIcon, MailIcon } from "./Icons";
-import { useTheme } from "./ThemeProvider";
+import {
+  useTheme,
+  PAPER_COLORS,
+  PAPER_ORDER,
+  CHARCOAL,
+} from "./ThemeProvider";
 import { isSplashLifted, onSplashLift, splashWillPlay } from "../lib/splash";
+
+// hex → "r,g,b" so the canvas can build rgba() veils/tints from a flat hex.
+const rgbTriplet = (hex: string) => {
+  const h = hex.replace("#", "");
+  const n = parseInt(
+    h.length === 3
+      ? h.split("").map((c) => c + c).join("")
+      : h,
+    16,
+  );
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+};
 
 const REVEAL_EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -30,60 +47,24 @@ const SOCIALS = [
   { label: "Email", href: "mailto:shruthy@umich.edu", Icon: MailIcon },
 ] as const;
 
-const ANIMALS = ["lion", "elephant", "giraffe", "duck", "bird", "hippo", "zebra"] as const;
+// Five characterful tracks, one per picker slot. (Monochrome now — the print
+// color is the theme's ink, not a per-animal hue.)
+const ANIMALS = ["lion", "giraffe", "duck", "hippo", "zebra"] as const;
 type Animal = (typeof ANIMALS)[number];
 
+// Live two-tone palette the canvas reads each frame. `ink` is the print/chrome
+// color; `bg` is the paper; `fog` is the paper at veil alpha.
 type Palette = {
-  bg: string; // page background
-  fog: string; // frosted veil (same RGB as bg, ~0.72 alpha)
-  font: string; // the big section links
-  chrome: string; // wordmark, icons, tagline, inactive picker
-  pickerActive: string; // active picker chip background tint
-  paw: Record<Animal, string>; // footprint color per animal
+  bg: string;
+  fog: string;
+  ink: string;
+  pickerActive: string; // active picker chip tint (ink, low alpha)
 };
 
-// Light — oat milk + earthy ink.
-const LIGHT: Palette = {
-  bg: "#FDF9F2",
-  fog: "rgba(253,249,242,0.72)",
-  font: "#963417", // terracota
-  chrome: "#3b2a1c", // espresso
-  pickerActive: "rgba(150,52,23,0.10)",
-  paw: {
-    lion: "#963417", // terracota
-    elephant: "#3b2a1c", // espresso
-    giraffe: "#cf893a", // solace
-    duck: "#628981", // acqua
-    bird: "#963417", // terracota
-    hippo: "#628981", // acqua
-    zebra: "#3b2a1c", // espresso
-  },
-};
-
-// Dark — warm night + moonlit ink. Hues kept; lifted so prints glow on the
-// dark frost instead of disappearing (espresso → taupe, terracota → clay).
-const DARK: Palette = {
-  bg: "#171520", // warm midnight — shared with the inner-page night sky
-  fog: "rgba(23,21,32,0.72)",
-  font: "#e0905a", // terracota, lifted to a clay glow
-  chrome: "#eae0ce", // warm oat
-  pickerActive: "rgba(224,144,90,0.16)",
-  paw: {
-    lion: "#dd8552", // clay
-    elephant: "#b8a488", // taupe
-    giraffe: "#e3a862", // amber
-    duck: "#8fbab0", // pale teal
-    bird: "#dd8552", // clay
-    hippo: "#8fbab0", // pale teal
-    zebra: "#b8a488", // taupe
-  },
-};
 const SIZE: Record<Animal, number> = {
   lion: 1.0,
-  elephant: 1.5,
   giraffe: 1.2,
   duck: 1.0,
-  bird: 0.95,
   hippo: 1.45,
   zebra: 0.95,
 };
@@ -91,20 +72,16 @@ const SIZE: Record<Animal, number> = {
 const POOL = 44;
 // Realistic-ish gait: stride (px between steps) + track width per animal.
 const STRIDE: Record<Animal, number> = {
-  elephant: 158,
   giraffe: 146,
   lion: 108,
   duck: 72,
-  bird: 60,
   hippo: 150,
   zebra: 96,
 };
 const FOOTW: Record<Animal, number> = {
-  elephant: 22,
   giraffe: 18,
   lion: 14,
   duck: 11,
-  bird: 10,
   hippo: 20,
   zebra: 14,
 };
@@ -147,16 +124,6 @@ function shapeChildren(animal: Animal) {
           <ellipse cx="81" cy="42" rx="9" ry="13" />
         </>
       );
-    case "elephant":
-      return (
-        <>
-          <ellipse cx="50" cy="79" rx="36" ry="28" />
-          <ellipse cx="16" cy="38" rx="9" ry="11" transform="rotate(-30 16 38)" />
-          <ellipse cx="38" cy="28" rx="9" ry="11" transform="rotate(-12 38 28)" />
-          <ellipse cx="62" cy="28" rx="9" ry="11" transform="rotate(12 62 28)" />
-          <ellipse cx="84" cy="38" rx="9" ry="11" transform="rotate(30 84 38)" />
-        </>
-      );
     case "giraffe":
       return (
         <>
@@ -174,15 +141,6 @@ function shapeChildren(animal: Animal) {
       );
     case "duck":
       return <path d="M50 95 L26 32 Q40 47 50 30 Q60 47 74 32 Z" />;
-    case "bird":
-      return (
-        <>
-          <ellipse cx="50" cy="34" rx="5.5" ry="26" />
-          <ellipse cx="50" cy="34" rx="5.5" ry="26" transform="rotate(-32 50 56)" />
-          <ellipse cx="50" cy="34" rx="5.5" ry="26" transform="rotate(32 50 56)" />
-          <ellipse cx="50" cy="80" rx="4.5" ry="15" />
-        </>
-      );
   }
 }
 
@@ -215,6 +173,7 @@ export default function FootprintsHome() {
   const wordmarkRef = useRef<HTMLSpanElement>(null);
   const iconsRef = useRef<HTMLUListElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
   const quietBoxes = useRef<
     { left: number; top: number; right: number; bottom: number }[]
   >([]);
@@ -235,10 +194,21 @@ export default function FootprintsHome() {
     selRef.current = a;
   };
 
-  // Theme-aware palette. The canvas (frost + prints) reads palRef every frame so
-  // it repaints live the moment the bat toggle flips day ↔ night.
-  const { resolvedTheme } = useTheme();
-  const pal = resolvedTheme === "dark" ? DARK : LIGHT;
+  // Two-tone palette, derived live from the chosen pastel + polarity. The canvas
+  // (frost + prints) reads palRef every frame so it repaints the instant either
+  // the color swatch or the light/dark toggle changes.
+  //   light: paper = hue, ink = charcoal     dark: paper = charcoal, ink = hue
+  const { resolvedTheme, color, setColor } = useTheme();
+  const hue = PAPER_COLORS[color];
+  const isDark = resolvedTheme === "dark";
+  const paper = isDark ? CHARCOAL : hue;
+  const ink = isDark ? hue : CHARCOAL;
+  const pal: Palette = {
+    bg: paper,
+    fog: `rgba(${rgbTriplet(paper)}, 0.72)`,
+    ink,
+    pickerActive: `rgba(${rgbTriplet(ink)}, 0.12)`,
+  };
   const palRef = useRef(pal);
   useEffect(() => {
     palRef.current = pal;
@@ -322,7 +292,7 @@ export default function FootprintsHome() {
     el.querySelectorAll<SVGElement>("[data-shape]").forEach((s) => {
       s.style.display = s.getAttribute("data-shape") === animal ? "block" : "none";
     });
-    el.style.color = palRef.current.paw[animal];
+    el.style.color = palRef.current.ink;
     el.style.filter = "blur(0.4px)";
 
     const opacity = lerp(0.5, 0.97, p) * fade;
@@ -451,6 +421,7 @@ export default function FootprintsHome() {
         iconsRef.current,
         stackRef.current,
         bottomRef.current,
+        railRef.current,
       ];
       quietBoxes.current = els.flatMap((el) => {
         if (!el) return [];
@@ -512,7 +483,7 @@ export default function FootprintsHome() {
         el.querySelectorAll<SVGElement>("[data-shape]").forEach((s) => {
           s.style.display = s.getAttribute("data-shape") === a ? "block" : "none";
         });
-        el.style.color = palRef.current.paw[a];
+        el.style.color = palRef.current.ink;
         gsap.set(el, {
           x: w * (0.2 + i * 0.14),
           y: h * 0.7,
@@ -564,7 +535,7 @@ export default function FootprintsHome() {
       className="fixed inset-0 z-0 flex flex-col"
       style={{
         backgroundColor: pal.bg,
-        color: pal.chrome,
+        color: pal.ink,
         transition: "background-color 0.6s ease, color 0.6s ease",
       }}
     >
@@ -591,19 +562,20 @@ export default function FootprintsHome() {
         className="pointer-events-none absolute inset-0 z-10"
       />
 
-      {/* Top bar — socials left, centered wordmark (bat toggle sits top-right) */}
+      {/* Top bar — socials left, centered wordmark (the bat toggle, rendered
+          globally from layout, sits top-right and flips light/dark). */}
       <div
-        className="relative z-30 flex h-16 shrink-0 items-center justify-start px-8"
+        className="relative z-30 flex h-16 shrink-0 items-center justify-start px-5 sm:px-8"
         style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.1s" }}
       >
         <span
           ref={wordmarkRef}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lowercase tracking-tight"
-          style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "22px" }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap lowercase tracking-tight"
+          style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "clamp(16px, 4.6vw, 22px)" }}
         >
           shruthi aragonda
         </span>
-        <ul ref={iconsRef} className="flex items-center gap-5">
+        <ul ref={iconsRef} className="flex items-center gap-4 sm:gap-5">
           {SOCIALS.map(({ label, href, Icon }) => (
             <li key={label}>
               <a
@@ -630,7 +602,7 @@ export default function FootprintsHome() {
           variants={linkStack}
           initial="hidden"
           animate={revealed ? "show" : "hidden"}
-          className="pointer-events-auto flex flex-col items-center gap-[clamp(0.85rem,2.6vw,2.25rem)]"
+          className="pointer-events-auto flex flex-col items-center gap-[clamp(0.5rem,min(2.6vw,2.6vh),2.25rem)]"
           onMouseLeave={() => setHovered(null)}
         >
           {LINKS.map((l) => {
@@ -643,12 +615,15 @@ export default function FootprintsHome() {
                   data-cursor-label={l.cursor}
                   className="block lowercase"
                   style={{
-                    fontFamily: "var(--font-dahlia)",
-                    fontWeight: 700,
-                    fontSize: "clamp(2.75rem, 11vw, 7.875rem)",
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 500,
+                    fontStyle: "italic",
+                    // cap by width AND height so the no-scroll home never clips
+                    // the stack on short / landscape phones
+                    fontSize: "clamp(2.25rem, min(11vw, 15vh), 7.875rem)",
                     lineHeight: 1,
                     letterSpacing: "-0.01em",
-                    color: pal.font,
+                    color: pal.ink,
                     opacity: frost ? 0.4 : 1,
                     filter: frost ? "blur(7px)" : "blur(0px)",
                     transition: "filter 0.3s ease, opacity 0.3s ease",
@@ -662,6 +637,42 @@ export default function FootprintsHome() {
         </motion.div>
       </nav>
 
+      {/* Color rail — the five papers. Picking one sets the background (and, in
+          dark mode, the ink). Each swatch shows its true pastel so the choice
+          reads the same in either polarity. */}
+      <div
+        ref={railRef}
+        className="absolute left-2 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-2.5 sm:left-6 sm:gap-3"
+        style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.2s" }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerMove={(e) => e.stopPropagation()}
+      >
+        {PAPER_ORDER.map((c) => {
+          const active = color === c;
+          return (
+            <button
+              key={c}
+              onClick={() => setColor(c)}
+              aria-label={`${c} background`}
+              aria-pressed={active}
+              data-cursor-label={c[0].toUpperCase() + c.slice(1)}
+              className="grid h-6 w-6 place-items-center rounded-full transition-transform hover:scale-110 sm:h-7 sm:w-7"
+              style={{
+                boxShadow: active ? `0 0 0 1.5px ${pal.ink}, 0 0 0 4px ${pal.bg}` : "none",
+              }}
+            >
+              <span
+                className="block h-[15px] w-[15px] rounded-full sm:h-[18px] sm:w-[18px]"
+                style={{
+                  backgroundColor: PAPER_COLORS[c],
+                  boxShadow: `inset 0 0 0 1px rgba(${rgbTriplet(pal.ink)}, 0.25)`,
+                }}
+              />
+            </button>
+          );
+        })}
+      </div>
+
       {/* Bottom — footprint picker + tagline */}
       <div
         ref={bottomRef}
@@ -670,7 +681,7 @@ export default function FootprintsHome() {
         onPointerDown={(e) => e.stopPropagation()}
         onPointerMove={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {ANIMALS.map((a) => {
             const active = sel === a;
             return (
@@ -680,14 +691,14 @@ export default function FootprintsHome() {
                 aria-label={`${a} footprints`}
                 aria-pressed={active}
                 data-cursor-label={a[0].toUpperCase() + a.slice(1)}
-                className="flex h-11 w-11 items-center justify-center rounded-full transition-opacity"
+                className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity sm:h-11 sm:w-11"
                 style={
                   active
-                    ? { backgroundColor: pal.pickerActive, boxShadow: `inset 0 0 0 2px ${pal.paw[a]}` }
-                    : { opacity: 0.5 }
+                    ? { backgroundColor: pal.pickerActive, boxShadow: `inset 0 0 0 2px ${pal.ink}` }
+                    : { opacity: 0.45 }
                 }
               >
-                <svg viewBox="0 0 100 110" width="26" height="28" fill={active ? pal.paw[a] : pal.chrome}>
+                <svg viewBox="0 0 100 110" width="26" height="28" fill={pal.ink}>
                   {shapeChildren(a)}
                 </svg>
               </button>

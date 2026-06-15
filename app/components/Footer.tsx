@@ -93,8 +93,8 @@ export function Footer() {
 
       {/* footer content — sits above the backdrop */}
       <div
-        className="relative mx-auto flex h-full max-w-[1440px] flex-col justify-between"
-        style={{ padding: "180px 40px 32px", zIndex: 2 }}
+        className="relative mx-auto flex h-full max-w-[1440px] flex-col justify-between px-6 pb-8 pt-28 sm:px-10 sm:pt-[180px]"
+        style={{ zIndex: 2 }}
       >
         <div className="grid grid-cols-1 gap-20 md:grid-cols-[1.6fr_1fr] md:gap-24">
           {/* Left panel: Big text + tagline */}

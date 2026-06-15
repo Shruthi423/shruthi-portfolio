@@ -26,18 +26,18 @@ export function InnerTopBar() {
         className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-bg to-transparent"
       />
       <nav
-        className="relative flex h-16 items-center justify-start px-8"
+        className="relative flex h-16 items-center justify-start px-5 sm:px-8"
         aria-label="Primary"
       >
         <Link
           href="/"
           data-cursor-label="Back to menu"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lowercase tracking-tight text-text transition-opacity duration-150 hover:opacity-70"
-          style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "22px" }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap lowercase tracking-tight text-text transition-opacity duration-150 hover:opacity-70"
+          style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "clamp(16px, 4.6vw, 22px)" }}
         >
           shruthi aragonda
         </Link>
-        <ul className="flex items-center gap-5">
+        <ul className="flex items-center gap-4 sm:gap-5">
           {SOCIALS.map(({ label, href, Icon }) => (
             <li key={label}>
               <a

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { EB_Garamond, Figtree, Rock_Salt } from "next/font/google";
-import localFont from "next/font/local";
+import { EB_Garamond, Figtree, Rock_Salt, DM_Mono } from "next/font/google";
 import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
@@ -40,17 +39,15 @@ const rockSalt = Rock_Salt({
   display: "swap",
 });
 
-// Dahlia — statement font, big headings only. Bold weight (700).
-const dahlia = localFont({
-  variable: "--font-dahlia",
+// DM Mono — the label face: nav, tags, cursor pill, footer links, micro-labels.
+// (Replaced the Figtree-as-mono legacy token.) Monospace, Google-hosted; not a
+// variable font, so weights are listed explicitly.
+const dmMono = DM_Mono({
+  variable: "--font-dm-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
   display: "swap",
-  src: [
-    {
-      path: "../public/fonts/dahlia-bold.woff",
-      weight: "700",
-      style: "normal",
-    },
-  ],
 });
 
 const SITE_URL = "https://shruthiaragonda.com";
@@ -62,7 +59,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
-  // Lion-paw favicon — terracotta by day, clay by night (matches the home prints).
+  // Paw-print favicon — terracotta by day, clay by night (matches the home prints).
   icons: {
     icon: [
       { url: "/favicon-light.svg", type: "image/svg+xml" },
@@ -94,7 +91,7 @@ export const metadata: Metadata = {
   },
 };
 
-const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=s==='dark'||((s==='system'||!s)&&m);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
+const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=s==='dark'||((s==='system'||!s)&&m);if(d)document.documentElement.classList.add('dark');var C={white:'#fbfbf9',blush:'#f4ccd0',butter:'#fbe9a8',mint:'#cdebc5',sky:'#c8e8f6'};var c=localStorage.getItem('paper-color');if(c&&C[c])document.documentElement.style.setProperty('--hue',C[c]);}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -105,7 +102,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${ebGaramond.variable} ${figtree.variable} ${dahlia.variable} ${rockSalt.variable} h-full antialiased`}
+      className={`${ebGaramond.variable} ${figtree.variable} ${dmMono.variable} ${rockSalt.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Script id="theme-init" strategy="beforeInteractive">
