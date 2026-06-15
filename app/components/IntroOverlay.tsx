@@ -76,11 +76,12 @@ export function IntroOverlay() {
               variants={word}
               className="font-display lowercase"
               style={{
-                fontWeight: 700,
+                fontWeight: 500,
+                fontStyle: "italic", // matches the home's big links
                 fontSize: "clamp(3rem, 11vw, 8rem)",
                 lineHeight: 1,
                 letterSpacing: "-0.02em",
-                color: "#963417", // terracota
+                color: "var(--text)", // the ink — flips with paper/polarity
               }}
             >
               Shruthi
@@ -92,7 +93,7 @@ export function IntroOverlay() {
                 fontFamily: "var(--font-figtree)",
                 fontSize: "clamp(0.9rem, 2.2vw, 1.4rem)",
                 letterSpacing: "0.01em",
-                color: "#8a6f5e", // muted terracota-brown
+                color: "var(--muted)", // ink-tinted muted
               }}
             >
               {SUBTITLE.map((w) => (

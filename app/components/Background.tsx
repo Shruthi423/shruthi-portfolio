@@ -64,13 +64,6 @@ const SHOOTING = [
   { top: "5%", left: "54%", d: 9, dur: 19 },
 ];
 
-// Grass blades along the front hill's top edge — deterministic irregularity.
-const BLADES = Array.from({ length: 46 }, (_, i) => ({
-  x: i * 2.18 + (i % 3) * 0.55,
-  h: 7 + (i % 4) * 2,
-  tilt: ((i % 5) - 2) * 5,
-}));
-
 const CSS = `
 /* ---- test-route container ---- */
 .bg-root {
@@ -208,8 +201,6 @@ const CSS = `
 @media (max-width: 640px) {
   .bg-grassland { height: 200px; }
 }
-.bg-hill { position: absolute; left: 0; bottom: 0; width: 100%; }
-.bg-grass-piece { position: absolute; bottom: 0; }
 
 /* ---- fireflies (night) ---- */
 .bg-fireflies {
@@ -246,13 +237,6 @@ const CSS = `
     0 0 40px 14px rgba(230, 196, 92, 0.3);
 }
 
-/* ---- savanna palette — golden plains by day, deep & moonlit by night ---- */
-/* monochrome tonal layers — ink over paper, deepening front-to-back. Flips with
-   the theme on its own (paper/ink swap), so no .dark overrides needed. */
-.savanna-hill-back  { fill: color-mix(in srgb, var(--ink) 8%,  var(--paper)); }
-.savanna-hill-mid   { fill: color-mix(in srgb, var(--ink) 14%, var(--paper)); }
-.savanna-hill-front { fill: color-mix(in srgb, var(--ink) 22%, var(--paper)); }
-.savanna-blade { stroke: color-mix(in srgb, var(--ink) 30%, var(--paper)); }
 /* ---- savanna silhouettes (file-based SVGs: espresso by day, oat by night) ---- */
 .bg-animal { position: absolute; }
 .bg-animal .pose {
@@ -432,36 +416,6 @@ function StarShape({ size }: { size: number }) {
 }
 
 
-function HillBack() {
-  return (
-    <svg className="bg-hill" viewBox="0 0 1440 160" preserveAspectRatio="none" aria-hidden style={{ height: 320 }}>
-      <path d="M0 160 L0 78 C240 28 470 22 720 52 C980 84 1210 38 1440 68 L1440 160 Z" className="savanna-hill-back" />
-    </svg>
-  );
-}
-
-function HillMid() {
-  return (
-    <svg className="bg-hill" viewBox="0 0 1440 130" preserveAspectRatio="none" aria-hidden style={{ height: 260 }}>
-      <path d="M0 130 L0 72 C300 102 520 38 800 62 C1080 86 1270 48 1440 78 L1440 130 Z" className="savanna-hill-mid" />
-    </svg>
-  );
-}
-
-function HillFront() {
-  return (
-    <svg className="bg-hill" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden style={{ height: 192 }}>
-      <path d="M0 100 L0 56 C360 72 600 44 920 58 C1180 70 1320 50 1440 60 L1440 100 Z" className="savanna-hill-front" />
-      <g className="savanna-blade" strokeWidth="2.5" strokeLinecap="round">
-        {BLADES.map((b, i) => {
-          const x = (b.x / 100) * 1440;
-          const topY = 58 - (b.x % 7);
-          return <path key={i} d={`M${x} ${topY} L${x + b.tilt * 0.4} ${topY - b.h}`} />;
-        })}
-      </g>
-    </svg>
-  );
-}
 
 /* ---- exported pieces ---- */
 
@@ -607,9 +561,8 @@ export function Clouds() {
 export function GrasslandScene() {
   return (
     <div className="bg-grassland">
-      <HillBack />
-      <HillMid />
-      <HillFront />
+      {/* No hills — the stretched front hill read as a flat band across the
+          width, so the animals + acacias stand on the bare paper horizon. */}
 
       <div className="bg-animal bg-acacia-1">
         <img className="pose pose-day" src="/savanna/acacia-day.svg" alt="" aria-hidden />
