@@ -613,3 +613,17 @@ export function GrasslandScene() {
     </div>
   );
 }
+
+// Default export — the full scene in one fixed layer, used by the /background
+// preview route. (Kept because the iCloud-synced project keeps resurrecting that
+// route file; a present default export means it always compiles.)
+export default function Background() {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 90, overflow: "hidden" }}>
+      <BackgroundStyles />
+      <SkyScene />
+      <DayNightToggle />
+      <GrasslandScene />
+    </div>
+  );
+}
