@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { gsap, useGSAP, Observer } from "../lib/gsap";
 import Hero from "./Hero";
@@ -30,6 +30,14 @@ export default function HomeSlider() {
   // Which panel is showing — drives the top bar's colour (the hero is inverted,
   // so the bar has to flip to stay legible over it).
   const [active, setActive] = useState(HOME_INDEX);
+
+  // The global bat toggle lives outside this tree, so flag the hero on <html>
+  // and let CSS flip the bat to stay visible over the inverted hero.
+  useEffect(() => {
+    const el = document.documentElement;
+    el.classList.toggle("hero-active", active === 0);
+    return () => el.classList.remove("hero-active");
+  }, [active]);
 
   useGSAP(
     () => {

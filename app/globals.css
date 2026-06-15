@@ -134,6 +134,14 @@
   --ink: var(--char);
 }
 
+/* Home hero panel is inverted — flip the global custom cursor so it stays
+   legible over it. (The bat toggle flip lives in Background's .bg-toggle rule;
+   both are driven by `.hero-active` toggled on <html> by HomeSlider.) */
+.hero-active {
+  --cursor-pill: var(--paper);
+  --cursor-label: var(--ink);
+}
+
 html,
 body {
   background-color: var(--bg);

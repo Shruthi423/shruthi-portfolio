@@ -98,9 +98,12 @@ const CSS = `
   align-items: center;
   justify-content: center;
   color: var(--ink); /* the ink — charcoal on light paper, the pastel at night */
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, color 0.6s ease;
 }
 .bg-toggle:hover { transform: scale(1.08); }
+/* Over the home's inverted hero panel the page ink IS the background, so flip
+   the bat to the paper colour to keep it visible (class toggled on <html>). */
+.hero-active .bg-toggle { color: var(--paper); }
 /* keep the bat quiet — smaller than its 64px hit-area, smaller still on mobile */
 .bg-toggle svg { width: 32px; height: 32px; }
 @media (max-width: 640px) {

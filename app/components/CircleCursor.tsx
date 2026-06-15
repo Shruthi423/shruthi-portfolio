@@ -5,10 +5,11 @@ import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motio
 
 const EDGE_THRESHOLD = 180;
 
-// Two-tone cursor: the pill is the ink, the label is the paper. Both are CSS
-// vars, so the cursor flips with the chosen pastel + light/dark on its own.
-const CURSOR_PILL = "var(--ink)";
-const CURSOR_LABEL = "var(--paper)";
+// Two-tone cursor: the pill is the ink, the label is the paper. Routed through
+// intermediate vars (falling back to ink/paper) so the home's inverted hero can
+// flip them via .hero-active and keep the cursor legible there.
+const CURSOR_PILL = "var(--cursor-pill, var(--ink))";
+const CURSOR_LABEL = "var(--cursor-label, var(--paper))";
 
 type PillSide = "left" | "center" | "right";
 
