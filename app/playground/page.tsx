@@ -1,9 +1,9 @@
-import TheLab from "../components/TheLab";
+import Playground from "../components/Playground";
 
 export const metadata = {
   title: "Playground — Shruthi",
 };
 
-export default function TheLabPage() {
-  return <TheLab />;
+export default function PlaygroundPage() {
+  return <Playground />;
 }

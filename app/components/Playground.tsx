@@ -112,7 +112,7 @@ function Illustration({ img }: { img: Img }) {
   );
 }
 
-export default function TheLab() {
+export default function Playground() {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
