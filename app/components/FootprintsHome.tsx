@@ -371,14 +371,8 @@ export default function FootprintsHome({
     lastWipe.current = null;
   };
 
-  // Single-screen home — no body scroll.
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
+  // The body scroll-lock for the single-screen home is owned by SiteFrame,
+  // route-aware, so it can never leak onto inner pages (see SiteFrame).
 
   useEffect(() => {
     reduced.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

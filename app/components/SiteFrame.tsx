@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { SkyScene, FogReveal } from "./Background";
 import { Breadcrumbs } from "./Breadcrumbs";
@@ -13,8 +14,21 @@ import { InnerTopBar } from "./InnerTopBar";
  */
 export function SiteFrame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const isHome = path === "/";
 
-  if (path === "/") return <>{children}</>;
+  // The home is a fixed, single-screen slider, so it locks body scroll. Owning
+  // that lock here (route-aware) instead of inside a home-only component makes
+  // it impossible to leak: every navigation re-runs this, locking on "/" and
+  // unconditionally clearing it on every inner page — so inner pages always
+  // scroll, even arriving straight from the home.
+  useEffect(() => {
+    document.body.style.overflow = isHome ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isHome]);
+
+  if (isHome) return <>{children}</>;
 
   return (
     <>
