@@ -37,7 +37,7 @@ const SAY_HI_LINKS: FooterLink[] = [
 
 const PAGE_LINKS: FooterLink[] = [
   { label: "Work", href: "/", cursorLabel: "Okay, the actual work" },
-  { label: "Side Quests", href: "/the-lab", cursorLabel: "Off-the-record" },
+  { label: "Playground", href: "/playground", cursorLabel: "Off-the-record" },
   { label: "About", href: "/about", cursorLabel: "Who's Shruthi?" },
 ];
 

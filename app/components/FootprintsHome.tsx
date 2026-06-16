@@ -32,7 +32,7 @@ const REVEAL_EASE = [0.16, 1, 0.3, 1] as const;
 
 const LINKS = [
   { label: "Work", href: "/work", cursor: "Okay, the actual work" },
-  { label: "Side Quests", href: "/the-lab", cursor: "Off-the-record" },
+  { label: "Playground", href: "/playground", cursor: "Off-the-record" },
   { label: "About", href: "/about", cursor: "Who's Shruthi?" },
 ] as const;
 

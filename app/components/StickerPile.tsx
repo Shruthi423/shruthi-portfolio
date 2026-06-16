@@ -134,7 +134,7 @@ export function StickerPile({ stickers }: { stickers: Sticker[] }) {
           className="absolute left-0 top-0 h-[132px] w-[132px] opacity-0 will-change-transform md:h-[184px] md:w-[184px]"
         >
           <Image
-            src={`/the-lab/stickers/${s.f}`}
+            src={`/playground/stickers/${s.f}`}
             alt={`${s.f.replace(/\.[^.]+$/, "")} sticker`}
             width={s.w}
             height={s.h}

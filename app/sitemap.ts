@@ -17,6 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/feeld`, lastModified, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/handmade-homestead`, lastModified, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/about`, lastModified, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${SITE_URL}/the-lab`, lastModified, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE_URL}/playground`, lastModified, changeFrequency: "monthly", priority: 0.7 },
   ];
 }

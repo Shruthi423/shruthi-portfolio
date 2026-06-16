@@ -1,7 +1,7 @@
 import TheLab from "../components/TheLab";
 
 export const metadata = {
-  title: "Side Quests — Shruthi",
+  title: "Playground — Shruthi",
 };
 
 export default function TheLabPage() {
