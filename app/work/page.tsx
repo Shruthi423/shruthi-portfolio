@@ -8,7 +8,7 @@ const projects: Project[] = [
     status: "built",
     discipline: "UX/UI Design",
     type: "Internship",
-    year: "2024",
+    year: "2025",
     description: "AI-powered e-commerce, with the friction designed out.",
     tags: ["-30% Friction", "3× Referrals", "AI-Powered", "E-commerce", "UX/UI"],
     image: "/kodif/cover.png",
@@ -19,7 +19,7 @@ const projects: Project[] = [
     status: "built",
     discipline: "HMI Design",
     type: "Full-time",
-    year: "2024",
+    year: "2023-2024",
     description: "A delivery-first EV dashboard for 2M+ gig riders.",
     tags: [
       "2M+ Riders",
@@ -36,7 +36,7 @@ const projects: Project[] = [
     status: "built",
     discipline: "Product Management",
     type: "Full-time",
-    year: "2024",
+    year: "2022-2023",
     description: "Ticketing redesigned for digital literacy & trust.",
     tags: [
       "500K Users",
@@ -53,7 +53,7 @@ const projects: Project[] = [
     status: "built",
     discipline: "UX/UI Design",
     type: "Internship",
-    year: "2024",
+    year: "2025",
     description: "A conversational AI expert for smarter in-store shopping.",
     tags: [
       "Conversational AI",
@@ -123,16 +123,18 @@ const projects: Project[] = [
   // },
 
   // ---- Coming soon ---- (no `href` → ProjectCard shows "Coming soon" on hover)
-  {
-    name: "PCS Global",
-    status: "soon",
-    discipline: "UX/UI Design", // PLACEHOLDER — confirm
-    year: "2026", // PLACEHOLDER — confirm
-    description: "PCS Global — one-liner from you.", // PLACEHOLDER
-    tags: ["TBD", "TBD", "TBD", "TBD", "TBD"], // PLACEHOLDER
-    image: "/pcs-global/cover.png",
-    hoverLabel: "Updating Now",
-  },
+  // ---- HIDDEN: not fully filled in (placeholder copy). Restore once real
+  // copy + tags are ready.
+  // {
+  //   name: "PCS Global",
+  //   status: "soon",
+  //   discipline: "UX/UI Design", // PLACEHOLDER — confirm
+  //   year: "2026", // PLACEHOLDER — confirm
+  //   description: "PCS Global — one-liner from you.", // PLACEHOLDER
+  //   tags: ["TBD", "TBD", "TBD", "TBD", "TBD"], // PLACEHOLDER
+  //   image: "/pcs-global/cover.png",
+  //   hoverLabel: "Updating Now",
+  // },
   {
     name: "Indigo Records",
     status: "soon",
@@ -143,16 +145,18 @@ const projects: Project[] = [
     image: "/indigo-records/cover.png",
     hoverLabel: "Updating Now",
   },
-  {
-    name: "Theta",
-    status: "soon",
-    discipline: "AI Exploration",
-    year: "2024",
-    description: "An AI exploration — one-liner from you.", // PLACEHOLDER
-    tags: ["AI Exploration", "Generative AI", "Prototype", "R&D", "Concept"],
-    image: "/theta/cover.png",
-    hoverLabel: "Coming soon",
-  },
+  // ---- HIDDEN: not fully filled in (placeholder copy). Restore once real
+  // copy + tags are ready.
+  // {
+  //   name: "Theta",
+  //   status: "soon",
+  //   discipline: "AI Exploration",
+  //   year: "2024",
+  //   description: "An AI exploration — one-liner from you.", // PLACEHOLDER
+  //   tags: ["AI Exploration", "Generative AI", "Prototype", "R&D", "Concept"],
+  //   image: "/theta/cover.png",
+  //   hoverLabel: "Coming soon",
+  // },
   {
     name: "Umood",
     status: "soon",
@@ -183,16 +187,20 @@ const projects: Project[] = [
     image: "/gesture-based-games/cover.png",
     hoverLabel: "Updating Now",
   },
-  {
-    name: "Talking Maize and Blue",
-    status: "building",
-    discipline: "Brand & Identity", // PLACEHOLDER — confirm
-    year: "2026", // PLACEHOLDER — confirm
-    description: "Brand & identity for Talking Maize and Blue.", // PLACEHOLDER
-    tags: ["Brand & Identity", "U-M", "TBD"], // PLACEHOLDER
-    image: "/talking-maize-and-blue/cover.png",
-    hoverLabel: "Building Now",
-  },
+  // ---- HIDDEN: not fully filled in (placeholder copy). NOTE: this is actually
+  // your strongest resume proof — the ~10,000-student U-M orientation site you
+  // coded solo (HTML/CSS/JS/GSAP, >98% completion). Rebuild it as a full
+  // PRODUCT case study, not a "Brand & Identity" card. Restore then.
+  // {
+  //   name: "Talking Maize and Blue",
+  //   status: "building",
+  //   discipline: "Brand & Identity", // PLACEHOLDER — confirm
+  //   year: "2026", // PLACEHOLDER — confirm
+  //   description: "Brand & identity for Talking Maize and Blue.", // PLACEHOLDER
+  //   tags: ["Brand & Identity", "U-M", "TBD"], // PLACEHOLDER
+  //   image: "/talking-maize-and-blue/cover.png",
+  //   hoverLabel: "Building Now",
+  // },
 ];
 
 export default function WorkPage() {

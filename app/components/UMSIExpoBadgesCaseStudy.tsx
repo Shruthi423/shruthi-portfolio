@@ -602,55 +602,10 @@ export function UMSIExpoBadgesCaseStudy() {
           </div>
         </Section>
 
-        {/* 4 - THE BADGES (placeholder slots until artwork lands) */}
-        <Section id="badges">
-          <Reveal>
-            <Label>the badges</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement className="mt-5">
-              One family, one mark per category.
-            </Statement>
-          </Reveal>
-          <Reveal delay={120}>
-            <Body className="mt-5">
-              Each badge is a pictogram first, a category label second. Same
-              construction logic, same weight, same color discipline. Pulled apart
-              they read as siblings; together they read as a set.
-            </Body>
-          </Reveal>
-
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4 md:gap-5">
-            {BADGES.map((b, i) => (
-              <Reveal key={b.name} delay={i * 70} variant="scale">
-                <div className="flex flex-col gap-3">
-                  <Figure
-                    src={b.file}
-                    label={b.name}
-                    aspect="aspect-square"
-                    cursorLabel={b.name.toLowerCase()}
-                  />
-                  <div>
-                    <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-                      0{i + 1}&nbsp;&nbsp;{b.name}
-                    </p>
-                    <p className="mt-1 font-body text-caption-1 text-muted">{b.caption}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          {/* Sign-off - matches the pattern across the other case studies. */}
-          <Reveal variant="fade" delay={200}>
-            <p
-              className="mt-20 font-mono text-caption-1 uppercase tracking-wide"
-              style={{ color: "var(--accent)" }}
-            >
-              Pictograms first. Labels second. A set that travels.
-            </p>
-          </Reveal>
-        </Section>
+        {/* 4 - THE BADGES — HIDDEN until final artwork lands. Was a 4-slot
+            placeholder grid (empty dashed tiles + "TBD - swap in the final
+            artwork" captions). Restore this Section from git history once the
+            real badge art exists. The BADGES const above is kept for that. */}
       </div>
     </div>
   );
