@@ -3,11 +3,11 @@ import { EB_Garamond, Figtree, Rock_Salt, DM_Mono } from "next/font/google";
 import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
-import { ThemeProvider } from "./components/ThemeProvider";
-import { SiteFrame } from "./components/SiteFrame";
-import { CircleCursor } from "./components/CircleCursor";
-import { IntroOverlay } from "./components/IntroOverlay";
-import { BackgroundStyles, DayNightToggle } from "./components/Background";
+import { ThemeProvider } from "@/app/components/shared/ThemeProvider";
+import { SiteFrame } from "@/app/components/layout/SiteFrame";
+import { CircleCursor } from "@/app/components/shared/CircleCursor";
+import { IntroOverlay } from "@/app/components/layout/IntroOverlay";
+import { BackgroundStyles } from "@/app/components/layout/Background";
 
 // EB Garamond — section / case-study titles + the italic moments (the wordmark,
 // section headers, italic taglines). Variable Google font (wght 400–800),
@@ -112,8 +112,9 @@ export default function RootLayout({
           <BackgroundStyles />
           {/* Route-aware: home (/) renders the footprints page bare; inner
               pages get the top bar + sticky sky backdrop + curtain footer. */}
+          {/* Light/dark lives in the footer's FooterControls (the bat toggle),
+              shared by every page — no separate global floating bat. */}
           <SiteFrame>{children}</SiteFrame>
-          <DayNightToggle />
           <CircleCursor />
           <IntroOverlay />
         </ThemeProvider>

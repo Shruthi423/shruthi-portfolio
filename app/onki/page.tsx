@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { OnkiCaseStudy } from "../components/OnkiCaseStudy";
+import { OnkiCaseStudy } from "@/app/components/case-studies/OnkiCaseStudy";
 
 export const metadata: Metadata = {
   title: "Onki / AICap — AI Sommelier Case Study | Shruthi",

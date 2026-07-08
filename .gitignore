@@ -61,3 +61,6 @@ next-env.d.ts
 # Rejected day/night reference images (never used)
 /Moon.png
 /Sun.png
+
+# Local raw source images, not served by the site
+Spothive_images/

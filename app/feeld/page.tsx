@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FeeldCaseStudy } from "../components/FeeldCaseStudy";
+import { FeeldCaseStudy } from "@/app/components/case-studies/FeeldCaseStudy";
 
 export const metadata: Metadata = {
   title: "Feeld — Know Yourself, Sense the Room | Shruthi",

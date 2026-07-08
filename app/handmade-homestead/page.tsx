@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HandmadeHomesteadCaseStudy } from "../components/HandmadeHomesteadCaseStudy";
+import { HandmadeHomesteadCaseStudy } from "@/app/components/case-studies/HandmadeHomesteadCaseStudy";
 
 export const metadata: Metadata = {
   title: "Handmade Homestead — Brand & Social Case Study | Shruthi",

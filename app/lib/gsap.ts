@@ -11,12 +11,13 @@
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollSmoother } from "gsap/ScrollSmoother";
 import { SplitText } from "gsap/SplitText";
 import { Observer } from "gsap/Observer";
 
 // Plugins touch `window`, so only register in the browser.
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText, Observer);
+  gsap.registerPlugin(useGSAP, ScrollTrigger, ScrollSmoother, SplitText, Observer);
 }
 
-export { gsap, useGSAP, ScrollTrigger, SplitText, Observer };
+export { gsap, useGSAP, ScrollTrigger, ScrollSmoother, SplitText, Observer };

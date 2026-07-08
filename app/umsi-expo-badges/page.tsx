@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { UMSIExpoBadgesCaseStudy } from "../components/UMSIExpoBadgesCaseStudy";
+import { UMSIExpoBadgesCaseStudy } from "@/app/components/case-studies/UMSIExpoBadgesCaseStudy";
 
 export const metadata: Metadata = {
   title: "UMSI Expo Badges: Brand & Identity Case Study | Shruthi",

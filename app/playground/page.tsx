@@ -1,4 +1,4 @@
-import Playground from "../components/Playground";
+import Playground from "@/app/components/pages/Playground";
 
 export const metadata = {
   title: "Playground — Shruthi",

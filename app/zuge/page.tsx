@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ZugeCaseStudy } from "../components/ZugeCaseStudy";
+import { ZugeCaseStudy } from "@/app/components/case-studies/ZugeCaseStudy";
 
 export const metadata: Metadata = {
   title: "Zuge — A Dashboard Built for 40km/h | Shruthi",

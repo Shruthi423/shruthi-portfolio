@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TempleCaseStudy } from "../components/TempleCaseStudy";
+import { TempleCaseStudy } from "@/app/components/case-studies/TempleCaseStudy";
 
 export const metadata: Metadata = {
   title: "Temple — Scaling Sacred Ticketing | Shruthi",

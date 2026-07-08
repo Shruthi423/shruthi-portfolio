@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { KodifCaseStudy } from "../components/KodifCaseStudy";
+import { KodifCaseStudy } from "@/app/components/case-studies/KodifCaseStudy";
 
 export const metadata: Metadata = {
   title: "Kodif — Shaping an AI Concierge for E-Commerce | Shruthi",
