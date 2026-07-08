@@ -96,7 +96,7 @@ export function SiteFooter() {
               <h2
                 className="pointer-events-auto font-display text-cta"
                 data-cursor-label="I respond fast"
-                style={{ fontWeight: 700, fontStyle: "italic", letterSpacing: "-0.02em" }}
+                style={{ fontWeight: 400, fontStyle: "italic", letterSpacing: "-0.02em" }}
               >
                 Who doesn&rsquo;t love to leave a footprint!
               </h2>
