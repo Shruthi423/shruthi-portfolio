@@ -603,66 +603,63 @@ export default function FootprintsHome({
         </div>
       )}
 
-      {/* Ambient footprint picker — a fixed trigger showing the chosen animal;
-          click fans the rest upward, choosing collapses it back to the same
-          spot. data-quiet keeps prints from spawning over it. Anchored bottom-
-          LEFT so the footer bottom reads as a balanced bar: picker (left) ·
-          colophon (center) · colour + bat (right), all on one h-9 baseline. */}
+      {/* Ambient footer controls — one bottom-RIGHT cluster: footprint picker ·
+          colour · bat, all on one h-9 baseline. Copyright (left) + colophon
+          (center) are rendered by the footer content. Each picker's swatches fan
+          upward from its trigger; data-quiet + stopPropagation keep prints from
+          spawning over the controls. */}
       {variant === "ambient" && footprintPicker && (
-        <div
-          data-quiet
-          className="pointer-events-auto absolute bottom-8 left-5 z-30 flex h-9 items-center sm:left-8"
-          onPointerDown={(e) => e.stopPropagation()}
-          onPointerMove={(e) => e.stopPropagation()}
-        >
-          <div ref={pickerRef} className="relative flex h-6 items-center">
-            {/* the other animals — fan upward from the fixed trigger on click */}
-            <div
-              className="absolute bottom-full left-1/2 mb-2 flex -translate-x-1/2 flex-col items-center gap-1.5 transition-all duration-200"
-              style={{
-                opacity: pickerOpen ? 1 : 0,
-                pointerEvents: pickerOpen ? "auto" : "none",
-                transform: pickerOpen ? "translate(-50%, 0)" : "translate(-50%, 6px)",
-              }}
-            >
-              {ANIMALS.filter((a) => a !== sel).map((a) => (
-                <button
-                  key={a}
-                  onClick={() => select(a)}
-                  aria-label={`${a} footprints`}
-                  tabIndex={pickerOpen ? 0 : -1}
-                  data-cursor-label={a[0].toUpperCase() + a.slice(1)}
-                  className="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110"
-                >
-                  <svg viewBox="0 0 100 110" width="16" height="17" fill={pal.ink} style={{ opacity: 0.75 }}>
-                    {shapeChildren(a)}
-                  </svg>
-                </button>
-              ))}
+        <div className="pointer-events-auto absolute bottom-8 right-5 z-30 flex h-9 items-center gap-3 sm:right-8">
+          <div
+            data-quiet
+            className="flex h-9 items-center"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
+          >
+            <div ref={pickerRef} className="relative flex h-6 items-center">
+              {/* the other animals — fan upward from the fixed trigger on click */}
+              <div
+                // No -translate-x-1/2: in Tailwind v4 it emits the standalone
+                // `translate` property, which stacks with the inline `transform`
+                // (double -50% → offset). The inline transform centers it.
+                className="absolute bottom-full left-1/2 mb-2 flex flex-col items-center gap-1.5 transition-all duration-200"
+                style={{
+                  opacity: pickerOpen ? 1 : 0,
+                  pointerEvents: pickerOpen ? "auto" : "none",
+                  transform: pickerOpen ? "translate(-50%, 0)" : "translate(-50%, 6px)",
+                }}
+              >
+                {ANIMALS.filter((a) => a !== sel).map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => select(a)}
+                    aria-label={`${a} footprints`}
+                    tabIndex={pickerOpen ? 0 : -1}
+                    data-cursor-label={a[0].toUpperCase() + a.slice(1)}
+                    className="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110"
+                  >
+                    <svg viewBox="0 0 100 110" width="16" height="17" fill={pal.ink} style={{ opacity: 0.75 }}>
+                      {shapeChildren(a)}
+                    </svg>
+                  </button>
+                ))}
+              </div>
+
+              {/* trigger — the current animal, in a fixed position */}
+              <button
+                onClick={() => setPickerOpen((o) => !o)}
+                aria-label="Choose footprints"
+                aria-expanded={pickerOpen}
+                data-cursor-label={sel[0].toUpperCase() + sel.slice(1)}
+                className="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110"
+                style={{ backgroundColor: pal.pickerActive, boxShadow: `inset 0 0 0 2px ${pal.ink}` }}
+              >
+                <svg viewBox="0 0 100 110" width="16" height="17" fill={pal.ink}>
+                  {shapeChildren(sel)}
+                </svg>
+              </button>
             </div>
-
-            {/* trigger — the current animal, in a fixed position */}
-            <button
-              onClick={() => setPickerOpen((o) => !o)}
-              aria-label="Choose footprints"
-              aria-expanded={pickerOpen}
-              data-cursor-label={sel[0].toUpperCase() + sel.slice(1)}
-              className="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110"
-              style={{ backgroundColor: pal.pickerActive, boxShadow: `inset 0 0 0 2px ${pal.ink}` }}
-            >
-              <svg viewBox="0 0 100 110" width="16" height="17" fill={pal.ink}>
-                {shapeChildren(sel)}
-              </svg>
-            </button>
           </div>
-        </div>
-      )}
-
-      {/* Colour + light/dark bat — their own cluster in the bottom-right corner,
-          balancing the footprint picker on the left. FooterControls carries its
-          own h-9 + stopPropagation, so this wrapper only owns the corner spot. */}
-      {variant === "ambient" && footprintPicker && controls && (
-        <div className="pointer-events-auto absolute bottom-8 right-5 z-30 flex h-9 items-center sm:right-8">
           {controls}
         </div>
       )}

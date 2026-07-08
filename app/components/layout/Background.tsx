@@ -363,14 +363,14 @@ export function BatToggle({ className = "" }: { className?: string }) {
   return (
     <button
       type="button"
-      className={`bat-btn flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110 ${className}`}
+      className={`bat-btn flex h-7 w-7 items-center justify-center rounded-full transition-transform hover:scale-110 ${className}`}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to day mode" : "Switch to night mode"}
       data-cursor-label={isDark ? "Day" : "Night"}
       style={{ boxShadow: "0 0 0 1.5px currentColor" }}
     >
       <span className="bat-flip">
-        <BatIcon size={19} />
+        <BatIcon size={26} />
       </span>
     </button>
   );

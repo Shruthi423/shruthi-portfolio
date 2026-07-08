@@ -47,6 +47,7 @@ export function SiteNav() {
             "linear-gradient(to bottom, var(--nav-scrim, var(--bg)), transparent)",
         }}
       />
+      {/* Wordmark (left) · links (right). */}
       <nav
         className="relative flex h-16 items-center justify-between px-5 sm:px-8"
         aria-label="Primary"
@@ -55,12 +56,13 @@ export function SiteNav() {
           href="/"
           onClick={scrollTo(0)}
           aria-label="Home"
-          className="pointer-events-auto lowercase tracking-tight opacity-90 transition-opacity duration-150 hover:opacity-70"
+          className="pointer-events-auto whitespace-nowrap lowercase tracking-tight opacity-90 transition-opacity duration-150 hover:opacity-70"
           style={{ fontFamily: "var(--font-eb-garamond)", fontSize: "clamp(16px, 4.6vw, 22px)" }}
         >
           shruthi aragonda
         </Link>
-        <ul className="pointer-events-auto flex items-center gap-6 font-mono text-caption-1 uppercase tracking-wide sm:gap-8">
+
+        <ul className="pointer-events-auto flex items-center gap-4 font-mono text-caption-1 uppercase tracking-wide sm:gap-6">
           {NAV.map(({ label, href, section }) => (
             <li key={label}>
               <Link

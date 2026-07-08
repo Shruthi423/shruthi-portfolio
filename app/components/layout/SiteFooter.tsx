@@ -41,7 +41,7 @@ function FooterColumn({ label, links }: { label: string; links: FooterLink[] }) 
       <p className="font-mono text-caption-1 font-medium uppercase">{label}</p>
       {/* pointer-events-auto so links stay clickable while the surrounding
           footer stays transparent to the footprint engine underneath */}
-      <ul className="pointer-events-auto mt-5 flex flex-col gap-2">
+      <ul className="pointer-events-auto mt-6 flex flex-col gap-2">
         {links.map((l) => (
           <li key={l.label}>
             {l.external ? (
@@ -89,19 +89,16 @@ export function SiteFooter() {
       >
         {/* CTA + two link columns + colophon. The wrapper is pointer-events-none
             so footprints spawn in the gaps; the CTA and links opt back in. */}
-        <div className="pointer-events-none relative mx-auto flex h-full max-w-[1440px] flex-col justify-between px-6 pb-8 pt-28 sm:px-10 sm:pt-40">
+        <div className="pointer-events-none relative mx-auto flex h-full max-w-[1700px] flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pt-40">
           <div className="grid grid-cols-1 gap-20 md:grid-cols-[1.6fr_1fr] md:gap-24">
             {/* Left — big CTA (colour inherited: paper on the inverted layer) */}
             <div className="flex flex-col items-start" data-quiet>
-              <p className="font-mono text-caption-1 uppercase opacity-70">
-                liked what you saw?
-              </p>
               <h2
-                className="pointer-events-auto mt-3 whitespace-nowrap font-display text-cta"
+                className="pointer-events-auto font-display text-cta"
                 data-cursor-label="I respond fast"
                 style={{ fontWeight: 700, fontStyle: "italic", letterSpacing: "-0.02em" }}
               >
-                Might as well <span className="opacity-80">say hi.</span>
+                Who doesn&rsquo;t love to leave a footprint!
               </h2>
             </div>
 
@@ -112,14 +109,13 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* Colophon — centered on the same bottom line as the footprint
-              picker + colour + bat cluster (bottom-right). */}
+          {/* Bottom bar, all on one h-9 baseline: copyright (left) · footprint
+              + colour + bat cluster (right, from FootprintsHome). */}
           <p
             data-quiet
-            className="absolute bottom-8 left-1/2 flex h-9 -translate-x-1/2 items-center whitespace-nowrap text-lg italic opacity-70 sm:text-xl"
-            style={{ fontFamily: "var(--font-eb-garamond)" }}
+            className="absolute bottom-8 left-5 flex h-9 items-center whitespace-nowrap font-mono text-caption-1 uppercase opacity-70 sm:left-8"
           >
-            Who doesn&rsquo;t love leaving a footprint!
+            Copyright @ shruthi aragonda
           </p>
         </div>
       </FootprintsHome>

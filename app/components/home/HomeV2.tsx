@@ -79,7 +79,7 @@ export default function HomeV2() {
               <div className="pointer-events-none flex h-full flex-col items-center justify-center px-6 text-center">
                 <p
                   data-quiet
-                  className="max-w-[22ch] text-balance lowercase"
+                  className="max-w-[34ch] text-balance"
                   style={{
                     fontFamily: "var(--font-display)",
                     fontWeight: 500,
@@ -89,8 +89,9 @@ export default function HomeV2() {
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  A multidisciplinary designer who loves storytelling, craft, and
-                  making products easy to use.
+                  A multidisciplinary designer who loves storytelling,
+                  <br />
+                  craft, and making products easy to use.
                 </p>
               </div>
             </FootprintsHome>

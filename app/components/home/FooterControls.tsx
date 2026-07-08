@@ -56,7 +56,10 @@ export default function FooterControls() {
       <div ref={pickerRef} className="relative flex h-6 items-center">
         {/* other swatches — fan upward from the fixed trigger on click */}
         <div
-          className="absolute bottom-full left-1/2 mb-2 flex -translate-x-1/2 flex-col items-center gap-2 transition-all duration-200"
+          // No -translate-x-1/2 class: Tailwind v4 emits it as the standalone
+          // `translate` property, which stacks with the inline `transform`
+          // below (double -50% → 12px off). The inline transform centers it.
+          className="absolute bottom-full left-1/2 mb-2 flex flex-col items-center gap-2 transition-all duration-200"
           style={{
             opacity: open ? 1 : 0,
             pointerEvents: open ? "auto" : "none",
@@ -89,7 +92,10 @@ export default function FooterControls() {
           aria-expanded={open}
           data-cursor-label={label(color)}
           className="h-6 w-6 rounded-full transition-transform hover:scale-110"
-          style={{ backgroundColor: PAPER_COLORS[color], boxShadow: "0 0 0 1.5px currentColor" }}
+          // 2px inset ring in the foreground colour — same frame weight/style as
+          // the footprint trigger, so the stroke reads as a distinct outline
+          // around the colour fill (not one solid blob).
+          style={{ backgroundColor: PAPER_COLORS[color], boxShadow: "inset 0 0 0 2px currentColor" }}
         />
       </div>
 
