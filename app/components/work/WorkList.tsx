@@ -153,7 +153,7 @@ export function WorkList({
                   color: floodInk ?? "var(--ink)",
                   opacity: dim ? 0.5 : 1,
                   fontWeight: 400,
-                  fontSize: "clamp(2rem, 6.4vw, 5.5rem)",
+                  fontSize: "clamp(1.375rem, 6.4vw, 4.875rem)",
                   letterSpacing: "-0.01em",
                 }}
               >
