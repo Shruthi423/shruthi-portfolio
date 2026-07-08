@@ -53,7 +53,7 @@ export default function FooterControls() {
       onPointerDown={(e) => e.stopPropagation()}
       onPointerMove={(e) => e.stopPropagation()}
     >
-      <div ref={pickerRef} className="relative flex h-6 items-center">
+      <div ref={pickerRef} className="relative flex h-8 items-center">
         {/* other swatches — fan upward from the fixed trigger on click */}
         <div
           // No -translate-x-1/2 class: Tailwind v4 emits it as the standalone
@@ -76,27 +76,35 @@ export default function FooterControls() {
               aria-label={`${label(c)} background`}
               data-cursor-label={label(c)}
               tabIndex={open ? 0 : -1}
-              className="h-6 w-6 rounded-full transition-transform hover:scale-110"
-              style={{
-                backgroundColor: PAPER_COLORS[c],
-                boxShadow: "inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent)",
-              }}
-            />
+              className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
+              style={{ boxShadow: "inset 0 0 0 2px currentColor" }}
+            >
+              <span
+                aria-hidden
+                className="rounded-full"
+                style={{ height: "1.375rem", width: "1.375rem", backgroundColor: PAPER_COLORS[c] }}
+              />
+            </button>
           ))}
         </div>
 
-        {/* trigger — always the current colour, in a fixed position */}
+        {/* trigger — always the current colour, in a fixed position. Concentric:
+            a foreground-colour stroke ring, a gap, then the colour as a smaller
+            inner dot — so the stroke is visibly distinct from the colour. */}
         <button
           onClick={() => setOpen((o) => !o)}
           aria-label="Choose background colour"
           aria-expanded={open}
           data-cursor-label={label(color)}
-          className="h-6 w-6 rounded-full transition-transform hover:scale-110"
-          // 2px inset ring in the foreground colour — same frame weight/style as
-          // the footprint trigger, so the stroke reads as a distinct outline
-          // around the colour fill (not one solid blob).
-          style={{ backgroundColor: PAPER_COLORS[color], boxShadow: "inset 0 0 0 2px currentColor" }}
-        />
+          className="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110"
+          style={{ boxShadow: "inset 0 0 0 2px currentColor" }}
+        >
+          <span
+            aria-hidden
+            className="rounded-full"
+            style={{ height: "1.375rem", width: "1.375rem", backgroundColor: PAPER_COLORS[color] }}
+          />
+        </button>
       </div>
 
       {/* light / dark — the bat: hangs upside-down by day, upright at night */}

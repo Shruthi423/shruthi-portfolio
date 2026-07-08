@@ -6,6 +6,7 @@ import { gsap, useGSAP, ScrollSmoother } from "@/app/lib/gsap";
 // refs are threaded into create() (which keeps the types null-free).
 import { WorkGrid } from "@/app/components/work/WorkGrid";
 import FootprintsHome from "@/app/components/home/FootprintsHome";
+import HeroStack from "@/app/components/home/HeroStack";
 import { SiteFooter } from "@/app/components/layout/SiteFooter";
 import { projects } from "@/app/lib/projects";
 
@@ -74,25 +75,10 @@ export default function HomeV2() {
             style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
           >
             <FootprintsHome variant="ambient">
-              {/* pointer-events-none so prints spawn in the gaps; the statement
-                  is non-interactive and simply reads through the frost. */}
-              <div className="pointer-events-none flex h-full flex-col items-center justify-center px-6 text-center">
-                <p
-                  data-quiet
-                  className="max-w-[34ch] text-balance"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 500,
-                    fontStyle: "italic",
-                    fontSize: "clamp(1.75rem, 4.6vw, 3.5rem)",
-                    lineHeight: 1.12,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  A multidisciplinary designer who loves storytelling,
-                  <br />
-                  craft, and making products easy to use.
-                </p>
+              {/* pointer-events-none so prints spawn in the gaps; the stacked
+                  statement is non-interactive and reads through the frost. */}
+              <div className="pointer-events-none flex h-full flex-col items-center justify-center px-6">
+                <HeroStack />
               </div>
             </FootprintsHome>
           </section>

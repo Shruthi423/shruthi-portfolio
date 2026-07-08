@@ -363,14 +363,16 @@ export function BatToggle({ className = "" }: { className?: string }) {
   return (
     <button
       type="button"
-      className={`bat-btn flex h-7 w-7 items-center justify-center rounded-full transition-transform hover:scale-110 ${className}`}
+      className={`bat-btn flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110 ${className}`}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to day mode" : "Switch to night mode"}
       data-cursor-label={isDark ? "Day" : "Night"}
-      style={{ boxShadow: "0 0 0 1.5px currentColor" }}
+      // Same frame as the footprint + colour triggers: 32px circle, 2px inset
+      // ring, glyph sized like the footprint paw so all three read one size.
+      style={{ boxShadow: "inset 0 0 0 2px currentColor" }}
     >
       <span className="bat-flip">
-        <BatIcon size={26} />
+        <BatIcon size={22} />
       </span>
     </button>
   );

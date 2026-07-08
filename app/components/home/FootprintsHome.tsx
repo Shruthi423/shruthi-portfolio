@@ -616,7 +616,7 @@ export default function FootprintsHome({
             onPointerDown={(e) => e.stopPropagation()}
             onPointerMove={(e) => e.stopPropagation()}
           >
-            <div ref={pickerRef} className="relative flex h-6 items-center">
+            <div ref={pickerRef} className="relative flex h-8 items-center">
               {/* the other animals — fan upward from the fixed trigger on click */}
               <div
                 // No -translate-x-1/2: in Tailwind v4 it emits the standalone
@@ -636,9 +636,9 @@ export default function FootprintsHome({
                     aria-label={`${a} footprints`}
                     tabIndex={pickerOpen ? 0 : -1}
                     data-cursor-label={a[0].toUpperCase() + a.slice(1)}
-                    className="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110"
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
                   >
-                    <svg viewBox="0 0 100 110" width="16" height="17" fill={pal.ink} style={{ opacity: 0.75 }}>
+                    <svg viewBox="0 0 100 110" width="21" height="23" fill={pal.ink} style={{ opacity: 0.75 }}>
                       {shapeChildren(a)}
                     </svg>
                   </button>
@@ -651,10 +651,10 @@ export default function FootprintsHome({
                 aria-label="Choose footprints"
                 aria-expanded={pickerOpen}
                 data-cursor-label={sel[0].toUpperCase() + sel.slice(1)}
-                className="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-110"
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
                 style={{ backgroundColor: pal.pickerActive, boxShadow: `inset 0 0 0 2px ${pal.ink}` }}
               >
-                <svg viewBox="0 0 100 110" width="16" height="17" fill={pal.ink}>
+                <svg viewBox="0 0 100 110" width="21" height="23" fill={pal.ink}>
                   {shapeChildren(sel)}
                 </svg>
               </button>
