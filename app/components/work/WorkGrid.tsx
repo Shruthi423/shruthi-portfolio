@@ -102,9 +102,7 @@ export function WorkGrid({
   return (
     <section
       className={
-        listView
-          ? "relative min-h-screen px-[27px] pt-12 pb-24 sm:px-6"
-          : "px-[27px] pt-12 pb-10 sm:px-6"
+        listView ? "relative min-h-screen py-24" : "py-24"
       }
       style={
         listView
@@ -114,7 +112,7 @@ export function WorkGrid({
     >
       {/* heading + sort chips + view toggle, on one row */}
       <div
-        className={`mx-auto mb-12 flex flex-wrap items-center gap-x-5 gap-y-3 ${
+        className={`mx-auto mb-6 flex w-full flex-wrap items-center gap-x-5 gap-y-3 px-5 sm:px-8 ${
           heading ? "max-w-[1700px] justify-between" : "max-w-4xl justify-center"
         }`}
       >
@@ -151,7 +149,7 @@ export function WorkGrid({
       {listView ? (
         <WorkList projects={visible} onActive={onActive} />
       ) : (
-        <div className="mx-auto grid max-w-[1700px] grid-cols-1 gap-x-6 gap-y-16 md:grid-cols-2">
+        <div className="mx-auto grid w-full max-w-[1700px] grid-cols-1 gap-x-6 gap-y-16 px-5 sm:px-8 md:grid-cols-2">
           {visible.map((p) => (
             <ProjectCard key={p.name} project={p} />
           ))}

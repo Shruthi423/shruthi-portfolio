@@ -19,17 +19,17 @@ type Polaroid = { f: string; caption: string; focus?: string; zoom?: number };
 
 const POLAROIDS: Polaroid[] = [
   { f: "safari2.jpeg", caption: "Hii! That's me" },
-  { f: "graduated.jpeg", caption: "Graduate of 2026" },
+  { f: "graduated.jpeg", caption: "Graduated in May of 2026" },
   { f: "swim1.jpeg", caption: "My happy place" },
-  { f: "baking.jpeg", caption: "I love to experiment with food" },
-  { f: "fun.jpeg", caption: "fishy coke cans" },
+  { f: "food.jpeg", caption: "I love to experiment with food" },
+  { f: "fun.jpeg", caption: "Make recycling fun" },
   { f: "safari1.jpeg", caption: "I went on a safari last December" },
   { f: "lions.jpeg", caption: "Loved every second of it" },
   { f: "giraffe.jpeg", caption: "First time seeing a giraffe!", focus: "right center" },
   { f: "sky1.jpeg", caption: "I like keeping a collection of rainbows" },
-  { f: "sky2.jpeg", caption: "look up" },
+  { f: "sky2.jpeg", caption: "here's another one straight from the window seat" },
   { f: "snow1.jpeg", caption: "I love Michigan winters" },
-  { f: "cycle.jpeg", caption: "Recently moved to the bay" },
+  { f: "cycle.jpeg", caption: "just moved to Berkeley and already loving it" },
 ];
 
 // Hand-picked scatter so the pile looks tossed, not stacked dead-center.
@@ -74,7 +74,7 @@ function Card({ p }: { p: Polaroid }) {
         />
       </div>
       <p
-        className={`${rockSalt.className} mt-4 text-center text-[clamp(1rem,1.5vw,1.35rem)] leading-none`}
+        className={`${rockSalt.className} mt-4 text-center text-[clamp(1rem,1.5vw,1.35rem)] leading-[1.5]`}
         style={{ color: INK }}
       >
         {p.caption}

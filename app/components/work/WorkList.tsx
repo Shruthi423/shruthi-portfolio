@@ -11,6 +11,23 @@ import type { Project } from "@/app/components/work/ProjectCard";
 // different rates. Long-ish + a soft ease-out settle.
 const EASE = { duration: 0.42, ease: [0.22, 1, 0.36, 1] } as const;
 
+// When a project is hovered the section floods with its accent, so the names
+// must contrast with THAT accent, not the theme ink — in dark mode `--ink` is a
+// light hue that all but vanishes on a light accent (the accessibility bug).
+// Pick near-black or near-white from the accent's relative luminance.
+function readableOn(hex: string): string {
+  const h = hex.replace("#", "");
+  const n = parseInt(
+    h.length === 3 ? h.split("").map((c) => c + c).join("") : h,
+    16,
+  );
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return L > 0.5 ? "#1b1712" : "#faf7f1";
+}
+
 /**
  * The "index" view of the work — a stacked list of giant serif names. One
  * project is spotlighted at a time: its name goes ink while the rest dim, its
@@ -37,6 +54,9 @@ export function WorkList({
 
   const [mounted, setMounted] = useState(false);
   const activeProject = active != null ? projects[active] ?? null : null;
+  // While flooded, every name/description reads on the accent, so colour them
+  // from the accent's luminance instead of the theme ink.
+  const floodInk = activeProject?.accent ? readableOn(activeProject.accent) : null;
 
   useEffect(() => {
     onActive?.(activeProject);
@@ -117,7 +137,7 @@ export function WorkList({
 
   return (
     <div className="relative">
-      <ul className="mx-auto flex max-w-[1700px] flex-col px-[27px] sm:px-6">
+      <ul className="mx-auto flex w-full max-w-[1700px] flex-col px-5 sm:px-8">
         {projects.map((p, i) => {
           const isActive = i === active;
           const dim = active != null && !isActive;
@@ -130,8 +150,8 @@ export function WorkList({
               <span
                 className="font-display leading-[1.04] transition-[opacity,color] duration-[400ms] ease-out"
                 style={{
-                  color: "var(--ink)",
-                  opacity: dim ? 0.28 : 1,
+                  color: floodInk ?? "var(--ink)",
+                  opacity: dim ? 0.5 : 1,
                   fontWeight: 400,
                   fontSize: "clamp(2rem, 6.4vw, 5.5rem)",
                   letterSpacing: "-0.01em",
@@ -157,7 +177,7 @@ export function WorkList({
                         {p.description ? (
                           <p
                             className="max-w-[46ch] font-body text-body"
-                            style={{ color: "var(--ink)", opacity: 0.7 }}
+                            style={{ color: floodInk ?? "var(--ink)", opacity: 0.82 }}
                           >
                             {p.description}
                           </p>
@@ -253,7 +273,7 @@ export function WorkList({
                     {activeProject.description ? (
                       <p
                         className="max-w-[34ch] font-body text-caption-1"
-                        style={{ color: "var(--ink)", opacity: 0.7 }}
+                        style={{ color: floodInk ?? "var(--ink)", opacity: 0.82 }}
                       >
                         {activeProject.description}
                       </p>

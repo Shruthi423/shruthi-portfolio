@@ -10,13 +10,19 @@ const dmMono = DM_Mono({
 });
 
 const MONO = { fontFamily: "var(--font-dm-mono)" } as const;
-const SERIF = { fontFamily: "var(--font-eb-garamond)", fontWeight: 400 } as const;
-const HEADING = "var(--color-heading)"; // terracotta (day) → clay (night)
 
-// Experience / Education — EB Garamond serif section titles.
+// "Hi there" / Experience / Education — mono section labels in a lighter tone.
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 style={{ ...SERIF, color: HEADING, fontSize: "clamp(1.15rem, 2vw, 1.5rem)" }}>
+    <h2
+      style={{
+        ...MONO,
+        color: "var(--color-muted)",
+        fontSize: "clamp(0.85rem, 1.4vw, 1.05rem)",
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+      }}
+    >
       {children}
     </h2>
   );
@@ -79,8 +85,8 @@ export default function About() {
     >
       {/* Full-bleed two-panel: text left, filmstrip right (touches the edge). */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
-        {/* LEFT — text content (sticky on desktop) */}
-        <div className="px-6 pb-24 pt-10 sm:px-10 lg:sticky lg:top-10 lg:max-w-[42rem] lg:self-start lg:pb-24 lg:pl-14 lg:pr-12">
+        {/* LEFT — text content, vertically centered in the section on desktop */}
+        <div className="px-6 pb-24 pt-10 sm:px-10 lg:max-w-[42rem] lg:self-center lg:py-24 lg:pl-14 lg:pr-12">
             {/* Intro — small "Hi there" label over the full-stack statement heading. */}
             <SectionTitle>Hi there</SectionTitle>
             <p
