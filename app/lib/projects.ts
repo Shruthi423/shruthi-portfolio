@@ -182,18 +182,17 @@ export const projects: Project[] = [
     image: "/gesture-based-games/cover.png",
     hoverLabel: "Updating Now",
   },
-  // ---- HIDDEN: not fully filled in (placeholder copy). NOTE: this is actually
-  // your strongest resume proof — the ~10,000-student U-M orientation site you
-  // coded solo (HTML/CSS/JS/GSAP, >98% completion). Rebuild it as a full
-  // PRODUCT case study, not a "Brand & Identity" card. Restore then.
-  // {
-  //   name: "Talking Maize and Blue",
-  //   status: "building",
-  //   discipline: "Brand & Identity", // PLACEHOLDER — confirm
-  //   year: "2026", // PLACEHOLDER — confirm
-  //   description: "Brand & identity for Talking Maize and Blue.", // PLACEHOLDER
-  //   tags: ["Brand & Identity", "U-M", "TBD"], // PLACEHOLDER
-  //   image: "/talking-maize-and-blue/cover.png",
-  //   hoverLabel: "Building Now",
-  // },
+  // Talking Maize and Blue — the ~10,000-student U-M orientation site coded solo
+  // (HTML/CSS/JS/GSAP, >98% completion). Live now as a "building" card; rebuild
+  // into a full PRODUCT case study when ready. discipline/year are placeholders.
+  {
+    name: "Maize and Blue",
+    accent: "#ffcb05",
+    status: "building",
+    discipline: "Web Design", // PLACEHOLDER — confirm
+    year: "2026", // PLACEHOLDER — confirm
+    image: "/talking-maize-and-blue/cover.png",
+    hoverLabel: "Currently Building!",
+    // description + tags omitted until real copy is ready
+  },
 ];
