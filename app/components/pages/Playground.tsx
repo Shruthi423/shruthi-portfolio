@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, type MouseEvent } from "react";
 import { gsap, useGSAP, ScrollTrigger } from "@/app/lib/gsap";
+import BoatPond from "@/app/components/pages/BoatPond";
 
 type Img = { f: string; w: number; h: number; l?: string };
 
@@ -153,6 +154,24 @@ export default function Playground() {
             {ILLUSTRATIONS.map((img) => (
               <Illustration key={img.f} img={img} />
             ))}
+          </div>
+        </Section>
+
+        {/* Set sail — a session-only pond of paper boats. Leave one for the next
+            visitor, the footprint idea carried onto water. */}
+        <Section
+          title="Set sail"
+          subtitle="Leave a little boat"
+          note={
+            <>
+              A quiet pond. Write a note, pick a boat or a duck, and click the water
+              to set one adrift for whoever floats through next. They sail off when
+              you leave.
+            </>
+          }
+        >
+          <div data-reveal>
+            <BoatPond />
           </div>
         </Section>
 
