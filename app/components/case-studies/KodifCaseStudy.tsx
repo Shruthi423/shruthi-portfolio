@@ -202,16 +202,11 @@ function Pill({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Before/after homepage redesign, framed as a faux browser window. A
- * [Before | After] toggle sits in the chrome bar; choosing "After" swipes the
- * redesigned page in from the right over the original. Each full-page capture
- * lives in its own scroll container (the screenshots are ~5-6 viewports tall
- * and differ in height), so the window stays a fixed height and you scroll
- * within it to explore. The incoming layer is translated fully offscreen and
- * made inert when hidden, so it never traps scroll or clicks.
+ * The homepage, framed as a faux browser window. The full-page capture is ~5-6
+ * viewports tall, so it lives in its own scroll container and the window stays
+ * a fixed height while you scroll within it.
  */
-function BeforeAfterBrowser({ before, after, url = "kodif.ai" }: { before: string; after: string; url?: string }) {
-  const [view, setView] = useState<"before" | "after">("before");
+function SiteBrowser({ src, alt, url = "kodif.ai" }: { src: string; alt: string; url?: string }) {
   return (
     <div>
       <div className="overflow-hidden rounded-xl border border-border shadow-lg" style={{ backgroundColor: "var(--bg)" }}>
@@ -225,46 +220,17 @@ function BeforeAfterBrowser({ before, after, url = "kodif.ai" }: { before: strin
           <div className="hidden flex-1 truncate rounded-md bg-text/5 px-3 py-1 text-center font-mono text-caption-2 text-muted sm:block">
             {url}
           </div>
-          <div className="ml-auto flex shrink-0 items-center gap-1 rounded-full border border-border p-0.5">
-            {(["before", "after"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setView(v)}
-                aria-pressed={view === v}
-                data-cursor-label={view === v ? undefined : `see ${v}`}
-                className={
-                  view === v
-                    ? "rounded-full bg-text px-3.5 py-1 font-mono text-caption-2 uppercase tracking-wide text-bg transition-colors"
-                    : "rounded-full px-3.5 py-1 font-mono text-caption-2 uppercase tracking-wide text-muted transition-colors hover:text-text"
-                }
-              >
-                {v}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {/* viewport: fixed height, both pages stacked; after swipes over before */}
         <div className="relative h-[60vh] overflow-hidden sm:h-[68vh]" data-cursor-label="scroll to explore">
           <div className="absolute inset-0 overflow-y-auto overscroll-contain">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={before} alt="Kodif homepage before the redesign" className="block w-full" />
-          </div>
-          <div
-            aria-hidden={view !== "after"}
-            className={`absolute inset-0 overflow-y-auto overscroll-contain border-l border-border transition-transform duration-500 ease-out ${
-              view === "after" ? "translate-x-0" : "pointer-events-none translate-x-full"
-            }`}
-            style={{ backgroundColor: "var(--bg)" }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={after} alt="Kodif homepage after the redesign" className="block w-full" />
+            <img src={src} alt={alt} className="block w-full" />
           </div>
         </div>
       </div>
       <p className="mt-3 font-body text-caption-1 text-muted">
-        Toggle between the original site and the redesign. Scroll within the window to explore the full page.
+        Scroll within the window to explore the full page.
       </p>
     </div>
   );
@@ -740,11 +706,11 @@ export function KodifCaseStudy() {
             </Body>
           </Reveal>
 
-          {/* the headline deliverable: homepage redesign, before vs after */}
+          {/* the headline deliverable: the homepage */}
           <Reveal delay={140} variant="scale" className="mt-10">
-            <BeforeAfterBrowser
-              before="/kodif/home-before.jpg"
-              after="/kodif/home-after.jpg"
+            <SiteBrowser
+              src="/kodif/home-before.jpg"
+              alt="Kodif homepage"
             />
           </Reveal>
 
