@@ -51,9 +51,9 @@ const dmMono = DM_Mono({
 });
 
 const SITE_URL = "https://shruthiaragonda.com";
-const SITE_TITLE = "Shruthi — Multidisciplinary Designer";
+const SITE_TITLE = "Shruthi — Multidisciplinary Design Engineer";
 const SITE_DESCRIPTION =
-  "A multidisciplinary designer's portfolio — identity systems, visual storytelling, and AI-native prototyping.";
+  "A multidisciplinary design engineer's portfolio — identity systems, visual storytelling, and AI-native prototyping.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpeg",
         width: 1066,
         height: 1600,
-        alt: "Shruthi — Multidisciplinary Designer",
+        alt: "Shruthi — Multidisciplinary Design Engineer",
       },
     ],
   },

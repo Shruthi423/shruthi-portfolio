@@ -16,7 +16,7 @@ import { isSplashLifted, onSplashLift, splashWillPlay } from "@/app/lib/splash";
  */
 
 const WORDS =
-  "A multidisciplinary designer who loves storytelling, craft, and making products easy to use.".split(
+  "A multidisciplinary design engineer who loves storytelling, craft, and making products easy to use.".split(
     " ",
   );
 

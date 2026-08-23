@@ -23,7 +23,7 @@ const word: Variants = {
   },
 };
 
-const SUBTITLE = ["a", "multidisciplinary", "designer"];
+const SUBTITLE = ["a", "multidisciplinary", "design", "engineer"];
 
 /**
  * Home-only splash — name + tagline fade up word-by-word, then the panel lifts
