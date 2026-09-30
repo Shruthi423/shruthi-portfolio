@@ -76,3 +76,10 @@ Spothive_images/
 
 # Unused "before" screenshots (14MB, not referenced by the site)
 /public/talking-maize-and-blue/before/
+
+# Raw cover/source art — kept on disk, not in the repo
+/covers for work/
+/wellness/
+
+# Unreferenced assets moved out of the build, kept on disk
+/_unused/
