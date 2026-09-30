@@ -11,21 +11,34 @@ import type { Project } from "@/app/components/work/ProjectCard";
 // different rates. Long-ish + a soft ease-out settle.
 const EASE = { duration: 0.42, ease: [0.22, 1, 0.36, 1] } as const;
 
-// When a project is hovered the section floods with its accent, so the names
-// must contrast with THAT accent, not the theme ink — in dark mode `--ink` is a
-// light hue that all but vanishes on a light accent (the accessibility bug).
-// Pick near-black or near-white from the accent's relative luminance.
-function readableOn(hex: string): string {
-  const h = hex.replace("#", "");
-  const n = parseInt(
-    h.length === 3 ? h.split("").map((c) => c + c).join("") : h,
-    16,
+// Each row now carries a sentence ("How I ...") rather than a name, so one
+// fixed clamp would let a 70-character headline tower over a 20-character one.
+// The measure is set in `ch` (wrapping falls at the same word count whatever
+// the size), and the size scales down as the line gets longer — so every row
+// lands at roughly the same height and the list keeps an even rhythm.
+function fitSize(text: string): string {
+  const vw = Math.max(2.4, Math.min(4.4, 160 / text.length));
+  return `clamp(1.375rem, ${vw.toFixed(2)}vw, 3.5rem)`;
+}
+
+function Pills({ tags, reduce }: { tags: string[]; reduce: boolean | null }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {tags.map((t, i) => (
+        <motion.span
+          key={t}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
+          transition={{ duration: 0.25, delay: reduce ? 0 : i * 0.03, ease: "easeOut" }}
+          className="rounded-full px-3 py-1 font-mono text-caption-2 uppercase tracking-wide"
+          style={{ backgroundColor: "var(--text)", color: "var(--bg)" }}
+        >
+          {t}
+        </motion.span>
+      ))}
+    </div>
   );
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return L > 0.5 ? "#1b1712" : "#faf7f1";
 }
 
 /**
@@ -54,9 +67,6 @@ export function WorkList({
 
   const [mounted, setMounted] = useState(false);
   const activeProject = active != null ? projects[active] ?? null : null;
-  // While flooded, every name/description reads on the accent, so colour them
-  // from the accent's luminance instead of the theme ink.
-  const floodInk = activeProject?.accent ? readableOn(activeProject.accent) : null;
 
   useEffect(() => {
     onActive?.(activeProject);
@@ -117,47 +127,43 @@ export function WorkList({
     return () => window.removeEventListener("mousemove", onMove);
   }, [isTouch, reduce]);
 
-  const Pills = ({ tags }: { tags: string[] }) => (
-    <div className="flex flex-wrap gap-1.5">
-      {tags.map((t, i) => (
-        <motion.span
-          key={t}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
-          transition={{ duration: 0.25, delay: reduce ? 0 : i * 0.03, ease: "easeOut" }}
-          className="rounded-full px-3 py-1 font-mono text-caption-2 uppercase tracking-wide"
-          style={{ backgroundColor: "var(--ink)", color: "var(--paper)" }}
-        >
-          {t}
-        </motion.span>
-      ))}
-    </div>
-  );
-
   return (
     <div className="relative">
       <ul className="mx-auto flex w-full max-w-[1700px] flex-col px-5 sm:px-8">
         {projects.map((p, i) => {
           const isActive = i === active;
           const dim = active != null && !isActive;
+          // Projects still waiting on real headline copy fall back to the name.
+          const line = p.headline ?? p.name;
           const Row = (
             <motion.div
               layout="position"
               transition={EASE}
               className="inline-flex flex-col items-start"
             >
+              {/* The name is demoted to a quiet label so the headline can carry
+                  the impact; it still identifies the company at a glance. */}
               <span
-                className="font-display leading-[1.04] transition-[opacity,color] duration-[400ms] ease-out"
+                className="pb-1.5 font-mono text-caption-2 uppercase tracking-[0.14em] transition-[opacity,color] duration-[400ms] ease-out"
                 style={{
-                  color: floodInk ?? "var(--ink)",
-                  opacity: dim ? 0.5 : 1,
-                  fontWeight: 400,
-                  fontSize: "clamp(1.375rem, 6.4vw, 4.875rem)",
-                  letterSpacing: "-0.01em",
+                  color: "var(--text)",
+                  opacity: dim ? 0.3 : 0.55,
                 }}
               >
-                {p.name}
+                {p.year ? `${p.name} · ${p.year}` : p.name}
+              </span>
+              <span
+                className="font-display leading-[1.06] transition-[opacity,color] duration-[400ms] ease-out"
+                style={{
+                  color: "var(--text)",
+                  opacity: dim ? 0.5 : 1,
+                  fontWeight: 400,
+                  fontSize: fitSize(line),
+                  letterSpacing: "-0.01em",
+                  maxWidth: "28ch",
+                }}
+              >
+                {line}
               </span>
               {/* Desktop: the one-liner + pills reveal inline beneath the active
                   name (description first, as a sneak peek, then the pills). */}
@@ -177,12 +183,12 @@ export function WorkList({
                         {p.description ? (
                           <p
                             className="max-w-[46ch] font-body text-body"
-                            style={{ color: floodInk ?? "var(--ink)", opacity: 0.82 }}
+                            style={{ color: "var(--text)", opacity: 0.82 }}
                           >
                             {p.description}
                           </p>
                         ) : null}
-                        {p.tags?.length ? <Pills tags={p.tags} /> : null}
+                        {p.tags?.length ? <Pills tags={p.tags} reduce={reduce} /> : null}
                       </div>
                     </motion.div>
                   ) : null}
@@ -206,7 +212,7 @@ export function WorkList({
               // stays visible over whatever accent is flooding the section.
               style={
                 i > 0
-                  ? { borderTop: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)" }
+                  ? { borderTop: "1px solid color-mix(in srgb, var(--text) 14%, transparent)" }
                   : undefined
               }
             >
@@ -273,12 +279,12 @@ export function WorkList({
                     {activeProject.description ? (
                       <p
                         className="max-w-[34ch] font-body text-caption-1"
-                        style={{ color: floodInk ?? "var(--ink)", opacity: 0.82 }}
+                        style={{ color: "var(--text)", opacity: 0.82 }}
                       >
                         {activeProject.description}
                       </p>
                     ) : null}
-                    {activeProject.tags?.length ? <Pills tags={activeProject.tags.slice(0, 4)} /> : null}
+                    {activeProject.tags?.length ? <Pills tags={activeProject.tags.slice(0, 4)} reduce={reduce} /> : null}
                     {activeProject.image ? (
                       <div className="w-[52vw] max-w-[300px] overflow-hidden rounded-xl shadow-xl">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

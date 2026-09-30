@@ -64,3 +64,15 @@ next-env.d.ts
 
 # Local raw source images, not served by the site
 Spothive_images/
+
+# Original-source assets — only the processed copies in public/ are tracked
+/Domu/
+/Temple_images/
+
+# Scratch motion/thumbnail prototypes — the shipped versions live in public/
+/amuse-bouche-cover.html
+/deepclean_motion_thumbnail*.html
+/opentabs-motion-thumbnail.html
+
+# Unused "before" screenshots (14MB, not referenced by the site)
+/public/talking-maize-and-blue/before/

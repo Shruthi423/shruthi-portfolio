@@ -1,27 +1,23 @@
 import type { Metadata } from "next";
-import { EB_Garamond, Figtree, Rock_Salt, DM_Mono } from "next/font/google";
-import Script from "next/script";
+import { Ovo, Figtree, DM_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
-import { ThemeProvider } from "@/app/components/shared/ThemeProvider";
+import { FootprintProvider } from "@/app/components/shared/FootprintProvider";
 import { SiteFrame } from "@/app/components/layout/SiteFrame";
 import { CircleCursor } from "@/app/components/shared/CircleCursor";
-import { IntroOverlay } from "@/app/components/layout/IntroOverlay";
 import { BackgroundStyles } from "@/app/components/layout/Background";
 
-// EB Garamond — section / case-study titles + the italic moments (the wordmark,
-// section headers, italic taglines). Variable Google font (wght 400–800),
-// auto self-hosted by next/font; normal + italic loaded.
-const ebGaramond = EB_Garamond({
-  variable: "--font-eb-garamond",
+// Ovo — section / case-study titles + the italic moments (the wordmark,
+// section headers, italic taglines). Single weight, no italic face (the
+// browser synthesizes italic where needed). Figtree for body copy; DM Mono
+// for interface labels.
+const ovo = Ovo({
+  variable: "--font-ovo",
   subsets: ["latin"],
-  style: ["normal", "italic"],
+  weight: "400",
   display: "swap",
 });
 
-// Figtree — the sans-serif: body copy, nav, footer links, tags, cursor pill.
-// (Replaced Barlow on 2026-05-19.) Variable font — one file covers all weights;
-// normal + italic loaded.
 const figtree = Figtree({
   variable: "--font-figtree",
   subsets: ["latin"],
@@ -29,19 +25,6 @@ const figtree = Figtree({
   display: "swap",
 });
 
-// Rock Salt — handwritten cursive, used for scribbled overlay text on case
-// studies (e.g. Feeld's "Through the lens..." overlay on the in-world image,
-// and the per-screen scribbles in the app reel). Single weight, latin only.
-const rockSalt = Rock_Salt({
-  variable: "--font-rocksalt",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
-// DM Mono — the label face: nav, tags, cursor pill, footer links, micro-labels.
-// (Replaced the Figtree-as-mono legacy token.) Monospace, Google-hosted; not a
-// variable font, so weights are listed explicitly.
 const dmMono = DM_Mono({
   variable: "--font-dm-mono",
   subsets: ["latin"],
@@ -51,19 +34,20 @@ const dmMono = DM_Mono({
 });
 
 const SITE_URL = "https://shruthiaragonda.com";
-const SITE_TITLE = "Shruthi — Multidisciplinary Design Engineer";
+const SITE_TITLE = "Shruthi: Multidisciplinary Design Engineer";
 const SITE_DESCRIPTION =
-  "A multidisciplinary design engineer's portfolio — identity systems, visual storytelling, and AI-native prototyping.";
+  "A multidisciplinary design engineer building new ways for people to interact with technology, from AI to the physical world.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
-  // Paw-print favicon — terracotta by day, clay by night (matches the home prints).
+  // Footprint favicon — a lion track in the signature gradient, no background.
+  // This static file is the pre-hydration icon; FootprintProvider then swaps in
+  // the identical live one. Both come from footprintTileSvg in app/lib/footprints.
   icons: {
     icon: [
       { url: "/favicon-light.svg", type: "image/svg+xml" },
-      { url: "/favicon-dark.svg", media: "(prefers-color-scheme: dark)", type: "image/svg+xml" },
     ],
   },
   openGraph: {
@@ -78,7 +62,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpeg",
         width: 1066,
         height: 1600,
-        alt: "Shruthi — Multidisciplinary Design Engineer",
+        alt: "Shruthi: Multidisciplinary Design Engineer",
       },
     ],
   },
@@ -91,7 +75,6 @@ export const metadata: Metadata = {
   },
 };
 
-const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=s==='dark'||((s==='system'||!s)&&m);if(d)document.documentElement.classList.add('dark');var C={white:'#fbfbf9',blush:'#f4ccd0',butter:'#fbe9a8',mint:'#cdebc5',sky:'#c8e8f6'};var c=localStorage.getItem('paper-color');if(c&&C[c])document.documentElement.style.setProperty('--hue',C[c]);}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -102,13 +85,10 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${ebGaramond.variable} ${figtree.variable} ${dmMono.variable} ${rockSalt.variable} h-full antialiased`}
+      className={`${ovo.variable} ${figtree.variable} ${dmMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeInitScript}
-        </Script>
-        <ThemeProvider>
+        <FootprintProvider>
           <BackgroundStyles />
           {/* Route-aware: home (/) renders the footprints page bare; inner
               pages get the top bar + sticky sky backdrop + curtain footer. */}
@@ -116,8 +96,7 @@ export default function RootLayout({
               shared by every page — no separate global floating bat. */}
           <SiteFrame>{children}</SiteFrame>
           <CircleCursor />
-          <IntroOverlay />
-        </ThemeProvider>
+        </FootprintProvider>
         {/* GA only loads when the env var is set — silent in dev without a key */}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />

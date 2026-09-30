@@ -1,14 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@/app/components/shared/ThemeProvider";
-import { gsap, useGSAP } from "@/app/lib/gsap";
+import {
+  Body,
+  CaseStudyFrame,
+  Hero,
+  Label,
+  Mark,
+  MotionFrame,
+  Reveal,
+  Section,
+  Statement,
+  CountUp,
+} from "@/app/components/case-studies/shared/CaseStudyLayout";
 
 /**
- * Temple case study - the same editorial template as Handmade Homestead
- * (left rail, lowercase labels, full-width square images, scroll motion),
- * tuned for a denser product story: an ownership breakdown, a 4-step flow,
- * a wall of user voices, and an honest "what didn't work" log. Accent is a
+ * Temple case study (9and9) - the page the shared template in
+ * shared/CaseStudyLayout was lifted from, and still the reference for it:
+ * one centred axis, a left dot rail, lowercase mono labels, full-width art.
+ * Kept deliberately simple: background, the problem, why I redesigned it
+ * in 2026, the original screens, impact, and two reflections. Accent is a
  * devotional saffron; the voice is measured (no handwritten asides).
  *
  * Images live in /public/temple/; each falls back to a labelled placeholder.
@@ -16,32 +27,25 @@ import { gsap, useGSAP } from "@/app/lib/gsap";
 
 // ---------------------------------------------------------------- project config
 
-const ACCENT_LIGHT = "#BC6B12"; // deep saffron/marigold - readable on morning mist
-const ACCENT_DARK = "#E6A24A"; // marigold glow - readable on warm midnight
 
 // ---------------------------------------------------------------- data
 
 const SECTIONS = [
   { id: "overview", label: "overview" },
-  { id: "context", label: "context" },
+  { id: "outcome", label: "impact" },
+  { id: "background", label: "background" },
   { id: "problem", label: "the problem" },
-  { id: "approach", label: "the approach" },
-  { id: "scope", label: "the scope" },
-  { id: "voices", label: "in their words" },
-  { id: "iterations", label: "what didn't work" },
-  { id: "solution", label: "the solution" },
-  { id: "outcome", label: "the outcome" },
-  { id: "reflection", label: "reflection" },
+  { id: "redesign", label: "2026 redesign" },
+  { id: "screens", label: "2021 build" },
 ] as const;
 
-const META = [
-  { label: "Role", value: "Associate Product Manager" },
-  { label: "Team", value: "3 PMs, 2 UX, 3 Devs, 5 stakeholders" },
-  { label: "Company", value: "9and9 · 2022–2023" },
-  { label: "Live", value: "srisailadevasthanam.org", href: "https://srisailadevasthanam.org" },
+// Four columns, each value stacked line by line, matching the reference.
+const META: { label: string; value: string[] }[] = [
+  { label: "Timeline", value: ["2021–2023", "2026 AI redesign"] },
+  { label: "Role", value: ["Associate Product Manager", "Designer"] },
+  { label: "Team", value: ["3 PMs", "2 UX", "3 Devs", "5 stakeholders"] },
+  { label: "Tools", value: ["Claude Code", "Figma", "Illustrator"] },
 ];
-
-const OWNED = ["Discovery & framing", "Stakeholder alignment", "Product decisions"];
 
 const CHALLENGES = [
   {
@@ -50,16 +54,42 @@ const CHALLENGES = [
   },
   {
     title: "The thundering herd",
-    body: "With no digital slotting, pilgrims arrived in waves. Overcrowding turned dangerous at peak.",
+    body: "With no digital slotting, visitors arrived in waves. Overcrowding turned dangerous at peak.",
   },
   {
-    title: "Offline-first or nothing",
-    body: "2G and 3G at the temple site meant the flow had to hold up with almost no signal.",
+    title: "No shared language",
+    body: "Visitors came from all over India, speaking dozens of languages. Everything on site was in one or two of them, so most people could not read the instructions or ask for help.",
   },
 ];
 
-// The four screens of the booking flow. Rendered upright in PhoneStory,
-// each with a step number, title, and one-line description.
+// The three AI features added in the 2026 redesign, on top of the original
+// brand and booking flow. Images are dropped into /public/temple/ai/.
+const REDESIGN_FEATURES = [
+  {
+    eyebrow: "speed",
+    title: "Fast lane for returning visitors",
+    body: "Saved details let repeat visitors rebook in seconds.",
+    // ?t= is the poster frame: a moment inside this clip's own chapter range
+    // (fastlane 16.8-31.1, forecast 31.1-42.9, nandi 42.9-63.4).
+    img: "/temple/ai/fastlane.html",
+  },
+  {
+    eyebrow: "crowds",
+    title: "Crowd-aware date picker",
+    body: "Shows busy and quiet days, so visitors can choose a calmer time.",
+    img: "/temple/ai/forecast.html",
+  },
+  {
+    eyebrow: "language",
+    title: "Nandi, a voice and chat guide",
+    body: "Answers questions in 11 Indian languages. Nandi is named after the sacred bull that guards Shiva temples.",
+    img: "/temple/ai/nandi.html",
+  },
+];
+
+// The four screens of the original (2021–2023) booking flow. Rendered
+// upright in PhoneStory, each with a step number, title, and one-line
+// description.
 const FLOW: PhoneScreen[] = [
   { src: "/temple/screens/book-calendar.png", caption: "01", label: "Choose date & service", body: "A traffic-light heatmap shows real-time slot availability at a glance.", cursor: "available / filling / sold out" },
   { src: "/temple/screens/book-form.png", caption: "02", label: "Enter details", body: "Basic info only, with auto-fill for returning pilgrims.", cursor: "the short form" },
@@ -67,647 +97,135 @@ const FLOW: PhoneScreen[] = [
   { src: "/temple/screens/book-pay.png", caption: "04", label: "Pay & download", body: "UPI, card, or net banking. The QR ticket generates offline.", cursor: "works on 2G" },
 ];
 
-// The two faces of the home: services-first and live-content-first. Anchors
-// the visual story before the booking flow.
-const HOMES: PhoneScreen[] = [
-  { src: "/temple/screens/home-1.png", label: "Devotee Services", body: "Darshanam, Pratyaksha & Paroksha Seva, Accommodation, surfaced as cards.", cursor: "the entry point" },
-  { src: "/temple/screens/home-2.png", label: "Live + Trending", body: "Srisaila TV live darshan, Vedic content, with the same service rail beneath.", cursor: "above the fold, the second state" },
-];
-
-// Meenakshi anchors the turning point, so the wall holds the other six.
-const VOICES = [
-  { name: "Raghava", meta: "72 · Local veteran", img: "/temple/users/raghava.jpg", quote: "At my age, I need someone to help me book online and with my wheelchair. These new technologies are so confusing for me." },
-  { name: "Tulasi", meta: "34 · Housewife", img: "/temple/users/tulasi.jpg", quote: "I can't tell if my booking was successful or failed because everything is in red and green. I never know if there are tickets available." },
-  { name: "Aruna", meta: "57 · Local pilgrim", img: "/temple/users/aruna.jpg", quote: "I visit every month, but during festivals it's impossible to get tickets. We regulars should have some priority." },
-  { name: "Sastry", meta: "62 · Priest coordinator", img: "/temple/users/sastry.jpg", quote: "Coordinating multiple special ceremonies is complex enough, and now I have to manage everything through this new digital system." },
-  { name: "Parvathi", meta: "47 · Customer service", img: "/temple/users/parvathi.jpg", quote: "During peak seasons I'm overwhelmed with queries. I need faster access to booking details to help everyone." },
-  { name: "Gopinath", meta: "57 · Security agent", img: "/temple/users/gopinath.jpg", quote: "These fake tickets are harder to spot. We need a faster way to verify, especially across multiple entrances." },
-];
-
-const ITERATIONS = [
-  {
-    n: "01",
-    title: "Virtual queue (waiting room)",
-    body: "A 7-minute wait threshold triggered 50%+ drop-off. People refreshed and lost their place.",
-    status: "failed" as const,
-  },
-  {
-    n: "02",
-    title: "Batch releases + upsells",
-    body: "Adding post-booking steps (accommodation, meals) spiked abandonment from friction fatigue.",
-    status: "failed" as const,
-  },
-  {
-    n: "03",
-    title: "Pre-registration with assigned windows",
-    body: "Worked in testing, failed in the field: elderly and low-literacy users didn't return for their window.",
-    status: "failed" as const,
-  },
-  {
-    n: "04",
-    title: "Real-time inventory + traffic-light status",
-    body: "Available / Filling Fast / Sold Out, mapped to the IRCTC model people already trusted.",
-    status: "shipped" as const,
-  },
-];
-
-// The shipped solution's traffic-light statuses, rendered as real pills.
-const TRAFFIC = [
-  { label: "Available", color: "#2f9e44" },
-  { label: "Filling Fast", color: "#e0a106" },
-  { label: "Sold Out", color: "#d63a3a" },
-];
-
-// The platform I owned, grouped by area for the tabbed solution showcase.
-// `tall` screens (full-page captures) sit in fixed-height scroll frames;
-// wide 16:9 admin screens render in full.
-const SOLUTION_TABS = [
-  {
-    tab: "Booking flow",
-    blurb: "End to end: pick a slot, check out, keep the record, the one job that mattered.",
-    cols: "sm:grid-cols-3",
-    // Render each screen at its natural aspect (no scroll frame), so the
-    // near-square booking-history shows fully alongside the taller two.
-    tall: false,
-    screens: [
-      { img: "/temple/wireframes/booking-darshanam.jpg", label: "01 · Book a darshanam", cursor: "pick a date + slot" },
-      { img: "/temple/wireframes/booking-cart.jpg", label: "02 · Cart & payment", cursor: "review + pay" },
-      { img: "/temple/wireframes/booking-history.jpg", label: "03 · Booking history", cursor: "the record" },
-    ],
-  },
-  {
-    tab: "Inventory",
-    blurb: "Slots, capacity, and cut-off windows, configurable per service.",
-    cols: "sm:grid-cols-2",
-    tall: false,
-    screens: [
-      { img: "/temple/wireframes/inventory-slots.jpg", label: "Manage slots", cursor: "the slot inventory" },
-      { img: "/temple/wireframes/inventory-add-slot.jpg", label: "Configure a slot", cursor: "caps + cut-off rules" },
-    ],
-  },
-  {
-    tab: "Service",
-    blurb: "Darshanam types, pricing, and per-service booking caps.",
-    cols: "",
-    tall: false,
-    screens: [
-      { img: "/temple/wireframes/service-darshanam.jpg", label: "Manage darshanam services", cursor: "types + pricing" },
-    ],
-  },
-  {
-    tab: "Employment",
-    blurb: "Staffed POS counters, each with its own daily limits.",
-    cols: "",
-    tall: false,
-    screens: [
-      { img: "/temple/wireframes/employment-pos.jpg", label: "Counter / POS management", cursor: "the counters" },
-    ],
-  },
-  {
-    tab: "Dashboard",
-    blurb: "Revenue, bookings, and registered users across every service.",
-    cols: "",
-    tall: true,
-    screens: [
-      { img: "/temple/wireframes/dashboard.jpg", label: "Admin dashboard", cursor: "the overview" },
-    ],
-  },
-];
-
+// The headline numbers, rendered as an editorial list rather than a grid.
+// `from` is the "before" value, set in the same display serif and accent as
+// the count-up that follows it.
 const METRICS = [
-  { prefix: "$", value: 2.1, decimals: 1, suffix: "M+", label: "revenue generated" },
-  { prefix: "", value: 174, decimals: 0, suffix: "", label: "temples onboarded statewide" },
-  { prefix: "", value: 500, decimals: 0, suffix: "K", label: "users served" },
+  { from: "$18.5M", prefix: "$", value: 25, decimals: 0, suffix: "M", label: "Annual revenue", sub: "INR ₹120 crore to ₹217.2 crore" },
+  { from: "3 hrs", prefix: "", value: 45, decimals: 0, suffix: " min", label: "Daily staff admin time", sub: null },
+  { from: null, prefix: "", value: 174, decimals: 0, suffix: "+", label: "Historic sites onboarded statewide", sub: null },
 ];
 
-const SECONDARY_STATS = [
-  { value: "0 → live", label: "first end-to-end digital booking" },
-  { value: "200 → 100", label: "support queries a day" },
-  { value: "1 → 174", label: "temples, after the free pilot" },
-];
-
-// The nine modules inside the Devotees Portal, the surface I designed
-// most deeply for. Rendered natively as a 3x3 map in the approach section,
-// in place of the original wheel diagram.
-const DEVOTEES_MODULES = [
-  { n: "01", title: "Bookings", note: "darshans, sevas, accommodation" },
-  { n: "02", title: "Donations", note: "e-Hundi, AnnaPrasadam, GoSamrakshana" },
-  { n: "03", title: "e-Store", note: "prasadam, publications, products" },
-  { n: "04", title: "Streaming", note: "Paroksha Seva live, festivals" },
-  { n: "05", title: "Media Room", note: "events, daily updates, press" },
-  { n: "06", title: "Volunteer", note: "queue + AnnaPrasadam service" },
-  { n: "07", title: "Temple Trivia", note: "gallery, mythology, history" },
-  { n: "08", title: "Support", note: "24/7 info, ticketing, live chat" },
-  { n: "09", title: "Devotee Mgmt", note: "profile, history, settings" },
-];
-
-// The four portals I designed across. Pulled from the scope-of-work deck.
-// One ecosystem, four surfaces, each with its own audience and job.
-const SCOPE_PORTALS = [
+// The rest of the impact. Each note carries its own Phosphor glyph, stored as
+// a single path on a 0 0 256 256 box so it can inherit the accent colour.
+const IMPACT_NOTES = [
   {
-    n: "01",
-    title: "Guest Portal",
-    audience: "Public, no login",
-    body: "Discovery surface: temple info, sevas, donations, online booking, media room. The way most people first meet the platform.",
+    text: "85% less ticket fraud",
+    path: "M232,104a8,8,0,0,0,8-8V64a16,16,0,0,0-16-16H32A16,16,0,0,0,16,64V96a8,8,0,0,0,8,8,24,24,0,0,1,0,48,8,8,0,0,0-8,8v32a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V160a8,8,0,0,0-8-8,24,24,0,0,1,0-48ZM32,167.2a40,40,0,0,0,0-78.4V64H88V192H32Zm192,0V192H104V64H224V88.8a40,40,0,0,0,0,78.4Z",
   },
   {
-    n: "02",
-    title: "Devotees Portal",
-    audience: "Logged-in pilgrims",
-    body: "Booking history, e-store, streaming, devotee management. Where a one-time visitor becomes a returning user.",
+    text: "85% staff adoption across 174+ sites",
+    path: "M27.2,126.4a8,8,0,0,0,11.2-1.6,52,52,0,0,1,83.2,0,8,8,0,0,0,11.2,1.59,7.73,7.73,0,0,0,1.59-1.59h0a52,52,0,0,1,83.2,0,8,8,0,0,0,12.8-9.61A67.85,67.85,0,0,0,203,93.51a40,40,0,1,0-53.94,0,67.27,67.27,0,0,0-21,14.31,67.27,67.27,0,0,0-21-14.31,40,40,0,1,0-53.94,0A67.88,67.88,0,0,0,25.6,115.2,8,8,0,0,0,27.2,126.4ZM176,40a24,24,0,1,1-24,24A24,24,0,0,1,176,40ZM80,40A24,24,0,1,1,56,64,24,24,0,0,1,80,40ZM203,197.51a40,40,0,1,0-53.94,0,67.27,67.27,0,0,0-21,14.31,67.27,67.27,0,0,0-21-14.31,40,40,0,1,0-53.94,0A67.88,67.88,0,0,0,25.6,219.2a8,8,0,1,0,12.8,9.6,52,52,0,0,1,83.2,0,8,8,0,0,0,11.2,1.59,7.73,7.73,0,0,0,1.59-1.59h0a52,52,0,0,1,83.2,0,8,8,0,0,0,12.8-9.61A67.85,67.85,0,0,0,203,197.51ZM80,144a24,24,0,1,1-24,24A24,24,0,0,1,80,144Zm96,0a24,24,0,1,1-24,24A24,24,0,0,1,176,144Z",
   },
   {
-    n: "03",
-    title: "Temple Management",
-    audience: "Per-temple staff",
-    body: "Profiling, pilgrim services, assets, inventory, accounts. Each temple runs its own operation through this.",
+    text: "500K registrations at Srisailam",
+    path: "M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z",
   },
   {
-    n: "04",
-    title: "Endowments Portal",
-    audience: "Department-level",
-    body: "The rollup. Revenue, audits, MIS reports across all temples under AP Endowments.",
-  },
-];
-
-// The eighteen services I designed admin tooling for, beyond ticket booking.
-// Lifted from the management-system service list. Sequence preserves the
-// deck's grouping (rituals → access → utilities) so it reads as a tour.
-const SERVICE_BREADTH = [
-  "Sevas",
-  "Darshanam",
-  "Accommodation",
-  "Prasadam",
-  "Donations",
-  "Publications",
-  "Products",
-  "Tulabharam",
-  "Kalyana Katta",
-  "Tollgate",
-  "Parking",
-  "Kalyan Mandapam",
-  "Rents & Lease",
-  "Revenue (hair, coconut, rice)",
-  "Petrol Bunk",
-  "Gas",
-  "Water",
-  "Electricity",
-];
-
-// Empathy map for the primary pilgrim persona. Phrases lifted verbatim
-// from the research artifact, condensed to the strongest few per quadrant.
-const EMPATHY = [
-  {
-    q: "Think",
-    items: ["Why is this so hard?", "This is taking too long.", "Such an outdated process.", "This is inconvenient."],
+    text: "Multiple Indian languages supported",
+    path: "M247.15,212.42l-56-112a8,8,0,0,0-14.31,0l-21.71,43.43A88,88,0,0,1,108,126.93,103.65,103.65,0,0,0,135.69,64H160a8,8,0,0,0,0-16H104V32a8,8,0,0,0-16,0V48H32a8,8,0,0,0,0,16h87.63A87.76,87.76,0,0,1,96,116.35a87.74,87.74,0,0,1-19-31,8,8,0,1,0-15.08,5.34A103.63,103.63,0,0,0,84,127a87.55,87.55,0,0,1-52,17,8,8,0,0,0,0,16,103.46,103.46,0,0,0,64-22.08,104.18,104.18,0,0,0,51.44,21.31l-26.6,53.19a8,8,0,0,0,14.31,7.16L148.94,192h70.11l13.79,27.58A8,8,0,0,0,240,224a8,8,0,0,0,7.15-11.58ZM156.94,176,184,121.89,211.05,176Z",
   },
   {
-    q: "Do",
-    items: ["Wait in line for hours", "Cut the line", "Use third-party agents", "Argue with security"],
-  },
-  {
-    q: "Feel",
-    items: ["Overwhelmed", "Confused", "Impatient", "Irritated", "Nervous", "Unimpressed"],
-  },
-  {
-    q: "Say",
-    items: ["“I wish this was simpler.”", "“This could be online.”", "Hesitates to mention problems", "Waits reluctantly"],
-  },
-];
-
-// Two hard-earned lessons. Rendered as full-width editorial rows with a
-// big accent numeral on the left and the lesson + body in the gutter.
-const REFLECTIONS = [
-  {
-    n: "01",
-    lesson: "Scope discipline ships products.",
-    body: "Saying no is hardest with the features you believed in. We cut the upsells to protect the one thing pilgrims came for: the darshan ticket.",
-  },
-  {
-    n: "02",
-    lesson: "Staff experience is the user experience.",
-    body: "A confused staff member at the gate undoes everything a smooth booking flow built. Operations should be in the room from week one.",
+    text: "Adopted as the Andhra Pradesh state model",
+    path: "M238.25,229A8,8,0,0,1,227,230.25c-.37-.3-38.82-30.25-99-30.25S29.36,230,29,230.26a8,8,0,0,1-10-12.51c1.63-1.3,38.52-30.26,98.29-33.45A119.94,119.94,0,0,1,114,146.37c1.74-21.71,10.92-50.63,43-72.48A64.65,64.65,0,0,0,140.26,72c-19,.62-30.94,11.71-36.5,33.92A8,8,0,0,1,96,112a7.64,7.64,0,0,1-1.94-.24,8,8,0,0,1-5.82-9.7c9.25-36.95,33.11-45.42,51.5-46a81.48,81.48,0,0,1,21.68,2.45c-3.83-6.33-9.43-12.93-17.21-16.25-10-4.24-22.17-2.39-36.31,5.51a8,8,0,0,1-7.8-14c18.74-10.45,35.72-12.54,50.48-6.2,12.49,5.36,20.73,15.78,25.87,25,6.18-9.64,13.88-16.17,22.39-18.94,11.86-3.87,24.64-.72,38,9.37a8,8,0,0,1-9.64,12.76c-8.91-6.73-16.77-9.06-23.35-6.93-7.29,2.35-12.87,10-16.37,16.61A70.46,70.46,0,0,1,208,73.07c14.61,8.35,32,26.05,32,62.94a8,8,0,0,1-16,0c0-23.46-8.07-40-24-49a50.49,50.49,0,0,0-5.75-2.8,55.64,55.64,0,0,1,5.06,33.06,59.41,59.41,0,0,1-8.86,23.41,8,8,0,0,1-13.09-9.2c.74-1.09,16.33-24.38-3.26-49.37-27,15.21-41.89,37.25-44.16,65.59a104.27,104.27,0,0,0,3.83,36.44c62.65,1.81,101.52,32.33,103.2,33.66A8,8,0,0,1,238.25,229ZM24,140a28,28,0,1,1,28,28A28,28,0,0,1,24,140Zm16,0a12,12,0,1,0,12-12A12,12,0,0,0,40,140Z",
   },
 ];
 
 // ---------------------------------------------------------------- helpers
 
-const prefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="font-mono text-caption-1 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-        {children}
-      </p>
-    </div>
-  );
-}
-
-function Statement({
-  children,
-  className = "",
-  maxW = "30ch",
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  maxW?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <h2
-      className={`font-heading leading-[1.1] text-text ${className}`}
-      style={{ maxWidth: maxW, fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.01em", ...style }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function Body({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <p
-      className={`font-body leading-relaxed text-muted ${className}`}
-      style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}
-    >
-      {children}
-    </p>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="border border-border px-3 py-1 font-mono text-caption-2 uppercase tracking-wide text-muted">
-      {children}
-    </span>
-  );
-}
-
-// Photo-or-placeholder, square-cornered. Real images parallax-drift unless off.
-function Figure({
-  src,
-  alt,
+// The editorial block from the Emma Wu reference: a mono label, a subheading,
+// a wide line of grey body copy, then the art running full width beneath it.
+function Chapter({
   label,
-  file,
-  aspect = "aspect-video",
-  position = "center",
-  cursorLabel,
-  className = "",
-  parallax = false,
-  fit = "cover",
+  title,
+  body,
+  img,
 }: {
-  src?: string;
-  alt?: string;
   label: string;
-  file: string;
-  aspect?: string;
-  position?: string;
-  cursorLabel?: string;
-  className?: string;
-  parallax?: boolean;
-  // "cover" crops to fill the aspect frame; "contain" letterboxes so the
-  // whole image is visible. When "contain", parallax/scale is skipped
-  // since zooming a fitted image would push it beyond the frame.
-  fit?: "cover" | "contain";
+  title: string;
+  body: string;
+  img?: string;
 }) {
-  const [errored, setErrored] = useState(false);
-  const showImage = !!src && !errored;
-  const frameRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  useGSAP(
-    () => {
-      if (!showImage || !parallax || fit === "contain" || prefersReduced()) return;
-      const img = imgRef.current;
-      if (!img) return;
-      gsap.fromTo(
-        img,
-        { yPercent: -6, scale: 1.12 },
-        {
-          yPercent: 6,
-          scale: 1.12,
-          ease: "none",
-          scrollTrigger: { trigger: frameRef.current, start: "top bottom", end: "bottom top", scrub: true },
-        },
-      );
-    },
-    { dependencies: [showImage, parallax], scope: frameRef },
-  );
-
-  if (showImage) {
-    return (
-      <div
-        ref={frameRef}
-        className={`relative w-full overflow-hidden ${aspect} ${className}`}
-        data-cursor-label={cursorLabel}
+  return (
+    <Reveal>
+      <Label>{label}</Label>
+      <h3
+        className="mt-4 font-heading leading-snug text-text"
+        style={{ fontSize: "var(--text-h3)", letterSpacing: "-0.01em" }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt ?? label}
-          className={`absolute inset-0 h-full w-full ${fit === "contain" ? "object-contain" : "object-cover"}`}
-          style={{ objectPosition: position }}
-          onError={() => setErrored(true)}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={`flex w-full flex-col items-center justify-center gap-2 border-2 border-dashed bg-surface/50 px-4 ${aspect} ${className}`}
-      style={{ borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)" }}
-      aria-label={label}
-      data-cursor-label={cursorLabel}
-    >
-      <span
-        className="max-w-[85%] text-center font-mono text-caption-1 uppercase tracking-wide"
-        style={{ color: "color-mix(in srgb, var(--accent) 75%, var(--color-muted))" }}
-      >
-        {label}
-      </span>
-      <span className="font-mono text-caption-2 lowercase tracking-wide text-muted/70">{file}</span>
-    </div>
+        {title}
+      </h3>
+      <p className="mt-3 font-body leading-relaxed text-muted" style={{ fontSize: "var(--text-paragraph)" }}>
+        {body}
+      </p>
+      {img ? (
+        <div className="mt-8">
+          <MotionFrame src={img} title={title} />
+        </div>
+      ) : null}
+    </Reveal>
   );
 }
 
-function GrainOverlay() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        opacity: 0.05,
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-      }}
-    />
-  );
-}
+// The AI walkthrough is a scroll scene, not a clip: the phone stays pinned for
+// the length of a tall scroll track while the page's scroll position is piped
+// into the iframe, one beat per screenful. Sticky can't live inside the iframe
+// (a full-height iframe never scrolls), so the pinning happens out here.
+const SCENE_STEPS_FALLBACK = 15;
+const SCENE_VH_PER_STEP = 50;
 
-function Reveal({
-  children,
-  variant = "up",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  variant?: "up" | "fade" | "scale" | "left" | "right";
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
+function ScrollScene({ src, title }: { src: string; title: string }) {
+  const track = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [steps, setSteps] = useState(SCENE_STEPS_FALLBACK);
+
+  // the scene announces its own step count once it boots
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setShown(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  const hidden =
-    variant === "fade"
-      ? "opacity-0"
-      : variant === "scale"
-        ? "opacity-0 scale-[0.98]"
-        : variant === "left"
-          ? "opacity-0 -translate-x-10"
-          : variant === "right"
-            ? "opacity-0 translate-x-10"
-            : "opacity-0 translate-y-8";
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ease-out ${shown ? "translate-x-0 translate-y-0 scale-100 opacity-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function CountUp({
-  value,
-  prefix = "",
-  suffix = "",
-  decimals = 0,
-  duration = 1400,
-}: {
-  value: number;
-  prefix?: string;
-  suffix?: string;
-  decimals?: number;
-  duration?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setN(value);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const p = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - p, 3);
-          setN(eased * value);
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      },
-      { threshold: 0.4 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [value, duration]);
-  const display = decimals > 0 ? n.toFixed(decimals) : Math.round(n).toLocaleString("en-US");
-  return (
-    <span ref={ref}>
-      {prefix}
-      {display}
-      {suffix}
-    </span>
-  );
-}
-
-// ---------------------------------------------------------------- chrome
-
-function SectionRail({ active, onJump }: { active: string; onJump: (id: string) => void }) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  return (
-    <nav
-      aria-label="Sections"
-      className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3.5 md:flex"
-    >
-      {SECTIONS.map((s) => {
-        const isActive = active === s.id;
-        const show = isActive || hovered === s.id;
-        const size = isActive ? 9 : 6;
-        return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onJump(s.id)}
-            onMouseEnter={() => setHovered(s.id)}
-            onMouseLeave={() => setHovered(null)}
-            aria-label={s.label}
-            aria-current={isActive ? "true" : undefined}
-            data-cursor-label={s.label}
-            className="group relative flex h-6 w-6 items-center justify-center"
-          >
-            <span
-              aria-hidden
-              style={{
-                width: size,
-                height: size,
-                borderRadius: "9999px",
-                backgroundColor: isActive ? "var(--accent)" : "var(--color-muted)",
-                opacity: isActive ? 1 : show ? 0.85 : 0.4,
-                transition: "all 0.2s ease-out",
-              }}
-            />
-            <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
-                show ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
-              }`}
-              style={{ color: isActive ? "var(--accent)" : "var(--text)" }}
-            >
-              {s.label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function ProgressBar() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const el = document.documentElement;
-      const max = el.scrollHeight - el.clientHeight;
-      setP(max > 0 ? (el.scrollTop / max) * 100 : 0);
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== frame.current?.contentWindow) return;
+      if (e.data && e.data.sceneReady && typeof e.data.steps === "number") setSteps(e.data.steps);
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
   }, []);
+
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      raf = 0;
+      const el = track.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const span = rect.height - window.innerHeight;
+      if (span <= 0) return;
+      const p = Math.min(1, Math.max(0, -rect.top / span));
+      frame.current?.contentWindow?.postMessage({ scene: p }, "*");
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onScroll();
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [steps]);
+
   return (
-    <div className="fixed inset-x-0 top-0 z-50 h-1 bg-muted/20 md:hidden">
-      <div className="h-full transition-[width] duration-100 ease-out" style={{ width: `${p}%`, backgroundColor: "var(--accent)" }} />
-    </div>
-  );
-}
-
-function Section({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) {
-  return (
-    <section id={id} className={`scroll-mt-24 px-6 py-12 sm:px-10 md:py-20 lg:pl-32 lg:pr-12 ${className}`}>
-      <div className="mx-auto max-w-6xl">{children}</div>
-    </section>
-  );
-}
-
-/**
- * Tabbed showcase of the platform I owned: one tab per area (booking flow,
- * inventory, service, employment, dashboard). The booking tab shows the flow
- * as a numbered 1-2-3 sequence; the others show their screen(s). Full-page
- * captures sit in fixed-height scroll frames; wide admin screens render full.
- * Left/right arrows move between tabs.
- */
-function SolutionTabs() {
-  const [active, setActive] = useState(0);
-  const t = SOLUTION_TABS[active];
-  const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowRight") setActive((i) => (i + 1) % SOLUTION_TABS.length);
-    if (e.key === "ArrowLeft") setActive((i) => (i - 1 + SOLUTION_TABS.length) % SOLUTION_TABS.length);
-  };
-  return (
-    <div>
-      <div role="tablist" aria-label="Platform areas I owned" onKeyDown={onKey} className="flex flex-wrap gap-2">
-        {SOLUTION_TABS.map((s, idx) => {
-          const on = idx === active;
-          return (
-            <button
-              key={s.tab}
-              role="tab"
-              type="button"
-              aria-selected={on}
-              tabIndex={on ? 0 : -1}
-              onClick={() => setActive(idx)}
-              data-cursor-label={on ? undefined : s.tab.toLowerCase()}
-              className={
-                on
-                  ? "rounded-full bg-text px-4 py-1.5 font-mono text-caption-2 uppercase tracking-wide text-bg transition-colors"
-                  : "rounded-full border border-border px-4 py-1.5 font-mono text-caption-2 uppercase tracking-wide text-muted transition-colors hover:border-text/40 hover:text-text"
-              }
-            >
-              {s.tab}
-            </button>
-          );
-        })}
-      </div>
-
-      <p className="mt-4 font-body text-muted" style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}>{t.blurb}</p>
-
-      <div className={`mt-5 grid grid-cols-1 gap-4 ${t.cols}`}>
-        {t.screens.map((sc) => (
-          <figure key={sc.img}>
-            {t.tall ? (
-              <div className="overflow-hidden rounded-lg border border-border" style={{ backgroundColor: "var(--bg)" }}>
-                <div className="h-[440px] overflow-y-auto overscroll-contain" data-cursor-label={sc.cursor}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={sc.img} alt={sc.label} className="block w-full" />
-                </div>
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-lg border border-border" style={{ backgroundColor: "var(--bg)" }} data-cursor-label={sc.cursor}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={sc.img} alt={sc.label} className="block w-full" />
-              </div>
-            )}
-            <figcaption className="mt-2 font-mono text-caption-2 uppercase tracking-wide text-muted">{sc.label}</figcaption>
-          </figure>
-        ))}
+    <div className="relative w-screen" style={{ left: "50%", marginLeft: "-50vw" }}>
+      <div ref={track} style={{ height: `${steps * SCENE_VH_PER_STEP + 100}vh` }}>
+        <div className="sticky top-0 h-screen w-full overflow-hidden">
+          <iframe ref={frame} src={src} title={title} className="h-full w-full" loading="lazy" />
+        </div>
       </div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------- phone story panel
-// Two-panel scroll story, matching the Framer portfolio's pattern:
-//
-//   LEFT (sticky)              RIGHT (scrolling)
-//   eyebrow                    [phone 1]
-//   title                      caption, label, body
-//   body                       [phone 2]
-//                              ...
-//
-// Mobile: collapses to single column, info on top, phones below.
-// Visual: upright phones, no card/gradient behind, just the phone on the page.
-// Used for any "walk through the screens" moment in the case study.
+// ---------------------------------------------------------------- types
 
 type PhoneScreen = {
   src: string;
@@ -717,210 +235,135 @@ type PhoneScreen = {
   cursor?: string;
 };
 
-function PhoneStory({
-  eyebrow,
-  title,
-  body,
-  screens,
-}: {
-  eyebrow?: string;
-  title: string;
-  body?: string;
-  screens: PhoneScreen[];
-}) {
-  return (
-    <div className="grid gap-12 lg:grid-cols-[0.55fr_1fr] lg:gap-14">
-      {/* LEFT: info panel, sticky at desktop sizes */}
-      <div>
-        <div className="lg:sticky lg:top-24">
-          {eyebrow && (
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              {eyebrow}
-            </p>
-          )}
-          <h3
-            className="mt-3 font-heading leading-tight text-text"
-            style={{ fontSize: "clamp(1.6rem, 2.6vw, 2.2rem)", letterSpacing: "-0.01em" }}
-          >
-            {title}
-          </h3>
-          {body && (
-            <p className="mt-5 font-body leading-relaxed text-muted" style={{ fontSize: "1rem" }}>
-              {body}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* RIGHT: phones stacked, upright, no background */}
-      <div className="flex flex-col gap-16 sm:gap-20">
-        {screens.map((s) => (
-          <figure key={s.src} className="flex flex-col items-center">
-            <div className="w-full max-w-[480px]" data-cursor-label={s.cursor}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s.src} alt={s.label ?? ""} className="block w-full" />
-            </div>
-            {(s.caption || s.label || s.body) && (
-              <figcaption className="mt-5 w-full max-w-[480px] text-center">
-                {s.caption && (
-                  <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-                    {s.caption}
-                  </p>
-                )}
-                {s.label && (
-                  <p className="mt-1 font-heading leading-snug text-text" style={{ fontSize: "1.05rem" }}>
-                    {s.label}
-                  </p>
-                )}
-                {s.body && (
-                  <p className="mt-2 font-body leading-relaxed text-muted" style={{ fontSize: "0.85rem" }}>
-                    {s.body}
-                  </p>
-                )}
-              </figcaption>
-            )}
-          </figure>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------- page
 
 export function TempleCaseStudy() {
-  const [active, setActive] = useState<string>("overview");
-  const { resolvedTheme } = useTheme();
-  const accent = resolvedTheme === "dark" ? ACCENT_DARK : ACCENT_LIGHT;
-
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.find((e) => e.isIntersecting);
-        if (hit) setActive(hit.target.id);
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-    );
-    SECTIONS.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
-
-  const jump = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: prefersReduced() ? "auto" : "smooth", block: "start" });
-  };
-
   return (
-    <div className="relative" style={{ backgroundColor: "var(--bg)", ["--accent"]: accent } as React.CSSProperties}>
-      <GrainOverlay />
-      <SectionRail active={active} onJump={jump} />
-      <ProgressBar />
+    <CaseStudyFrame accent="temple" sections={SECTIONS}>
+      <Hero
+        eyebrow="9and9"
+        title={<>A booking platform for India&rsquo;s historic and sacred sites, built from scratch.</>}
+        intro={
+          <>
+            9and9 builds software for historic and sacred temples in India. I led its ticket booking app from 0 to 1
+            as Associate PM and Designer, starting with Srisailam, a centuries-old Shiva temple and historic site in
+            South India. Srisailam&rsquo;s revenue grew from $18.5M to $25M.
+          </>
+        }
+        meta={META}
+        lead={
+          <MotionFrame src="/temple/9and9-2026-motion-revised.html" title="9and9, redesigned in 2026: motion piece" />
+        }
+        leadCaption="Short on time? This clip is all you need."
+      />
 
-      <div className="relative z-10">
-        {/* 1 - OVERVIEW */}
-        <section id="overview" className="scroll-mt-24 px-6 pb-8 pt-28 sm:px-10 md:pt-32 lg:pl-32 lg:pr-12">
-          <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <h1
-                className="font-display leading-[1.02] text-text"
-                style={{ fontSize: "clamp(2.4rem, 6vw, 4.5rem)", fontWeight: 700, letterSpacing: "-0.02em" }}
-              >
-                Scaling a sacred experience for millions.
-              </h1>
-            </Reveal>
-            <Reveal delay={80}>
-              <p className="mt-4 whitespace-nowrap font-heading italic text-muted" style={{ fontSize: "clamp(0.59rem, 2.85vw, 1.6rem)" }}>
-                Digital darshan ticketing for Srisailam, that grew into a statewide platform.
-              </p>
-            </Reveal>
-
-            <Reveal delay={160}>
-              <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5 border-y border-border py-6">
-                {META.map((m) => (
-                  <div key={m.label}>
-                    <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">{m.label}</dt>
-                    <dd className="mt-1 font-body text-body text-text">
-                      {m.href ? (
-                        <a
-                          href={m.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          data-cursor-label={`visit ${m.value}`}
-                          className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
-                        >
-                          {m.value}
-                        </a>
-                      ) : (
-                        m.value
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
-
-            <Reveal delay={240} variant="scale" className="mt-10">
-              <Figure
-                src="/temple/hero.jpg"
-                file="temple/hero.jpg"
-                label="Hero: Srisailam booking app"
-                aspect="aspect-[4/3] sm:aspect-[3/2]"
-                fit="contain"
-                parallax={false}
-              />
-            </Reveal>
-
-            <Reveal delay={120}>
-              <p
-                className="mt-12 whitespace-nowrap font-heading leading-[1.12] text-text"
-                style={{ fontSize: "clamp(0.6rem, 3vw, 2.6rem)", letterSpacing: "-0.01em" }}
-              >
-                Most products start with a signed contract. This one started with a{" "}
-                <span className="italic" style={{ color: "var(--accent)" }}>bet</span>.
-              </p>
-            </Reveal>
-            <Reveal delay={200}>
-              <Body className="mt-6">
-                Build the whole platform for free, and let the product make the case. The free pilot was the strategy.
-              </Body>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* 2 - CONTEXT */}
-        <Section id="context">
+        {/* 2 - IMPACT */}
+        <Section id="outcome">
           <Reveal>
-            <Label>context</Label>
+            <Label>impact</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.62rem, 3.1vw, 2.7rem)" }}>Every ticket was bought in person, on the day, in a 3 to 6 hour queue.</Statement>
+            <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>From a free pilot to the state model.</Statement>
           </Reveal>
+
+          {/* An editorial list, not a grid: one number per row, unruled, with
+              the "before" value set in the same serif and accent. Spacing
+              alone separates the rows. */}
+          <ul className="mt-12">
+            {METRICS.map((m, i) => (
+              <Reveal key={m.label} delay={i * 80}>
+                <li className="flex flex-col gap-2 py-7 sm:flex-row sm:items-baseline sm:justify-between sm:gap-10">
+                  <p
+                    className="font-display"
+                    style={{ color: "var(--accent)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}
+                  >
+                    {m.from ? (
+                      <>
+                        <span className="text-muted" style={{ fontSize: "var(--text-h3)" }}>{m.from}</span>
+                        <span className="mx-2 text-muted" style={{ fontSize: "var(--text-h3)" }}>&rarr;</span>
+                      </>
+                    ) : null}
+                    <span style={{ fontSize: "var(--text-h1)" }}>
+                      <CountUp value={m.value} prefix={m.prefix} suffix={m.suffix} decimals={m.decimals} />
+                    </span>
+                  </p>
+                  <div className="sm:max-w-[34ch] sm:text-right">
+                    <Body>{m.label}</Body>
+                    {m.sub ? (
+                      <p className="mt-1 font-body text-muted" style={{ fontSize: "var(--text-paragraph)" }}>
+                        {m.sub}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              </Reveal>
+            ))}
+          </ul>
+
           <Reveal delay={120}>
-            <Body className="mt-5">
-              Srisailam is one of 23,000+ temples under AP Endowments, and one of the most heavily trafficked. The crowd-management landscape around it was a patchwork of half-solutions, and none of them fixed the queue.
-            </Body>
-          </Reveal>
-          <Reveal delay={150} variant="scale" className="mt-12">
-            <Figure
-              src="/temple/landscape.jpg"
-              file="temple/landscape.jpg"
-              label="Crowd-management landscape"
-              aspect="aspect-[13/10]"
-              cursorLabel="the landscape we studied"
-              parallax={false}
-            />
+            <ul className="mt-12 grid gap-0 sm:grid-cols-2 sm:gap-x-16">
+              {IMPACT_NOTES.map((n, i) => (
+                <li
+                  key={n.text}
+                  className={`flex w-full items-center gap-4 py-5 ${
+                    i === IMPACT_NOTES.length - 1 ? "sm:col-span-2" : ""
+                  }`}
+                >
+                  <svg
+                    aria-hidden
+                    width="26"
+                    height="26"
+                    viewBox="0 0 256 256"
+                    className="shrink-0"
+                    style={{ fill: "var(--accent)" }}
+                  >
+                    <path d={n.path} />
+                  </svg>
+                  <Body className="!max-w-none">{n.text}</Body>
+                </li>
+              ))}
+            </ul>
           </Reveal>
         </Section>
 
-        {/* 3 - THE PROBLEM */}
+        {/* 3 - BACKGROUND */}
+        <Section id="background">
+          <Reveal>
+            <Label>background</Label>
+          </Reveal>
+          <Reveal delay={60}>
+            <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>A huge market, an outdated experience.</Statement>
+          </Reveal>
+          <Reveal delay={120}>
+            <Body className="mt-5">
+              Visiting a temple or a historic site in India is a hassle: timed entry, long lines, and big crowds. Religious
+              travel is one of India&rsquo;s largest travel segments. The country&rsquo;s faith-based tourism market is
+              expected to reach <Mark>$17.2B</Mark> in 2026, and <Mark>$46.8B</Mark> by 2036.
+            </Body>
+          </Reveal>
+          <Reveal delay={160}>
+            <Body className="mt-5">
+              Srisailam is one of 23,000+ temples under the Andhra Pradesh Endowments Department, and one of the most heavily
+              trafficked. Every ticket was bought in person, on the day, after a 3 to 6 hour queue.
+            </Body>
+          </Reveal>
+        </Section>
+
+        {/* 4 - THE PROBLEM */}
         <Section id="problem">
           <Reveal>
             <Label>the problem</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.85rem, 4.3vw, 3rem)" }}>Three problems.</Statement>
+            <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>Visitors wanted in. An outdated system kept them out.</Statement>
+          </Reveal>
+          <Reveal delay={120}>
+            <Body className="mt-5">
+              Srisailam draws huge crowds, but booking a visit was hard. <Mark>65% of visitors gave up halfway</Mark> through
+              booking. Ticket fraud went unchecked, and staff spent 3 hours a day on admin work. In 2020 alone, Srisailam
+              earned $18.5M (₹120 crore). The pandemic pushed that number down further, but it had never been strong: money
+              leaked out at every step, long before anyone had heard of the virus.
+            </Body>
           </Reveal>
           <div className="mt-12 grid gap-px border border-border bg-border sm:grid-cols-3">
             {CHALLENGES.map((c, i) => (
@@ -937,420 +380,96 @@ export function TempleCaseStudy() {
           </div>
         </Section>
 
-        {/* 4 - THE APPROACH */}
-        <Section id="approach">
+        {/* 5 - 2026: REBUILT AI NATIVE */}
+        <Section id="redesign">
           <Reveal>
-            <Label>the approach</Label>
+            <Label>2026</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.85rem, 4.3vw, 3rem)" }}>What I owned, and the routes we ruled out.</Statement>
-          </Reveal>
-
-          <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.3fr]">
-            <Reveal delay={100}>
-              <div>
-                <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">owned end to end</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {OWNED.map((o) => (
-                    <Pill key={o}>{o}</Pill>
-                  ))}
-                </div>
-                <dl className="mt-8 flex flex-col gap-5">
-                  <div className="border-l-2 pl-4" style={{ borderColor: "var(--accent)" }}>
-                    <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">North Star</dt>
-                    <dd className="mt-1 font-heading text-h4 text-text">Booking conversion rate</dd>
-                  </div>
-                  <div className="border-l-2 pl-4" style={{ borderColor: "var(--accent)" }}>
-                    <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">Health metric</dt>
-                    <dd className="mt-1 font-heading text-h4 text-text">Task completion rate</dd>
-                  </div>
-                </dl>
-              </div>
-            </Reveal>
-            <Reveal delay={150} variant="right">
-              {/* native module map: the 9 surfaces of the Devotees Portal,
-                  rendered as a labelled 3x3 grid with accent numerals and a
-                  centre title strip. Replaces the original wheel diagram. */}
-              <div
-                className="relative overflow-hidden border border-border p-5 sm:p-7"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--accent) 6%, var(--bg))",
-                  backgroundImage:
-                    "radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 62%)",
-                }}
-              >
-                <div className="flex items-baseline justify-between">
-                  <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-                    Devotees Portal
-                  </p>
-                  <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">9 modules</p>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-px border border-border bg-border">
-                  {DEVOTEES_MODULES.map((m) => (
-                    <div
-                      key={m.n}
-                      className="flex flex-col gap-1.5 p-3.5 sm:p-4"
-                      style={{ backgroundColor: "var(--bg)" }}
-                    >
-                      <span
-                        className="font-mono text-caption-2 tabular-nums"
-                        style={{ color: "var(--accent)", letterSpacing: "0.02em" }}
-                      >
-                        {m.n}
-                      </span>
-                      <h4 className="font-heading leading-tight text-text" style={{ fontSize: "0.95rem" }}>
-                        {m.title}
-                      </h4>
-                      <p className="font-body leading-snug text-muted" style={{ fontSize: "0.72rem" }}>
-                        {m.note}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Reveal>
-          </div>
-
-          <Reveal delay={120} className="mt-12">
-            <Body>
-              We weighed four routes, a Maps feature, a kiosk, a website revamp, and a mobile app, before committing to mobile-first and scoping everything around the one job that mattered: booking a darshan.
-            </Body>
-          </Reveal>
-          <Reveal delay={150} variant="scale" className="mt-8">
-            <Figure
-              src="/temple/exploration.jpg"
-              file="temple/exploration.jpg"
-              label="Brainstorming: four solution routes"
-              aspect="aspect-[5/3]"
-              cursorLabel="four routes, weighed"
-              parallax={false}
-              className="border border-border"
-            />
-          </Reveal>
-        </Section>
-
-        {/* 4.5 - THE SCOPE (four portals, one ecosystem) */}
-        <Section id="scope">
-          <Reveal>
-            <Label>the scope</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.85rem, 4.3vw, 3rem)" }}>Four portals, one ecosystem.</Statement>
+            <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>Rebuilt AI native, for its users.</Statement>
           </Reveal>
           <Reveal delay={120}>
             <Body className="mt-5">
-              The platform shipped as four interlocked surfaces. Each had a different audience and a different job, but they shared one source of truth.
+              I designed 9and9 between 2021 and 2023, for visitors on 2G phones who waited 3 to 6 hours in line for a paper
+              ticket. Today, AI makes things possible that weren&rsquo;t back then. So I asked: how would I build it now? I
+              kept the brand and the booking flow, and added three things.
             </Body>
           </Reveal>
-          <div className="mt-12 grid gap-px border border-border bg-border sm:grid-cols-2">
-            {SCOPE_PORTALS.map((p, i) => (
-              <Reveal key={p.title} delay={i * 70} className="h-full">
-                <div className="flex h-full flex-col gap-3 p-8" style={{ backgroundColor: "var(--bg)" }}>
-                  <div className="flex items-center gap-3">
-                    <span className="font-display" style={{ color: "var(--accent)", fontSize: "1.75rem", fontWeight: 700, lineHeight: 1 }}>
-                      {p.n}
-                    </span>
-                    <span className="font-mono text-caption-2 uppercase tracking-wide text-muted">{p.audience}</span>
-                  </div>
-                  <h3 className="font-heading text-h4 leading-snug text-text">{p.title}</h3>
-                  <Body className="!max-w-none">{p.body}</Body>
-                </div>
-              </Reveal>
+
+          <div className="mt-20 flex flex-col gap-20">
+            {REDESIGN_FEATURES.map((f) => (
+              <Chapter key={f.title} label={f.eyebrow} title={f.title} body={f.body} img={f.img} />
             ))}
+            <Chapter
+              label="principle"
+              title="AI that respects the person using it."
+              body="AI does the heavy lifting, and the person stays in control. Nothing books, pays, or changes without an explicit confirmation."
+            />
+          </div>
+
+          {/* the payoff, last: the full redesigned flow, all three features in
+              place, unrolling one beat per screenful against a pinned phone */}
+          <div className="mt-20">
+            <ScrollScene
+              src="/temple/9and9-2026-ai-redesign.html"
+              title="9and9, redesigned with AI: the full flow"
+            />
           </div>
         </Section>
 
-        {/* 5 - IN THEIR WORDS */}
-        <Section id="voices">
+        {/* 6 - WHAT I DID IN 2021 (the original screens) */}
+        <Section id="screens">
           <Reveal>
-            <Label>in their words</Label>
+            <Label>before</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.85rem, 4.3vw, 3rem)" }}>Before six personas, every pilgrim&rsquo;s view.</Statement>
+            <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>What I did in 2021.</Statement>
+          </Reveal>
+          <Reveal delay={120}>
+            <Body className="mt-5">
+              Four steps: date and slot, personal details, review the rules, pay. Built to work on 2G, and for people booking
+              online for the first time.
+            </Body>
           </Reveal>
 
-          {/* empathy map: what every pilgrim thinks, does, feels, says */}
-          <Reveal delay={100} className="mt-12">
-            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">the empathy map</p>
-          </Reveal>
-          <div className="mt-4 grid gap-px border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-            {EMPATHY.map((e, i) => (
-              <Reveal key={e.q} delay={i * 60}>
-                <div className="flex h-full flex-col gap-4 p-6" style={{ backgroundColor: "var(--bg)" }}>
-                  <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>{e.q}</p>
-                  <ul className="flex flex-col gap-2">
-                    {e.items.map((it) => (
-                      <li key={it} className="font-body text-caption-1 leading-relaxed text-text">{it}</li>
-                    ))}
-                  </ul>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          {/* the six personas the map pointed to */}
-          <Reveal delay={100} className="mt-14">
-            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">the six personas it shaped</p>
-          </Reveal>
-          <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {VOICES.map((v, i) => (
-              <Reveal key={v.name} delay={(i % 3) * 70}>
-                <figure className="flex h-full flex-col border border-border p-7" style={{ backgroundColor: "var(--bg)" }}>
-                  <blockquote className="mb-5 font-heading leading-snug text-text" style={{ fontSize: "1.15rem" }}>
-                    &ldquo;{v.quote}&rdquo;
-                  </blockquote>
-                  <figcaption className="mt-auto flex items-center gap-3 border-t border-border pt-4">
+          <div className="mt-12 grid grid-cols-1 gap-12 sm:grid-cols-2 sm:gap-10">
+            {FLOW.map((s, i) => (
+              <Reveal key={s.src} delay={i * 70}>
+                <figure>
+                  <div className="overflow-hidden border border-border" data-cursor-label={s.cursor}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={v.img}
-                      alt={v.name}
-                      className="h-[52px] w-[52px] shrink-0 rounded-full border border-border object-cover"
-                    />
-                    <div>
-                      <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>{v.name}</p>
-                      <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">{v.meta}</p>
-                    </div>
+                    <img src={s.src} alt={s.label ?? ""} className="block w-full" />
+                  </div>
+                  <figcaption className="mt-4">
+                    <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+                      {s.caption}
+                    </p>
+                    <p className="mt-1 font-heading leading-snug text-text" style={{ fontSize: "var(--text-h4)" }}>
+                      {s.label}
+                    </p>
+                    <Body className="mt-1 !max-w-none">{s.body}</Body>
                   </figcaption>
                 </figure>
               </Reveal>
             ))}
           </div>
-        </Section>
 
-        {/* 6 - WHAT DIDN'T WORK */}
-        <Section id="iterations">
-          <Reveal>
-            <Label>what didn&rsquo;t work</Label>
+          <Reveal className="mt-20">
+            <Statement maxW="none" style={{ fontSize: "var(--text-h3)" }}>Wanna see more?</Statement>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.85rem, 4.3vw, 3rem)" }}>Three crowd-control ideas failed before one stuck.</Statement>
-          </Reveal>
-          {/* the three failed attempts, de-emphasised into a compact 3-up */}
-          <Reveal delay={100}>
-            <p className="mt-12 font-mono text-caption-2 uppercase tracking-wide text-muted">What we tried</p>
-          </Reveal>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            {ITERATIONS.filter((it) => it.status === "failed").map((it, i) => (
-              <Reveal key={it.n} delay={i * 70}>
-                <div className="flex h-full flex-col gap-2 border border-border p-5" style={{ backgroundColor: "var(--bg)" }}>
-                  <div className="flex items-center gap-2">
-                    <span className="font-display text-muted" style={{ fontSize: "1.4rem", fontWeight: 700, lineHeight: 1 }}>{it.n}</span>
-                    <span className="font-mono text-caption-2 uppercase tracking-wide text-muted">✕ didn&rsquo;t work</span>
-                  </div>
-                  <h3 className="font-heading leading-snug text-text/75" style={{ fontSize: "1.1rem" }}>{it.title}</h3>
-                  <p className="font-body text-caption-1 leading-relaxed text-muted">{it.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          {/* the one that stuck, emphasised: full-width accent hero with the
-              actual shipped traffic-light statuses as pills */}
-          {ITERATIONS.filter((it) => it.status === "shipped").map((it) => (
-            <Reveal key={it.n} delay={120} variant="scale">
-              <div className="mt-8">
-                <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>What stuck</p>
-                <div
-                  className="mt-4 border-2 p-7 sm:p-9"
-                  style={{ borderColor: "var(--accent)", backgroundColor: "color-mix(in srgb, var(--accent) 8%, var(--bg))" }}
-                >
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-8">
-                    <span className="font-display shrink-0" style={{ color: "var(--accent)", fontSize: "clamp(2.5rem, 5vw, 3.5rem)", fontWeight: 700, lineHeight: 1 }}>{it.n}</span>
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="font-heading leading-tight text-text" style={{ fontSize: "clamp(1.5rem, 3vw, 2.1rem)" }}>{it.title}</h3>
-                        <span className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>✓ shipped</span>
-                      </div>
-                      <div className="mt-4 flex flex-wrap gap-2.5">
-                        {TRAFFIC.map((t) => (
-                          <span
-                            key={t.label}
-                            className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-mono text-caption-2 uppercase tracking-wide text-text"
-                            style={{
-                              borderColor: `color-mix(in srgb, ${t.color} 45%, transparent)`,
-                              backgroundColor: `color-mix(in srgb, ${t.color} 12%, transparent)`,
-                            }}
-                          >
-                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
-                            {t.label}
-                          </span>
-                        ))}
-                      </div>
-                      <Body className="mt-4 !max-w-none">{it.body}</Body>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </Section>
-
-        {/* 7 - THE SOLUTION (with the Meenakshi turning point) */}
-        <Section id="solution">
-          <Reveal>
-            <Label>the solution</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.85rem, 4.3vw, 3rem)" }}>Build something worthy of 20 years of faith.</Statement>
-          </Reveal>
-
-          {/* turning point */}
-          <Reveal delay={100} variant="fade" className="mt-10">
-            <figure className="border-l-2 pl-6" style={{ borderColor: "var(--accent)" }}>
-              <blockquote
-                className="font-heading leading-[1.3] text-text"
-                style={{ fontSize: "clamp(1.4rem, 2.8vw, 2.1rem)" }}
+            <Body className="mt-4">
+              I&rsquo;m happy to chat more about my process over a call. Reach out to me at{" "}
+              <a
+                href="mailto:shrutybrahmananda@gmail.com"
+                data-cursor-label="say hello"
+                className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
               >
-                &ldquo;I have never missed a single Mahashivaratri in 20 years. If I lose my slot because of some mistake on a phone screen, how do I face my god?&rdquo;
-              </blockquote>
-              <figcaption className="mt-4 font-mono text-caption-1 uppercase tracking-wide text-muted">
-                Meenakshi, 72 · Pilgrim
-              </figcaption>
-            </figure>
-          </Reveal>
-          <Reveal delay={160}>
-            <Body className="mt-6">
-              That one line reframed the project. So the ticket now generates offline, before payment even confirms. Faith first, the receipt second.
+                shrutybrahmananda@gmail.com
+              </a>
             </Body>
           </Reveal>
-
-          {/* the home, two states - sticky intro left, phones stacked right */}
-          <Reveal delay={120} className="mt-14">
-            <PhoneStory
-              eyebrow="the home"
-              title="Two states, one shelf."
-              body="Service-first when pilgrims came to plan, live-content-first when they came to watch. The same persistent service rail anchors the bottom either way."
-              screens={HOMES}
-            />
-          </Reveal>
-
-          {/* the four-step booking flow - sticky intro left, 4 phones right */}
-          <Reveal delay={120} className="mt-20">
-            <PhoneStory
-              eyebrow="the booking flow"
-              title="Four steps to a darshan ticket."
-              body="Date and slot, personal details, review the rules, pay. The whole booking was built to survive 2G and to forgive the first-time digital user. The QR ticket generates before payment even confirms."
-              screens={FLOW}
-            />
-          </Reveal>
-
-          {/* the breadth of services the platform managed, beyond darshanam */}
-          <Reveal delay={80} className="mt-16">
-            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">eighteen services, one platform</p>
-          </Reveal>
-          <Reveal delay={120}>
-            <Body className="mt-3">
-              Booking a darshan was the front door. Behind it, the admin tooling I designed managed every revenue stream and asset class the temple ran.
-            </Body>
-          </Reveal>
-          <Reveal delay={150} className="mt-5">
-            <div className="flex flex-wrap gap-2">
-              {SERVICE_BREADTH.map((s) => (
-                <span
-                  key={s}
-                  className="inline-flex items-center rounded-full border border-border px-3.5 py-1.5 font-mono text-caption-2 uppercase tracking-wide text-text"
-                  style={{ backgroundColor: "color-mix(in srgb, var(--accent) 6%, var(--bg))" }}
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-          </Reveal>
-
-          {/* the platform behind the flow: the breadth I owned, end to end */}
-          <Reveal delay={80} className="mt-16">
-            <p className="font-mono text-caption-2 uppercase tracking-wide text-muted">the platform I owned, end to end</p>
-          </Reveal>
-          <Reveal delay={120} className="mt-5">
-            <SolutionTabs />
-          </Reveal>
-        </Section>
-
-        {/* 8 - THE OUTCOME */}
-        <Section id="outcome">
-          <Reveal>
-            <Label>the outcome</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.85rem, 4.3vw, 3rem)" }}>From a free pilot to a statewide platform.</Statement>
-          </Reveal>
-
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            {METRICS.map((m, i) => (
-              <Reveal key={m.label} delay={i * 80}>
-                <div className="border border-border p-8" style={{ backgroundColor: "var(--bg)" }}>
-                  <p
-                    className="font-display"
-                    style={{ color: "var(--accent)", fontSize: "clamp(2.75rem, 6vw, 4.5rem)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}
-                  >
-                    <CountUp value={m.value} prefix={m.prefix} suffix={m.suffix} decimals={m.decimals} />
-                  </p>
-                  <Body className="mt-2">{m.label}</Body>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          <Reveal delay={100}>
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {SECONDARY_STATS.map((s) => (
-                <div key={s.label} className="border border-border px-5 py-4" style={{ backgroundColor: "var(--bg)" }}>
-                  <p className="font-heading text-h4 leading-none text-text">{s.value}</p>
-                  <p className="mt-1.5 font-body text-caption-1 text-muted">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-
-          <Reveal delay={120}>
-            <Body className="mt-8">
-              The conversion rate went from zero (every ticket was physical) to a working digital flow on 2G, and the model was adopted by the Andhra Pradesh Endowments Department across 174 temples.
-            </Body>
-          </Reveal>
-        </Section>
-
-        {/* 9 - REFLECTION */}
-        <Section id="reflection">
-          <Reveal>
-            <Label>reflection</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement className="mt-5">What I&rsquo;d carry into the next one.</Statement>
-          </Reveal>
-          {/* two lessons as wide editorial rows: big numeral, lesson title in
-              accent, body in the gutter. Top & bottom hairlines for rhythm. */}
-          <div className="mt-12 border-t border-border">
-            {REFLECTIONS.map((r, i) => (
-              <Reveal key={r.n} delay={i * 80}>
-                <div
-                  className="grid grid-cols-1 gap-4 border-b border-border py-9 sm:grid-cols-[auto_1fr] sm:gap-10 sm:py-12"
-                >
-                  <span
-                    className="font-display tabular-nums sm:w-24"
-                    style={{
-                      color: "var(--accent)",
-                      fontSize: "clamp(2.5rem, 5vw, 3.75rem)",
-                      fontWeight: 700,
-                      lineHeight: 0.9,
-                    }}
-                  >
-                    {r.n}
-                  </span>
-                  <div>
-                    <h3
-                      className="font-heading leading-tight text-text"
-                      style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
-                    >
-                      {r.lesson}
-                    </h3>
-                    <Body className="mt-3 !max-w-none">{r.body}</Body>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </Section>
-      </div>
-    </div>
+      </Section>
+    </CaseStudyFrame>
   );
 }

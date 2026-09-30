@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
-import { useTheme } from "@/app/components/shared/ThemeProvider";
 import { gsap, useGSAP } from "@/app/lib/gsap";
 
 /* ------------------------------------------------------------------ *
@@ -10,13 +8,13 @@ import { gsap, useGSAP } from "@/app/lib/gsap";
  * composable pieces so it can integrate with the real site:
  *   <BackgroundStyles />  — the shared <style> block (render once)
  *   <SkyScene />          — the flat sky-colour backdrop content scrolls over
- *   <DayNightToggle />    — the day / night bat button (fixed, top-right)
  *   <GrasslandScene />    — savanna hills, animals + fireflies (the /background
  *                           preview route only; the footer has no scenery)
  *   <FogReveal />         — the paper-fog main → footer scroll transition
  *
- * Day / night is keyed off the global `.dark` class (the theme), so the
- * bat toggle drives the whole site's light/dark theme.
+ * The day/night bat toggles were removed along with dark mode: the portfolio
+ * is light-only, and the one dark surface (the footer) is painted directly by
+ * FootprintsHome's `inverted` prop rather than by a global polarity.
  * ------------------------------------------------------------------ */
 
 // Static, deterministic scatter data (no Math.random — SSR-safe).
@@ -40,48 +38,9 @@ const CSS = `
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: var(--paper);
+  background-color: var(--bg);
   transition: background-color 1.2s ease;
 }
-
-/* ---- sun / moon toggle ---- */
-.bg-toggle {
-  position: fixed;
-  top: 0;
-  right: 32px;
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink); /* the ink — charcoal on light paper, the pastel at night */
-  transition: transform 0.2s ease, color 0.6s ease;
-}
-.bg-toggle:hover { transform: scale(1.08); }
-/* Over the home's inverted hero panel the page ink IS the background, so flip
-   the bat to the paper colour to keep it visible (class toggled on <html>). */
-.hero-active .bg-toggle { color: var(--paper); }
-/* keep the bat quiet — smaller than its 64px hit-area, smaller still on mobile */
-.bg-toggle svg { width: 32px; height: 32px; }
-@media (max-width: 640px) {
-  .bg-toggle { width: 48px; height: 48px; right: 18px; }
-  .bg-toggle svg { width: 24px; height: 24px; }
-}
-.bat-flip {
-  display: block;
-  opacity: 0.7;
-  transform: rotate(180deg); /* day → upside-down (bat at rest) */
-  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-  will-change: transform;
-}
-.dark .bat-flip { transform: rotate(0deg); } /* night → upright */
-.bg-toggle:hover .bat-flip,
-.bat-btn:hover .bat-flip { opacity: 1; }
 
 /* ---- atmospheric haze: the footer emerges from a soft paper fog ----
    No literal cloud shapes. A fixed, paper-toned veil over the bottom of the
@@ -110,9 +69,9 @@ const CSS = `
   pointer-events: none;
   background: linear-gradient(
     to top,
-    var(--paper) 0%,
-    var(--paper) 34%,
-    color-mix(in srgb, var(--paper) 58%, transparent) 68%,
+    var(--bg) 0%,
+    var(--bg) 34%,
+    color-mix(in srgb, var(--bg) 58%, transparent) 68%,
     transparent 100%
   );
   -webkit-backdrop-filter: blur(7px);
@@ -151,9 +110,9 @@ const CSS = `
   pointer-events: none;
 }
 .bg-hill path { transition: fill 1.2s ease; }
-.savanna-hill-back  { fill: color-mix(in srgb, var(--ink) 8%,  var(--paper)); }
-.savanna-hill-mid   { fill: color-mix(in srgb, var(--ink) 15%, var(--paper)); }
-.savanna-hill-front { fill: color-mix(in srgb, var(--ink) 24%, var(--paper)); }
+.savanna-hill-back  { fill: color-mix(in srgb, var(--text) 8%,  var(--bg)); }
+.savanna-hill-mid   { fill: color-mix(in srgb, var(--text) 15%, var(--bg)); }
+.savanna-hill-front { fill: color-mix(in srgb, var(--text) 24%, var(--bg)); }
 .bg-hill-back  { height: 360px; }
 .bg-hill-mid   { height: 290px; }
 .bg-hill-front { height: 210px; }
@@ -167,11 +126,13 @@ const CSS = `
 .bg-fireflies {
   position: absolute;
   inset: 0;
-  opacity: 0;
+  /* Was revealed by the .dark class. With dark mode gone that selector can
+     never match, and the only thing that renders these is the /background
+     preview route, so they're simply on there. */
+  opacity: 1;
   transition: opacity 0.9s ease 0.7s;
   pointer-events: none;
 }
-.dark .bg-fireflies { opacity: 1; }
 .bg-firefly {
   position: absolute;
   width: var(--size, 5px);
@@ -199,7 +160,7 @@ const CSS = `
 }
 
 /* ---- savanna silhouettes ---- */
-/* Each silhouette SVG is used as a MASK over a var(--ink) fill, so every animal
+/* Each silhouette SVG is used as a MASK over a var(--text) fill, so every animal
    and tree takes the font color and flips charcoal<->pastel with the theme,
    keeping the footer in harmony with the text. The SVG's own (baked) color is
    irrelevant — only its shape matters as the mask. */
@@ -212,7 +173,7 @@ const CSS = `
 }
 .bg-flip .pose { transform: scaleX(-1); }
 .pose-mask {
-  background-color: var(--ink);
+  background-color: var(--text);
   -webkit-mask-image: var(--sil);
           mask-image: var(--sil);
   -webkit-mask-repeat: no-repeat;
@@ -271,111 +232,16 @@ const CSS = `
   45%      { opacity: 1; }
   60%      { opacity: 0.82; }
 }
-/* ---- bat toggle (day: upside-down · night: upright · wings flap on hover) ---- */
-.bat-wing-l { transform-box: view-box; transform-origin: 41px 40px; }
-.bat-wing-r { transform-box: view-box; transform-origin: 59px 40px; }
-.bg-toggle:hover .bat-wing-l,
-.bat-btn:hover .bat-wing-l { animation: bgw-batFlapL 0.5s ease-in-out infinite; }
-.bg-toggle:hover .bat-wing-r,
-.bat-btn:hover .bat-wing-r { animation: bgw-batFlapR 0.5s ease-in-out infinite; }
-@keyframes bgw-batFlapL {
-  0%, 100% { transform: rotate(0deg); }
-  50%      { transform: rotate(-8deg); }
-}
-@keyframes bgw-batFlapR {
-  0%, 100% { transform: rotate(0deg); }
-  50%      { transform: rotate(8deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bat-flip { transition: none; }
-  .bat-wing-l, .bat-wing-r { animation: none; }
-}
 `;
 
 /* ---- SVG pieces (hand-drawn, wobbly paths) ---- */
 
-// The bat — your exact silhouette, split into wings so they can flap on hover.
-function BatIcon({ size = 46 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="currentColor" aria-hidden>
-      {/* left wing */}
-      <g className="bat-wing-l">
-        <path d="M41.34 41.18 L32.42 30.32 H9.60 C13.72 33.88 19.58 40.82 19.00 51.22 C24.76 50.89 42.14 51.51 50.00 69.68 L41.34 41.18 Z" />
-      </g>
-      {/* right wing */}
-      <g className="bat-wing-r">
-        <path d="M58.66 41.18 L67.58 30.32 H90.40 C86.28 33.88 80.42 40.82 81.00 51.22 C75.24 50.89 57.86 51.51 50.00 69.68 L58.66 41.18 Z" />
-      </g>
-      {/* body + ears (drawn on top — hides the wing roots while they flap) */}
-      <path d="M48.86 35.46 L44.00 29.96 V40.23 C44.00 40.86 43.60 41.43 43.01 41.64 C42.42 41.85 41.75 41.67 41.34 41.18 L50.00 69.68 L58.66 41.18 C58.26 41.67 57.59 41.85 56.99 41.64 C56.40 41.43 56.00 40.87 56.00 40.23 V29.96 L51.12 35.45 C50.45 36.02 49.55 36.02 48.86 35.46 Z" />
-    </svg>
-  );
-}
 
 
 /* ---- exported pieces ---- */
 
 export function BackgroundStyles() {
   return <style>{CSS}</style>;
-}
-
-export function DayNightToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const path = usePathname();
-
-  useEffect(() => setMounted(true), []);
-
-  const isDay = resolvedTheme !== "dark";
-
-  // The one-pager home moves light/dark into its footer control, so hide the
-  // global bat there.
-  if (path === "/") return null;
-
-  return (
-    <button
-      type="button"
-      className="bg-toggle"
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      aria-label={
-        mounted
-          ? isDay
-            ? "Switch to night mode"
-            : "Switch to day mode"
-          : "Toggle day and night"
-      }
-    >
-      <span className="bat-flip">
-        <BatIcon />
-      </span>
-    </button>
-  );
-}
-
-// Footer-sized light/dark toggle: the same bat, sized to sit inline with the
-// colour swatch + footprint picker in the footer's control cluster. Reuses the
-// globally-injected bat CSS (.bat-flip hangs upside-down by day, upright at
-// night; wings flap on hover via the .bat-btn selectors below).
-export function BatToggle({ className = "" }: { className?: string }) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-
-  return (
-    <button
-      type="button"
-      className={`bat-btn flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110 ${className}`}
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={isDark ? "Switch to day mode" : "Switch to night mode"}
-      data-cursor-label={isDark ? "Day" : "Night"}
-      // Same frame as the footprint + colour triggers: 32px circle, 2px inset
-      // ring, glyph sized like the footprint paw so all three read one size.
-      style={{ boxShadow: "inset 0 0 0 2px currentColor" }}
-    >
-      <span className="bat-flip">
-        <BatIcon size={22} />
-      </span>
-    </button>
-  );
 }
 
 export function SkyScene() {
@@ -495,8 +361,7 @@ export default function Background() {
     <div style={{ position: "fixed", inset: 0, zIndex: 90, overflow: "hidden" }}>
       <BackgroundStyles />
       <SkyScene />
-      <DayNightToggle />
-      <GrasslandScene />
+    <GrasslandScene />
     </div>
   );
 }

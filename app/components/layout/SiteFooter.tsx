@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import FootprintsHome from "@/app/components/home/FootprintsHome";
-import FooterControls from "@/app/components/home/FooterControls";
 
 /**
  * The one footer for every page — footprint canvas + colour picker + footprint
@@ -80,44 +79,44 @@ export function SiteFooter() {
   }, []);
 
   return (
-    <section ref={ref} className="relative h-[85vh]">
-      <FootprintsHome
-        variant="ambient"
-        footprintPicker
-        inverted
-        controls={<FooterControls />}
-      >
+    <section ref={ref} className="relative h-[65vh]">
+      <FootprintsHome footprintPicker inverted>
         {/* CTA + two link columns + colophon. The wrapper is pointer-events-none
             so footprints spawn in the gaps; the CTA and links opt back in. */}
-        <div className="pointer-events-none relative mx-auto flex h-full max-w-[1700px] flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pt-40">
-          <div className="grid grid-cols-1 gap-20 md:grid-cols-[1.6fr_1fr] md:gap-24">
+        <div className="pointer-events-none relative mx-auto flex h-full max-w-[1140px] flex-col justify-between px-5 pb-8 pt-28 sm:px-8 sm:pt-28">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.6fr_1fr] md:gap-12">
             {/* Left — big CTA (colour inherited: paper on the inverted layer) */}
             <div className="flex flex-col items-start" data-quiet>
               <h2
                 className="pointer-events-auto font-display text-cta"
                 data-cursor-label="I respond fast"
-                style={{ fontWeight: 400, fontStyle: "italic", letterSpacing: "-0.02em" }}
+                style={{ fontWeight: 400, letterSpacing: "-0.02em" }}
               >
                 Who doesn&rsquo;t love to leave a footprint!
               </h2>
             </div>
 
             {/* Right — two link columns */}
-            <div className="flex gap-16 sm:gap-24" data-quiet>
+            <div className="flex gap-10 sm:gap-12" data-quiet>
               <FooterColumn label="Say hi" links={SAY_HI_LINKS} />
               <FooterColumn label="Page" links={PAGE_LINKS} />
             </div>
           </div>
 
-          {/* Bottom bar, all on one h-9 baseline: copyright (left) · footprint
-              + colour + bat cluster (right, from FootprintsHome). */}
-          <p
-            data-quiet
-            className="absolute bottom-8 left-5 flex h-9 items-center whitespace-nowrap font-mono text-caption-1 uppercase opacity-70 sm:left-8"
-          >
-            Copyright @ shruthi aragonda
-          </p>
         </div>
+
+        {/* Bottom bar, all on one h-9 baseline: copyright (left) · footprint +
+            bat cluster (right, from FootprintsHome). This sits OUTSIDE the
+            max-w-[1140px] column on purpose — anchored to that column it was
+            inset by the centring gutter on wide screens, which read as floating
+            rather than as a corner. The picker cluster it pairs with is
+            anchored to the footer edge the same way. */}
+        <p
+          data-quiet
+          className="pointer-events-none absolute bottom-8 left-5 flex h-9 items-center whitespace-nowrap font-mono text-caption-1 uppercase opacity-70 sm:left-8"
+        >
+          Copyright @ shruthi aragonda
+        </p>
       </FootprintsHome>
     </section>
   );

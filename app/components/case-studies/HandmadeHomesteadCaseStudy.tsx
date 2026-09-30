@@ -3,9 +3,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Rock_Salt, Oswald, Lato, DynaPuff } from "next/font/google";
-import { useTheme } from "@/app/components/shared/ThemeProvider";
+import { Oswald, Lato, DynaPuff } from "next/font/google";
 import { gsap, useGSAP } from "@/app/lib/gsap";
+import {
+  Bleed,
+  Body,
+  CaseStudyFrame,
+  CountUp,
+  Hero,
+  Label,
+  prefersReduced,
+  Reveal,
+  Section,
+  Statement,
+} from "@/app/components/case-studies/shared/CaseStudyLayout";
 
 /**
  * Handmade Homestead case study.
@@ -21,9 +32,6 @@ import { gsap, useGSAP } from "@/app/lib/gsap";
  * /public/handmade-homestead/, so the page is never broken mid-build.
  */
 
-// Rock Salt - the handwriting (same as the About polaroids + asides).
-const rockSalt = Rock_Salt({ weight: "400", subsets: ["latin"], display: "swap" });
-
 // The brand's own typefaces, loaded so the type specimen is the real thing.
 const oswald = Oswald({ subsets: ["latin"], display: "swap" });
 const lato = Lato({ weight: ["400", "700"], subsets: ["latin"], display: "swap" });
@@ -32,8 +40,6 @@ const dynaPuff = DynaPuff({ subsets: ["latin"], display: "swap" });
 // ---------------------------------------------------------------- project config
 
 // The brand's terracotta, split light/dark for contrast on each canvas.
-const ACCENT_LIGHT = "#BC4F2C"; // deepened terracotta - readable on morning mist
-const ACCENT_DARK = "#E0905A"; // clay glow - readable on warm midnight
 
 // Handwritten asides + sign-off - DRAFTS in Shruthi's voice. Swap freely.
 const NOTES = {
@@ -55,7 +61,6 @@ const SECTIONS = [
   { id: "insights", label: "insights" },
   { id: "pivot", label: "the pivot and adapt" },
   { id: "outcome", label: "outcomes" },
-  { id: "reflection", label: "reflection" },
 ] as const;
 
 // `href` is optional - when present, the value renders as a click-through
@@ -209,29 +214,6 @@ const CONTENT_TACTICS = [
 // What we changed when education-first didn't travel. Each adaptation gets
 // a name + a one-line explanation. Numbered list pattern matches the visual
 // language and 5 R's elsewhere on the page.
-// Three takeaways from the project + three things we'd push further with
-// more time. Both lifted from the project deck.
-const TAKEAWAYS = [
-  {
-    name: "Education-first didn’t match user behavior",
-    body: "Users engaged more with inspiration-led content than structured, informational posts.",
-  },
-  {
-    name: "Platform fit matters",
-    body: "Reels, trends, and motion-driven storytelling significantly improved reach and discoverability.",
-  },
-  {
-    name: "Adaptability drove better results",
-    body: "Shifting from planned content to trend-responsive posting increased engagement and growth.",
-  },
-];
-
-const NEXT_STEPS = [
-  "Build awareness through campus workshops",
-  "Strengthen focus on younger audiences",
-  "Go deeper with tutorial-based content",
-];
-
 const ADAPTATIONS = [
   { name: "AI-generated video", body: "Replaced static infographics with dynamic visual content." },
   { name: "Trending audio",     body: "Aligned content with sounds already resonating on the platform." },
@@ -258,15 +240,6 @@ const SKETCHES = [
   { file: "handmade-homestead/sketch-1.jpg", cursor: "post 08 storyboard" },
   { file: "handmade-homestead/sketch-2.jpg", cursor: "posts 06 & 07" },
   { file: "handmade-homestead/sketch-3.jpg", cursor: "post 04 premium tax" },
-];
-
-// The four reels - the brand's four pillars, each framed inside the H-mark
-// as a window. Source aspect is ~9:19.5; we render at 9:16 with object-cover.
-const REELS = [
-  { file: "handmade-homestead/reel-grow.png", label: "Grow reel", cursor: "grow" },
-  { file: "handmade-homestead/reel-cook.png", label: "Cook reel", cursor: "cook" },
-  { file: "handmade-homestead/reel-craft.png", label: "Craft reel", cursor: "craft" },
-  { file: "handmade-homestead/reel-learn.png", label: "Learn reel", cursor: "learn" },
 ];
 
 // The 7 educational IG posts (the pre-pivot work that didn't travel).
@@ -305,16 +278,7 @@ const DEMOGRAPHICS = [
   { range: "55–64", pct: 2 },
 ];
 
-const TAGLINES = [
-  "This is what homesteading looks like when it comes home with you.",
-  "A community worth wearing.",
-];
-
 // ---------------------------------------------------------------- helpers
-
-const prefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function ArrowDoodle({ className = "" }: { className?: string }) {
   return (
@@ -339,7 +303,7 @@ function Aside({
     <div className={`hidden items-start gap-2 lg:flex ${className}`}>
       <ArrowDoodle className="mt-1 shrink-0" />
       <p
-        className={`${rockSalt.className} max-w-[210px] text-[0.95rem] leading-snug`}
+        className={`font-heading max-w-[210px] text-[0.95rem] leading-snug`}
         style={{ color: "var(--accent)", transform: `rotate(${rotate}deg)` }}
       >
         {children}
@@ -350,53 +314,6 @@ function Aside({
 
 // Section eyebrow + hand-drawn squiggle. Uppercase mono accent — matches the
 // pattern used across all case studies.
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <div>
-      <p
-        className="font-mono text-caption-1 uppercase tracking-wide"
-        style={{ color: "var(--accent)" }}
-      >
-        {children}
-      </p>
-    </div>
-  );
-}
-
-// The one big statement per section. Defaults to full section width (no maxW)
-// so headings extend across the whole editorial column; pass an explicit
-// `maxW` if a specific Statement needs to wrap tighter.
-function Statement({
-  children,
-  className = "",
-  maxW = "none",
-}: {
-  children: React.ReactNode;
-  className?: string;
-  maxW?: string;
-}) {
-  return (
-    <h2
-      className={`font-heading leading-[1.1] text-text ${className}`}
-      style={{ maxWidth: maxW, fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.01em" }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-// Supporting copy — extends to the full section width.
-function Body({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <p
-      className={`font-body leading-relaxed text-muted ${className}`}
-      style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}
-    >
-      {children}
-    </p>
-  );
-}
-
 // Photo-or-placeholder. Renders the real image when the file exists; until then
 // (and on any load error) it shows a terracotta-tinted dashed frame labelled
 // with the exact filename to drop into /public/handmade-homestead/.
@@ -462,121 +379,6 @@ function Figure({
   );
 }
 
-function GrainOverlay() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        opacity: 0.05,
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-      }}
-    />
-  );
-}
-
-function Reveal({
-  children,
-  variant = "up",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  variant?: "up" | "fade" | "scale" | "left" | "right";
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setShown(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  const hidden =
-    variant === "fade"
-      ? "opacity-0"
-      : variant === "scale"
-        ? "opacity-0 scale-[0.98]"
-        : variant === "left"
-          ? "opacity-0 -translate-x-10"
-          : variant === "right"
-            ? "opacity-0 translate-x-10"
-            : "opacity-0 translate-y-8";
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ease-out ${shown ? "translate-x-0 translate-y-0 scale-100 opacity-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function CountUp({
-  value,
-  suffix = "",
-  decimals = 0,
-  duration = 1400,
-}: {
-  value: number;
-  suffix?: string;
-  decimals?: number;
-  duration?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setN(value);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const p = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - p, 3);
-          setN(eased * value);
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      },
-      { threshold: 0.4 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [value, duration]);
-  const display = decimals > 0 ? n.toFixed(decimals) : Math.round(n).toLocaleString("en-US");
-  return (
-    <span ref={ref}>
-      {display}
-      {suffix}
-    </span>
-  );
-}
-
-// A demographic bar that fills from 0 to its width when scrolled into view.
 function GrowBar({ pct, delay = 0 }: { pct: number; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
@@ -621,92 +423,6 @@ function GrowBar({ pct, delay = 0 }: { pct: number; delay?: number }) {
 
 // ---------------------------------------------------------------- chrome
 
-function SectionRail({ active, onJump }: { active: string; onJump: (id: string) => void }) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  return (
-    <nav
-      aria-label="Sections"
-      className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3.5 md:flex"
-    >
-      {SECTIONS.map((s) => {
-        const isActive = active === s.id;
-        const show = isActive || hovered === s.id;
-        const size = isActive ? 9 : 6;
-        return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onJump(s.id)}
-            onMouseEnter={() => setHovered(s.id)}
-            onMouseLeave={() => setHovered(null)}
-            aria-label={s.label}
-            aria-current={isActive ? "true" : undefined}
-            data-cursor-label={s.label}
-            className="group relative flex h-6 w-6 items-center justify-center"
-          >
-            <span
-              aria-hidden
-              style={{
-                width: size,
-                height: size,
-                borderRadius: "9999px",
-                backgroundColor: isActive ? "var(--accent)" : "var(--color-muted)",
-                opacity: isActive ? 1 : show ? 0.85 : 0.4,
-                transition: "all 0.2s ease-out",
-              }}
-            />
-            <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
-                show ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
-              }`}
-              style={{ color: isActive ? "var(--accent)" : "var(--text)" }}
-            >
-              {s.label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function ProgressBar() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const el = document.documentElement;
-      const max = el.scrollHeight - el.clientHeight;
-      setP(max > 0 ? (el.scrollTop / max) * 100 : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  return (
-    <div className="fixed inset-x-0 top-0 z-50 h-1 bg-muted/20 md:hidden">
-      <div
-        className="h-full transition-[width] duration-100 ease-out"
-        style={{ width: `${p}%`, backgroundColor: "var(--accent)" }}
-      />
-    </div>
-  );
-}
-
-// One section: a lowercase label, sparse copy, then room. Reading column is
-// narrow; media inside can break out to the full content width.
-/**
- * PinnedPostsSweep - the 7 IG posts as a pinned horizontal-scroll sequence.
- *
- * Desktop (md+): the wrap pins for the duration of the sweep; vertical
- * scroll scrubs the inner track's translateX from 0 to -(scrollWidth - 100vw).
- * Each card is post (left, ~70vh tall) + caption (right) inside a 75vw
- * column, so ~1.3 cards are visible at a time and the next one peeks in.
- *
- * Mobile (<md) and reduced-motion: pin disabled, cards stack vertically
- * with image + caption stacked per card. Same content, no scrubbed motion.
- *
- * Progress bar at the bottom of the pinned viewport tracks position 1..7.
- */
 function PinnedPostsSweep() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -755,7 +471,7 @@ function PinnedPostsSweep() {
     <div ref={wrapRef} className="relative w-full overflow-hidden md:h-screen md:min-h-[720px]">
       {/* Eyebrow above the sweep on desktop, sits inside the pinned area */}
       <div className="pointer-events-none absolute left-0 right-0 top-6 z-10 hidden md:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-10">
+        <div className="mx-auto flex max-w-[1000px] items-center justify-between px-10">
           <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
             seven posts, one story
           </p>
@@ -807,7 +523,7 @@ function PinnedPostsSweep() {
 
       {/* Progress bar - scales via GSAP onUpdate, only visible on desktop */}
       <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-10 hidden md:block">
-        <div className="mx-auto max-w-7xl px-10">
+        <div className="mx-auto max-w-[1000px] px-10">
           <div className="h-px w-full" style={{ backgroundColor: "color-mix(in srgb, var(--accent) 20%, transparent)" }}>
             <div
               ref={progressRef}
@@ -943,7 +659,7 @@ function WhatWeChangedTabs() {
             className="font-display"
             style={{
               color: "var(--accent)",
-              fontSize: "clamp(3rem, 7vw, 5rem)",
+              fontSize: "var(--text-h1)",
               fontWeight: 700,
               letterSpacing: "-0.03em",
               lineHeight: 0.95,
@@ -967,7 +683,7 @@ function WhatWeChangedTabs() {
           </h3>
           <p
             className="mt-4 font-body leading-snug text-text"
-            style={{ fontSize: "clamp(1.05rem, 1.5vw, 1.2rem)", maxWidth: "52ch" }}
+            style={{ fontSize: "var(--text-paragraph)", maxWidth: "52ch" }}
           >
             {item.body}
           </p>
@@ -977,134 +693,42 @@ function WhatWeChangedTabs() {
   );
 }
 
-function Section({
-  id,
-  children,
-  className = "",
-}: {
-  id: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <section id={id} className={`scroll-mt-24 px-6 py-8 sm:px-10 md:py-12 lg:pl-32 lg:pr-12 ${className}`}>
-      <div className="mx-auto max-w-6xl">{children}</div>
-    </section>
-  );
-}
-
 // ---------------------------------------------------------------- page
 
 export function HandmadeHomesteadCaseStudy() {
-  const [active, setActive] = useState<string>("overview");
-  const { resolvedTheme } = useTheme();
-  const accent = resolvedTheme === "dark" ? ACCENT_DARK : ACCENT_LIGHT;
-
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.find((e) => e.isIntersecting);
-        if (hit) setActive(hit.target.id);
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-    );
-    SECTIONS.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
-
-  const jump = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: prefersReduced() ? "auto" : "smooth",
-      block: "start",
-    });
-  };
-
   return (
-    <div
-      className="relative"
-      style={{ backgroundColor: "var(--bg)", ["--accent"]: accent } as React.CSSProperties}
-    >
-      <GrainOverlay />
-      <SectionRail active={active} onJump={jump} />
-      <ProgressBar />
-
-      <div className="relative z-10">
-        {/* 1 - OVERVIEW / HERO */}
-        <section id="overview" className="scroll-mt-24 px-6 pb-8 pt-28 sm:px-10 md:pt-32 lg:pl-32 lg:pr-12">
-          <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <h1
-                className="font-display leading-[1.02] text-text"
-                style={{ fontSize: "clamp(2.5rem, 7vw, 5rem)", fontWeight: 700, letterSpacing: "-0.02em" }}
-              >
-                Handmade Homestead
-              </h1>
-            </Reveal>
-            <Reveal delay={80}>
-              <p className="mt-4 max-w-[40ch] font-heading italic text-muted" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.6rem)" }}>
-                A homesteading lifestyle brand, grown from zero.
-              </p>
-            </Reveal>
-
-            <Reveal delay={160}>
-              <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5 border-y border-border py-6">
-                {META.map((m) => (
-                  <div key={m.label}>
-                    <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">{m.label}</dt>
-                    <dd className="mt-1 font-body text-body text-text">
-                      {m.href ? (
-                        // External live link - opens in a new tab with rel
-                        // noopener+noreferrer for safety. Shared format across
-                        // every case study: underline at rest, accent on hover.
-                        <a
-                          href={m.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          data-cursor-label={`visit ${m.value}`}
-                          className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
-                        >
-                          {m.value}
-                        </a>
-                      ) : (
-                        m.value
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
-
-            <Reveal delay={240} variant="scale" className="mt-10">
-              <Figure
-                src="/handmade-homestead/hero.jpg"
-                file="handmade-homestead/hero.jpg"
-                label="Hero: brand banner / key visual"
-                aspect="aspect-[4/3] sm:aspect-[3/2]"
-                cursorLabel="the brand, at a glance"
-              />
-            </Reveal>
-
-            <Reveal delay={120}>
-              <p
-                className="mt-12 font-heading leading-[1.12] text-text"
-                style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", letterSpacing: "-0.01em" }}
-              >
-                <span className="block">
-                  How do you make someone <span className="italic" style={{ color: "var(--accent)" }}>feel</span> slow living,
-                </span>
-                <span className="block">not just scroll past it?</span>
-              </p>
-            </Reveal>
-            <Reveal delay={200}>
-              <Body className="mt-6">
-                Four of us. Zero followers, and a homestead to grow from a blank page (no land, no barn, no chickens, just Figma and a lot of opinions).
-              </Body>
-            </Reveal>
-          </div>
-        </section>
+    <CaseStudyFrame accent="handmade-homestead" sections={SECTIONS}>
+      <Hero
+        eyebrow="Handmade Homestead"
+        title="Handmade Homestead"
+        intro="A homesteading lifestyle brand, grown from zero."
+        meta={META}
+        lead={
+          <Bleed>
+            <Figure
+              src="/handmade-homestead/hero.jpg"
+              file="handmade-homestead/hero.jpg"
+              label="Hero: brand banner / key visual"
+              aspect="aspect-[4/3] sm:aspect-[3/2]"
+              cursorLabel="the brand, at a glance"
+            />
+          </Bleed>
+        }
+      >
+        <Reveal delay={240}>
+          <Statement maxW="none" className="mt-14">
+            <span className="block">
+              How do you make someone <span style={{ color: "var(--accent)" }}>feel</span> slow living,
+            </span>
+            <span className="block">not just scroll past it?</span>
+          </Statement>
+        </Reveal>
+        <Reveal delay={280}>
+          <Body className="mt-6">
+            Four of us. Zero followers, and a homestead to grow from a blank page (no land, no barn, no chickens, just Figma and a lot of opinions).
+          </Body>
+        </Reveal>
+      </Hero>
 
         {/* 2 - CONTEXT */}
         <Section id="context">
@@ -1236,7 +860,7 @@ export function HandmadeHomesteadCaseStudy() {
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
-              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+              style={{ fontSize: "var(--text-h4)" }}
             >
               Rooted, handcrafted, slightly imperfect.
             </h3>
@@ -1362,7 +986,7 @@ export function HandmadeHomesteadCaseStudy() {
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
-              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+              style={{ fontSize: "var(--text-h4)" }}
             >
               All of it, applied.
             </h3>
@@ -1407,7 +1031,7 @@ export function HandmadeHomesteadCaseStudy() {
               </p>
               <h3
                 className="mt-3 font-heading leading-tight text-text"
-                style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+                style={{ fontSize: "var(--text-h4)" }}
               >
                 Educate first, inform second.
               </h3>
@@ -1422,7 +1046,7 @@ export function HandmadeHomesteadCaseStudy() {
               </p>
               <h3
                 className="mt-3 font-heading leading-tight text-text"
-                style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+                style={{ fontSize: "var(--text-h4)" }}
               >
                 A hierarchy, not a checklist.
               </h3>
@@ -1458,7 +1082,7 @@ export function HandmadeHomesteadCaseStudy() {
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
-              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+              style={{ fontSize: "var(--text-h4)" }}
             >
               Two goals, three tactics.
             </h3>
@@ -1648,7 +1272,7 @@ export function HandmadeHomesteadCaseStudy() {
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
-              style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
+              style={{ fontSize: "var(--text-h4)" }}
             >
               Five shifts. Click through.
             </h3>
@@ -1750,7 +1374,7 @@ export function HandmadeHomesteadCaseStudy() {
           </Reveal>
           <Reveal delay={60}>
             <div className="mt-5 flex items-start justify-between gap-6">
-              <Statement maxW="none" className="sm:whitespace-nowrap">
+              <Statement maxW="none" className="sm:">
                 The reels did the talking.
               </Statement>
               <Aside className="mt-2 shrink-0" rotate={3}>
@@ -1765,7 +1389,7 @@ export function HandmadeHomesteadCaseStudy() {
                 <div className="border border-border p-8" style={{ backgroundColor: "var(--bg)" }}>
                   <p
                     className="font-display"
-                    style={{ color: "var(--accent)", fontSize: "clamp(2.75rem, 6vw, 4.5rem)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}
+                    style={{ color: "var(--accent)", fontSize: "var(--text-h1)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}
                   >
                     <CountUp value={m.value} suffix={m.suffix} decimals={m.decimals} />
                   </p>
@@ -1800,157 +1424,7 @@ export function HandmadeHomesteadCaseStudy() {
               </div>
             </div>
           </Reveal>
-        </Section>
-
-        {/* 8 - REFLECTION / CLOSE
-             Three nested blocks:
-               1. Takeaways - 3 numbered insights from the project (full width)
-               2. If we had more time - 3 next-step ambitions (full width)
-               3. Closing poem + taglines + sign-off (centered, max-w-2xl) */}
-        <Section id="reflection" className="py-28 md:py-40">
-          <Reveal variant="fade">
-            <Label>reflection</Label>
-          </Reveal>
-
-          {/* The 4 brand-pillar reels (moved here from pivot). In
-             reflection they read as artifacts of the system we built -
-             Grow / Cook / Craft / Learn - the templates that the brand
-             will keep using. 4-across on desktop, 2-across on mobile. */}
-          <Reveal delay={80} className="mt-10">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              the system we leave behind
-            </p>
-            <h3
-              className="mt-3 font-heading leading-tight text-text"
-              style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
-            >
-              Four pillars, one window.
-            </h3>
-          </Reveal>
-          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
-            {REELS.map((r, i) => (
-              <Reveal key={r.file} delay={i * 70} variant="up">
-                <Figure
-                  src={`/${r.file}`}
-                  file={r.file}
-                  label={r.label}
-                  aspect="aspect-[9/16]"
-                  cursorLabel={r.cursor}
-                />
-              </Reveal>
-            ))}
-          </div>
-
-          {/* Takeaways - the lessons. 3 numbered cards reading like a
-             chapter break before the closing. */}
-          <Reveal className="mt-20">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              takeaways
-            </p>
-            <h3
-              className="mt-3 font-heading leading-tight text-text"
-              style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
-            >
-              Through this journey.
-            </h3>
-          </Reveal>
-          <div className="mt-8 grid gap-4 md:grid-cols-3 md:gap-5">
-            {TAKEAWAYS.map((t, i) => (
-              <Reveal
-                key={t.name}
-                delay={i * 80}
-                variant={i === 0 ? "left" : i === 2 ? "right" : "up"}
-              >
-                <div
-                  className="flex h-full flex-col gap-3 border border-border p-6 sm:p-7"
-                  style={{ backgroundColor: "var(--bg)" }}
-                >
-                  <span
-                    className="font-display"
-                    style={{ color: "var(--accent)", fontSize: "1.75rem", fontWeight: 700, lineHeight: 1, opacity: 0.7 }}
-                  >
-                    0{i + 1}
-                  </span>
-                  <p
-                    className="font-heading leading-snug text-text"
-                    style={{ fontSize: "clamp(1.1rem, 1.7vw, 1.3rem)" }}
-                  >
-                    {t.name}
-                  </p>
-                  <Body className="mt-1">{t.body}</Body>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          {/* If we had more time - the unfinished ambitions. Lighter weight,
-             a row of 3 with a soft eyebrow. */}
-          <Reveal className="mt-20">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              if we had more time
-            </p>
-            <h3
-              className="mt-3 font-heading leading-tight text-text"
-              style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
-            >
-              Where we&rsquo;d push next.
-            </h3>
-          </Reveal>
-          <div className="mt-8 grid gap-4 md:grid-cols-3 md:gap-5">
-            {NEXT_STEPS.map((s, i) => (
-              <Reveal key={s} delay={i * 80} variant="up">
-                <div
-                  className="flex h-full items-start gap-3 border-l-2 py-2 pl-4"
-                  style={{ borderColor: "var(--accent)" }}
-                >
-                  <span
-                    className="font-mono text-caption-2 uppercase tracking-wide pt-0.5"
-                    style={{ color: "var(--accent)", opacity: 0.7 }}
-                  >
-                    0{i + 1}
-                  </span>
-                  <p className="font-body text-text" style={{ fontSize: "1rem", lineHeight: 1.45 }}>
-                    {s}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          {/* Closing - the poem, the taglines, the sign-off. Left-aligned
-             to the section width so this final beat sits in the same column
-             as the rest of the page (was centered in a narrow max-w-2xl,
-             now aligned with the section's editorial column). */}
-          <div className="mt-24">
-            <Reveal variant="fade" delay={120}>
-              <p
-                className="font-heading leading-[1.5] text-text"
-                style={{ fontSize: "clamp(1.3rem, 2.2vw, 1.8rem)" }}
-              >
-                A brand is a feeling before it&rsquo;s a logo. The moment we stopped explaining slow living and started showing it, people leaned in, shared it, and stayed.
-              </p>
-            </Reveal>
-            <Reveal variant="fade" delay={200}>
-              <div className="mt-12 flex flex-col items-start gap-3">
-                {TAGLINES.map((t) => (
-                  <p
-                    key={t}
-                    className={rockSalt.className}
-                    style={{ color: "var(--accent)", fontSize: "clamp(1.05rem, 1.8vw, 1.35rem)", lineHeight: 1.5 }}
-                  >
-                    {t}
-                  </p>
-                ))}
-              </div>
-            </Reveal>
-            <Reveal variant="fade" delay={280}>
-              <p className="mt-12 font-mono text-caption-1 uppercase tracking-wide text-muted">
-                Made with soil under our nails, and a lot of love.
-              </p>
-            </Reveal>
-          </div>
-        </Section>
-      </div>
-    </div>
+      </Section>
+    </CaseStudyFrame>
   );
 }

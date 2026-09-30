@@ -1,16 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { useEffect, useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { gsap } from "@/app/lib/gsap";
+import { useFootprint } from "@/app/components/shared/FootprintProvider";
 import {
-  useTheme,
-  PAPER_COLORS,
-  PAPER_ORDER,
-  CHARCOAL,
-} from "@/app/components/shared/ThemeProvider";
-import { isSplashLifted, onSplashLift, splashWillPlay } from "@/app/lib/splash";
+  FOOTPRINT_ANIMALS,
+  SURFACE,
+  HUES,
+  BLENDS,
+  SHAPES,
+  type FootprintAnimal,
+} from "@/app/lib/footprints";
 
 // hex → "r,g,b" so the canvas can build rgba() veils/tints from a flat hex.
 const rgbTriplet = (hex: string) => {
@@ -24,25 +24,27 @@ const rgbTriplet = (hex: string) => {
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 };
 
-const REVEAL_EASE = [0.16, 1, 0.3, 1] as const;
+// The frost veil is drawn on a 2D canvas and the prints are SVG, so both need
+// real color values (not CSS vars) — hence the plain objects below.
 
-// Palette + footprint colors live below the Animal type (LIGHT / DARK), since
-// the frost + prints are drawn on a 2D canvas — they need real color values
-// (not CSS vars), so the two themes are defined as plain objects and swapped.
+// Five characterful tracks, one per picker slot. The animal picks the shape;
+// the color is a random multi-hue blend, not a per-animal hue. The list lives
+// in ThemeProvider because the chosen one is shared, persisted site state.
+const ANIMALS = FOOTPRINT_ANIMALS;
+type Animal = FootprintAnimal;
 
-const LINKS = [
-  { label: "Work", href: "/#work", cursor: "Okay, the actual work" },
-  { label: "Playground", href: "/playground", cursor: "Off-the-record" },
-  { label: "About", href: "/about", cursor: "Who's Shruthi?" },
-] as const;
+// The shapes are drawn for a 0 0 100 110 box. The stipple filter bleeds past
+// that, so the rendered viewBox is padded and the size scaled to match — the
+// paw lands at the same on-screen size, with room for its ragged edge.
+const VB = { x: -14, y: -14, w: 128, h: 138 };
+const PAW_W = 82;
+const PAW_H = 88;
+// Gradient sweep radius in user units, measured from the shape's center.
+const GRAD_R = 78;
 
-// Five characterful tracks, one per picker slot. (Monochrome now — the print
-// color is the theme's ink, not a per-animal hue.)
-const ANIMALS = ["lion", "giraffe", "duck", "hippo", "zebra"] as const;
-type Animal = (typeof ANIMALS)[number];
-
-// Live two-tone palette the canvas reads each frame. `ink` is the print/chrome
-// color; `bg` is the paper; `fog` is the paper at veil alpha.
+// Live two-tone palette for the SURFACE only — the frost veil and the chrome
+// that sits on it (text, picker icons). The prints no longer read from this;
+// they're mixed from HUES/BLENDS. `bg` is the paper; `fog` is it at veil alpha.
 type Palette = {
   bg: string;
   fog: string;
@@ -59,6 +61,10 @@ const SIZE: Record<Animal, number> = {
 };
 
 const POOL = 44;
+// A second, smaller pool drawn on top of the type in `screen` blend, for the
+// walkers that cross the headline. Only ever a handful are alive at once —
+// one crossing's worth — so it doesn't need the full 44.
+const POOL_OVER = 18;
 // Realistic-ish gait: stride (px between steps) + track width per animal.
 const STRIDE: Record<Animal, number> = {
   giraffe: 146,
@@ -100,40 +106,162 @@ const rectDist = (
 
 type Wipe = { x: number; y: number; s: number; r: number };
 
-// Track shapes — shared by the cursor prints and the picker icons.
-function shapeChildren(animal: Animal) {
-  switch (animal) {
-    case "lion":
-      return (
-        <>
-          <ellipse cx="50" cy="74" rx="27" ry="23" />
-          <ellipse cx="20" cy="42" rx="9" ry="13" />
-          <ellipse cx="41" cy="27" rx="9" ry="14" />
-          <ellipse cx="62" cy="27" rx="9" ry="14" />
-          <ellipse cx="81" cy="42" rx="9" ry="13" />
-        </>
-      );
-    case "giraffe":
-      return (
-        <>
-          <ellipse cx="37" cy="58" rx="14" ry="40" transform="rotate(-7 37 58)" />
-          <ellipse cx="63" cy="58" rx="14" ry="40" transform="rotate(7 63 58)" />
-        </>
-      );
-    case "hippo":
-      return (
-        <path d="M50 10 C64 10 71 21 67 31 C66 35 65 36 72 41 C84 47 84 61 77 76 C72 89 69 99 58 99 C53 99 51 91 50 84 C49 91 47 99 42 99 C31 99 28 89 23 76 C16 61 16 47 28 41 C35 36 34 35 33 31 C29 21 36 10 50 10 Z" />
-      );
-    case "zebra":
-      return (
-        <path d="M30 13 C36 16 44 30 49 48 Q50 53 51 48 C56 30 64 16 70 13 C80 16 84 40 83 60 C82 82 72 99 50 99 C28 99 18 82 17 60 C16 40 20 16 30 13 Z" />
-      );
-    case "duck":
-      return <path d="M50 95 L26 32 Q40 47 50 30 Q60 47 74 32 Z" />;
+// Track shapes — shared by the cursor prints, the picker icons and the favicon,
+// so the geometry has exactly one home (app/lib/footprints). The markup is our
+// own static string, hence the safe dangerouslySetInnerHTML.
+function ShapeGroup({
+  animal,
+  ...rest
+}: { animal: Animal } & React.SVGProps<SVGGElement>) {
+  return <g {...rest} dangerouslySetInnerHTML={{ __html: SHAPES[animal] }} />;
+}
+
+// Re-roll a slot's colorway before it's shown: a fresh three-hue blend, a fresh
+// sweep angle, and a fresh turbulence seed so no two prints stipple alike.
+//
+// `tint` biases that roll. The hero passes the hue its rotating verb is
+// currently wearing, so the trail turns over with the word instead of the two
+// running as unrelated random systems. Only the blends that already contain
+// the hue are eligible, and the tuple is rotated so the hue lands on the
+// middle stop — the one carrying the most visual mass. A tint the palette
+// doesn't know (or none at all, which is what charcoal means here) falls
+// straight back to the full set.
+function paintPrint(el: HTMLElement, tint?: string | null) {
+  const tinted = tint ? BLENDS.filter((b) => b.includes(tint)) : [];
+  const pool = tinted.length ? tinted : BLENDS;
+  const picked = pool[(Math.random() * pool.length) | 0];
+  const at = tinted.length ? picked.indexOf(tint as string) : 0;
+  // Rotate so the tint sits at index 1 (the middle stop).
+  const [c0, c1, c2] = [
+    picked[(at + 2) % 3],
+    picked[at],
+    picked[(at + 1) % 3],
+  ];
+  const stops = el.querySelectorAll<SVGStopElement>("stop");
+  stops[0]?.setAttribute("stop-color", c0);
+  stops[1]?.setAttribute("stop-color", c1);
+  stops[2]?.setAttribute("stop-color", c2);
+  // Nudge the middle stop so the two bleeds are never evenly split.
+  stops[1]?.setAttribute("offset", `${Math.round(rand(34, 66))}%`);
+
+  const a = rand(0, Math.PI * 2);
+  const dx = Math.cos(a) * GRAD_R;
+  const dy = Math.sin(a) * GRAD_R;
+  const grad = el.querySelector("linearGradient");
+  if (grad) {
+    grad.setAttribute("x1", `${50 - dx}`);
+    grad.setAttribute("y1", `${55 - dy}`);
+    grad.setAttribute("x2", `${50 + dx}`);
+    grad.setAttribute("y2", `${55 + dy}`);
+  }
+  const turb = el.querySelector("feTurbulence");
+  turb?.setAttribute("seed", `${(Math.random() * 999) | 0}`);
+  turb?.setAttribute("baseFrequency", `${rand(0.72, 0.98).toFixed(2)}`);
+}
+
+/**
+ * Copy a freshly-painted slot's colourway onto a second slot, so the two are
+ * the same print rather than two rolls of the dice.
+ *
+ * This exists for the overlay pool (see POOL_OVER): a print that crosses the
+ * headline is drawn twice, once behind the type and once on top of it in
+ * `screen`, and the pair only reads as one object if they share a gradient,
+ * a stop split and a turbulence seed.
+ */
+function mirrorPaint(src: HTMLElement, dst: HTMLElement) {
+  const ss = src.querySelectorAll<SVGStopElement>("stop");
+  const ds = dst.querySelectorAll<SVGStopElement>("stop");
+  ss.forEach((st, i) => {
+    const d = ds[i];
+    if (!d) return;
+    d.setAttribute("stop-color", st.getAttribute("stop-color") ?? "");
+    d.setAttribute("offset", st.getAttribute("offset") ?? `${i * 50}%`);
+  });
+  const sg = src.querySelector("linearGradient");
+  const dg = dst.querySelector("linearGradient");
+  if (sg && dg) {
+    for (const a of ["x1", "y1", "x2", "y2"]) {
+      dg.setAttribute(a, sg.getAttribute(a) ?? "");
+    }
+  }
+  const stb = src.querySelector("feTurbulence");
+  const dtb = dst.querySelector("feTurbulence");
+  if (stb && dtb) {
+    for (const a of ["seed", "baseFrequency"]) {
+      dtb.setAttribute(a, stb.getAttribute(a) ?? "");
+    }
   }
 }
 
-function PawShapes() {
+// One gradient + one grain filter per pool slot. Both are re-randomized on
+// every spawn (see paintPrint), so the 44 slots keep cycling fresh colorways.
+//
+// The filter is the ethereal part: turbulence roughens the silhouette, a blur
+// turns the alpha into a soft ramp, and the arithmetic composite multiplies
+// that ramp back against the same noise — dense pigment in the middle, stipple
+// dissolving into nothing at the edge.
+function PawDefs({ id }: { id: string }) {
+  return (
+    <svg aria-hidden width="0" height="0" className="absolute h-0 w-0 overflow-hidden">
+      <defs>
+        <linearGradient
+          id={`pg-${id}`}
+          gradientUnits="userSpaceOnUse"
+          x1={50 - GRAD_R}
+          y1={55 - GRAD_R}
+          x2={50 + GRAD_R}
+          y2={55 + GRAD_R}
+        >
+          <stop offset="0%" stopColor={HUES.paleBlue} />
+          <stop offset="50%" stopColor={HUES.lavender} />
+          <stop offset="100%" stopColor={HUES.orange} />
+        </linearGradient>
+        <filter
+          id={`pf-${id}`}
+          x="-35%"
+          y="-35%"
+          width="170%"
+          height="170%"
+          colorInterpolationFilters="sRGB"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.85"
+            numOctaves={3}
+            seed={1}
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale={7}
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="rough"
+          />
+          <feGaussianBlur in="rough" stdDeviation={2.4} result="soft" />
+          {/* Flatten the same noise to white-with-noisy-alpha, then clip the
+              blurred paw through it. Clipping by alpha (rather than compositing
+              the noise's color in) keeps the gradient's hues clean while the
+              blur's edge ramp thins the stipple out to nothing. The 0.34 floor
+              stops the middle from dissolving into pure dust. */}
+          <feColorMatrix
+            in="n"
+            type="matrix"
+            values="0 0 0 0 1
+                    0 0 0 0 1
+                    0 0 0 0 1
+                    0 0 0 0.72 0.34"
+            result="grain"
+          />
+          <feComposite in="soft" in2="grain" operator="in" />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
+function PawShapes({ id }: { id: string }) {
   const cls = "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2";
   return (
     <>
@@ -141,14 +269,17 @@ function PawShapes() {
         <svg
           key={a}
           data-shape={a}
-          viewBox="0 0 100 110"
-          width={64}
-          height={70}
-          fill="currentColor"
+          viewBox={`${VB.x} ${VB.y} ${VB.w} ${VB.h}`}
+          width={PAW_W}
+          height={PAW_H}
           className={cls}
-          style={{ display: "none" }}
+          style={{ display: "none", overflow: "visible" }}
         >
-          {shapeChildren(a)}
+          <ShapeGroup
+            animal={a}
+            fill={`url(#pg-${id})`}
+            filter={`url(#pf-${id})`}
+          />
         </svg>
       ))}
     </>
@@ -156,53 +287,69 @@ function PawShapes() {
 }
 
 export default function FootprintsHome({
-  variant = "home",
   footprintPicker = false,
   inverted = false,
-  controls,
+  tint = null,
+  introWalk = "corner",
   children,
 }: {
-  // "home": full chrome (nav + colour rail + footprint picker).
-  // "ambient": bare frosted-footprint canvas, no chrome — used as a background
-  //            layer (e.g. the hero backdrop and behind the one-pager footer).
-  variant?: "home" | "ambient";
-  // "ambient" only: render the 5-animal picker (which critter's prints appear).
+  // Render the 5-animal picker (which critter's prints appear).
   footprintPicker?: boolean;
-  // "ambient" only: flip to inverted polarity (dark panel, paper prints/text).
+  // Flip to inverted polarity (dark panel, paper prints/text).
   inverted?: boolean;
-  // "ambient" + footprintPicker only: extra controls rendered inline to the
-  // right of the footprint picker, sharing its bottom-right corner cluster
-  // (the footer passes its colour + light/dark bat here).
-  controls?: ReactNode;
+  // A palette hue every print should be mixed around; null = free-for-all.
+  // See paintPrint. The hero drives this off its rotating verb.
+  tint?: string | null;
+  // Which greeting trail plays on mount. "corner" is the original four prints
+  // in the lower left (the footer's). "cross" walks the full width of the box,
+  // for the hero, where the box is a whole viewport and four prints in a
+  // corner leave the screen looking dead until the pointer moves.
+  introWalk?: "corner" | "cross";
   children?: ReactNode;
 } = {}) {
+  // SVG ids are document-global, so each mount (hero + footer both render this)
+  // namespaces its gradient/filter ids. useId's colons aren't url(#…)-safe.
+  const slotId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const root = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stackRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const railRef = useRef<HTMLDivElement>(null);
   const quietBoxes = useRef<
     { left: number; top: number; right: number; bottom: number }[]
   >([]);
   const paws = useRef<HTMLDivElement[]>([]);
   const pawI = useRef(0);
+  const pawsOver = useRef<HTMLDivElement[]>([]);
+  const pawOverI = useRef(0);
   const wipes = useRef<Wipe[]>([]);
   const dims = useRef({ w: 0, h: 0 });
   const lastStep = useRef<{ x: number; y: number; t: number } | null>(null);
   const lastWipe = useRef<{ x: number; y: number } | null>(null);
   const side = useRef(1);
   const reduced = useRef(false);
+  // When the visitor's own pointer last laid something down. The ambient
+  // walker waits on this: it only crosses while the page is being left alone.
+  const lastPointerAt = useRef(0);
 
-  const [sel, setSel] = useState<Animal>("lion");
-  const [hovered, setHovered] = useState<string | null>(null);
+  // The chosen animal is shared across every FootprintsHome on the page (hero +
+  // footer) and persists, so picking one anywhere changes all of them.
+  const { footprint: sel, setFootprint } = useFootprint();
   // Ambient footprint picker: a fixed trigger showing the chosen animal; click
   // fans the rest upward, choosing one collapses back to the same spot.
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
-  const selRef = useRef<Animal>("lion");
+  // The spawn path runs off the gsap ticker and pointer handlers, so it reads a
+  // ref rather than closing over a render's value.
+  const selRef = useRef<Animal>(sel);
+  useEffect(() => {
+    selRef.current = sel;
+  }, [sel]);
+  // Same reason as selRef: spawnPrint runs off the ticker and pointer
+  // handlers, so the live tint has to be readable without a re-render.
+  const tintRef = useRef<string | null>(tint);
+  useEffect(() => {
+    tintRef.current = tint;
+  }, [tint]);
   const select = (a: Animal) => {
-    setSel(a);
-    selRef.current = a;
+    setFootprint(a);
     setPickerOpen(false);
   };
 
@@ -223,21 +370,15 @@ export default function FootprintsHome({
     };
   }, [pickerOpen]);
 
-  // Two-tone palette, derived live from the chosen pastel + polarity. The canvas
-  // (frost + prints) reads palRef every frame so it repaints the instant either
-  // the color swatch or the light/dark toggle changes.
-  //   light: paper = hue, ink = charcoal     dark: paper = charcoal, ink = hue
-  const { resolvedTheme, color, setColor } = useTheme();
-  const hue = PAPER_COLORS[color];
-  const isDark = resolvedTheme === "dark";
-  const paper = isDark ? CHARCOAL : hue;
-  const ink = isDark ? hue : CHARCOAL;
-  // The ambient layer can run at the OPPOSITE polarity — dark frost + paper
-  // prints on a light page, and the reverse in dark mode — when asked (the
-  // one-pager footer). The hero backdrop keeps the page's own polarity.
-  const invert = variant === "ambient" && inverted;
-  const bg = invert ? ink : paper;
-  const fg = invert ? paper : ink;
+  // Surface palette. The canvas reads palRef every frame, a leftover from when
+  // this could change under it; it's a fixed pair now. Prints are independent
+  // of it either way — they're mixed from HUES/BLENDS.
+  const { paper, ink } = SURFACE;
+  // Dark frost + paper prints on a light page, and the reverse in dark mode —
+  // when asked (the one-pager footer). The hero backdrop keeps the page's own
+  // polarity (inverted stays false there).
+  const bg = inverted ? ink : paper;
+  const fg = inverted ? paper : ink;
   const pal: Palette = {
     bg,
     fog: `rgba(${rgbTriplet(bg)}, 0.72)`,
@@ -248,61 +389,6 @@ export default function FootprintsHome({
   useEffect(() => {
     palRef.current = pal;
   }, [pal]);
-
-  // Splash coordination: hold the home hidden until the splash lifts (or reveal
-  // immediately when there's no splash, e.g. arriving via client-side nav), and
-  // wait for the display font so the blur→sharp reveal doesn't reflow.
-  const shouldReduce = useReducedMotion();
-  const [lifted, setLifted] = useState(false);
-  const [fontsReady, setFontsReady] = useState(false);
-  const revealed = lifted && fontsReady;
-
-  useEffect(() => {
-    if (isSplashLifted() || !splashWillPlay()) {
-      setLifted(true);
-      return;
-    }
-    const off = onSplashLift(() => setLifted(true));
-    const safety = window.setTimeout(() => setLifted(true), 2600); // never strand the home
-    return () => {
-      off();
-      window.clearTimeout(safety);
-    };
-  }, []);
-
-  useEffect(() => {
-    let ok = true;
-    const done = () => ok && setFontsReady(true);
-    if (typeof document !== "undefined" && document.fonts) {
-      document.fonts.ready.then(done);
-    }
-    const fb = window.setTimeout(done, 1500); // fallback if fonts never resolve
-    return () => {
-      ok = false;
-      window.clearTimeout(fb);
-    };
-  }, []);
-
-  // Reveal variants — links rise + sharpen from a soft blur, staggered.
-  const revealDur = shouldReduce ? 0 : 0.8;
-  const linkStack: Variants = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: shouldReduce ? 0 : 0.1,
-        delayChildren: shouldReduce ? 0 : 0.04,
-      },
-    },
-  };
-  const linkReveal: Variants = {
-    hidden: { opacity: 0, y: 26, filter: "blur(12px)" },
-    show: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      transition: { duration: revealDur, ease: REVEAL_EASE },
-    },
-  };
 
   // 0 over any protected element (calm) → 1 out in the open.
   const quietFactor = (x: number, y: number) => {
@@ -320,6 +406,10 @@ export default function FootprintsHome({
     rot: number,
     p: number,
     fade = 1,
+    // Also draw this print in the overlay pool, above the type. Used by the
+    // walkers routed through the headline: the copy underneath gives the soft
+    // coloured form, the copy on top lets the letters take its hue.
+    overlay = false,
   ) => {
     if (fade <= 0.06) return; // inside the quiet zone — no print
     const el = paws.current[pawI.current++ % POOL];
@@ -327,20 +417,37 @@ export default function FootprintsHome({
     el.querySelectorAll<SVGElement>("[data-shape]").forEach((s) => {
       s.style.display = s.getAttribute("data-shape") === animal ? "block" : "none";
     });
-    el.style.color = palRef.current.ink;
-    el.style.filter = "blur(0.4px)";
+    paintPrint(el, tintRef.current);
 
-    const opacity = lerp(0.5, 0.97, p) * fade;
+    const opacity = lerp(0.45, 0.88, p) * fade;
     const scale = lerp(0.82, 1.2, p) * SIZE[animal] * lerp(0.72, 1, fade);
-    gsap.killTweensOf(el);
-    gsap.set(el, { x, y, rotation: rot, scale: scale * 0.78, opacity: 0 });
-    gsap.to(el, { opacity, scale, duration: 0.18, ease: "power2.out" });
-    gsap.to(el, {
-      opacity: 0,
-      duration: lerp(1.4, 2.4, p),
-      ease: "power1.in",
-      delay: 0.5 + p * 0.4,
-    });
+    const out = lerp(1.4, 2.4, p);
+    const run = (target: HTMLElement, o: number) => {
+      gsap.killTweensOf(target);
+      gsap.set(target, { x, y, rotation: rot, scale: scale * 0.78, opacity: 0 });
+      gsap.to(target, { opacity: o, scale, duration: 0.18, ease: "power2.out" });
+      gsap.to(target, {
+        opacity: 0,
+        duration: out,
+        ease: "power1.in",
+        delay: 0.5 + p * 0.4,
+      });
+    };
+    run(el, opacity);
+
+    if (overlay) {
+      const ov = pawsOver.current[pawOverI.current++ % POOL_OVER];
+      if (ov) {
+        ov.querySelectorAll<SVGElement>("[data-shape]").forEach((s) => {
+          s.style.display =
+            s.getAttribute("data-shape") === animal ? "block" : "none";
+        });
+        mirrorPaint(el, ov);
+        // Fuller than the copy underneath: `screen` only bites where it lands
+        // on the dark type, and it has to carry the colour there on its own.
+        run(ov, Math.min(1, opacity * 1.35));
+      }
+    }
   };
 
   const addWipe = (x: number, y: number, r = WIPE_R, s = 1) => {
@@ -355,6 +462,7 @@ export default function FootprintsHome({
 
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     if (reduced.current) return;
+    lastPointerAt.current = performance.now();
     const { x, y } = coords(e);
     const q = quietFactor(x, y); // 0 over the menu → 1 out in the open
 
@@ -397,6 +505,7 @@ export default function FootprintsHome({
 
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     if (reduced.current) return;
+    lastPointerAt.current = performance.now();
     const { x, y } = coords(e);
     const q = quietFactor(x, y);
     spawnPrint(selRef.current, x, y, rand(-15, 15), 1, q); // deliberate stomp
@@ -446,10 +555,7 @@ export default function FootprintsHome({
       if (!rt) return;
       const o = rt.getBoundingClientRect();
       const els = [
-        stackRef.current,
-        bottomRef.current,
-        railRef.current,
-        // Ambient callers (e.g. the footer) mark their text with [data-quiet]
+        // Callers (e.g. the footer, the hero) mark their text with [data-quiet]
         // so prints fade around it and it stays readable + clickable.
         ...Array.from(rt.querySelectorAll<HTMLElement>("[data-quiet]")),
       ];
@@ -513,7 +619,7 @@ export default function FootprintsHome({
         el.querySelectorAll<SVGElement>("[data-shape]").forEach((s) => {
           s.style.display = s.getAttribute("data-shape") === a ? "block" : "none";
         });
-        el.style.color = palRef.current.ink;
+        paintPrint(el, tintRef.current);
         gsap.set(el, {
           x: w * (0.2 + i * 0.14),
           y: h * 0.7,
@@ -533,25 +639,144 @@ export default function FootprintsHome({
       gsap.ticker.remove(update);
       window.removeEventListener("resize", onResize);
       gsap.killTweensOf(paws.current);
+      gsap.killTweensOf(pawsOver.current);
       wipes.current = [];
     };
   }, []);
 
-  // The inviting footprint trail plays once the home is revealed — so it isn't
-  // wasted behind the splash.
+  // Somebody keeps walking through here, and the visitor is following them.
+  //
+  // "corner" is the footer's: four prints scuffed into the lower left, once,
+  // because that panel is short and the eye is already there.
+  //
+  // "cross" is the hero's, and it doesn't stop. A walker crosses the viewport
+  // shortly after mount, and another sets off every time the pointer has been
+  // still for a beat, so the screen is never dead but never competes with a
+  // visitor who is actually using it. Each crossing picks a different route,
+  // all of them kept to the lower half; quietFactor fades anything that does
+  // stray near the headline, so the sentence is never stamped over.
   useEffect(() => {
-    if (!revealed || reduced.current) return;
-    const { w, h } = dims.current;
-    const calls = Array.from({ length: 4 }, (_, i) =>
-      gsap.delayedCall(0.25 + i * 0.18, () => {
-        const x = w * (0.16 + i * 0.1);
-        const y = h * (0.85 - i * 0.02);
-        spawnPrint("lion", x, y, i % 2 ? 14 : -14, 0.7);
-        addWipe(x, y);
-      }),
-    );
+    if (reduced.current) return;
+
+    // Routes are paths in unit space (0–1 of the box), sampled into strides.
+    // They all live below the midline and run off both edges, so a walker
+    // arrives from somewhere and leaves for somewhere rather than appearing.
+    const ROUTES: ((t: number) => { x: number; y: number })[] = [
+      // Left → right, a shallow sine through the lower third.
+      (t) => ({ x: -0.04 + t * 1.08, y: 0.74 + Math.sin(t * Math.PI * 1.6) * 0.055 }),
+      // Right → left, lower and flatter: a second creature, later, heavier.
+      (t) => ({ x: 1.04 - t * 1.08, y: 0.84 - Math.sin(t * Math.PI * 1.2) * 0.045 }),
+      // Up out of the bottom-left corner and off the right edge.
+      (t) => ({ x: -0.04 + t * 1.08, y: 1.02 - t * 0.38 }),
+      // In from the right, dipping to the bottom edge and away.
+      (t) => ({ x: 1.04 - t * 0.72, y: 0.6 + t * 0.44 }),
+      // A short wander that enters and leaves through the bottom.
+      (t) => ({ x: 0.18 + t * 0.5, y: 1.02 - Math.sin(t * Math.PI) * 0.26 }),
+    ];
+
+    // Every so often one of them walks straight through the headline instead of
+    // politely around it. The route is aimed at the widest protected box rather
+    // than at a hard-coded band, so it finds the type wherever the layout puts
+    // it, and the crossing is drawn in the overlay pool as well — the letters
+    // take the print's colour as it passes under them.
+    const THROUGH_EVERY = 4; // one crossing in four
+    let crossings = 0;
+
+    const throughRoute = (w: number, h: number) => {
+      const boxes = quietBoxes.current;
+      if (!boxes.length) return null;
+      const target = boxes.reduce((a, b) =>
+        b.right - b.left > a.right - a.left ? b : a,
+      );
+      const cy = (target.top + target.bottom) / 2 / h;
+      const band = Math.min((target.bottom - target.top) / h * 0.28, 0.06);
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      return (t: number) => ({
+        x: dir > 0 ? -0.06 + t * 1.12 : 1.06 - t * 1.12,
+        // Drifts across the type rather than ruling a line through it.
+        y: cy + Math.sin(t * Math.PI * 1.3 + 0.4) * band,
+      });
+    };
+
+    const IDLE_MS = 4000; // pointer quiet for this long → send someone across
+    let calls: ReturnType<typeof gsap.delayedCall>[] = [];
+
+    const walk = () => {
+      const { w, h } = dims.current;
+      if (!w || !h) {
+        calls.push(gsap.delayedCall(0.3, walk));
+        return;
+      }
+      const through = crossings++ % THROUGH_EVERY === THROUGH_EVERY - 1;
+      const path =
+        (through ? throughRoute(w, h) : null) ??
+        ROUTES[(Math.random() * ROUTES.length) | 0];
+      const n = 13 + ((Math.random() * 5) | 0);
+      // Seconds between strides. A full crossing takes five or six seconds:
+      // this is an amble, not a dash.
+      const pace = rand(0.3, 0.44);
+      const animal = selRef.current;
+      let foot = 1;
+
+      for (let i = 0; i < n; i++) {
+        const t = i / (n - 1);
+        const a = path(t);
+        const b = path(Math.min(t + 0.02, 1));
+        // Heading from the path itself, so the print turns with the walker.
+        const ang = Math.atan2((b.y - a.y) * h, (b.x - a.x) * w);
+        const perp = ang + Math.PI / 2;
+        const x = a.x * w + Math.cos(perp) * FOOTW[animal] * foot;
+        const y = a.y * h + Math.sin(perp) * FOOTW[animal] * foot;
+        foot *= -1;
+        // Heaviest mid-stride, lighter as they arrive and leave.
+        const p = 0.4 + Math.sin(t * Math.PI) * 0.45;
+        calls.push(
+          gsap.delayedCall(0.2 + i * pace, () => {
+            // A through-walker ignores the quiet zones; that's the whole point
+            // of it. Everyone else fades out as they near the type.
+            const q = through ? 1 : quietFactor(x, y);
+            spawnPrint(animal, x, y, (ang * 180) / Math.PI + 90, p, q, through);
+            if (q > 0.08) addWipe(x, y, WIPE_R, q);
+          }),
+        );
+      }
+      // Once they're off the edge, wait for the page to go quiet again.
+      calls.push(gsap.delayedCall(0.2 + n * pace + rand(0.6, 1.8), queue));
+    };
+
+    // Hold until the visitor's own pointer has been still for IDLE_MS, then
+    // send the next walker. Re-checks rather than listening, so a pointer that
+    // never stops moving simply never lets anyone through.
+    const queue = () => {
+      calls = calls.filter((c) => c.isActive());
+      const since = performance.now() - lastPointerAt.current;
+      if (since < IDLE_MS) {
+        calls.push(gsap.delayedCall((IDLE_MS - since) / 1000, queue));
+        return;
+      }
+      walk();
+    };
+
+    if (introWalk === "corner") {
+      const steps = Array.from({ length: 4 }, (_, i) => ({
+        at: 0.25 + i * 0.18,
+        x: dims.current.w * (0.16 + i * 0.1),
+        y: dims.current.h * (0.85 - i * 0.02),
+        rot: i % 2 ? 14 : -14,
+      }));
+      calls = steps.map((s) =>
+        gsap.delayedCall(s.at, () => {
+          const q = quietFactor(s.x, s.y);
+          spawnPrint(selRef.current, s.x, s.y, s.rot, 0.7, q);
+          if (q > 0.08) addWipe(s.x, s.y, WIPE_R, q);
+        }),
+      );
+    } else {
+      calls.push(gsap.delayedCall(0.45, walk));
+    }
+
     return () => calls.forEach((c) => c.kill());
-  }, [revealed]);
+  }, [introWalk]);
 
   return (
     <div
@@ -578,7 +803,8 @@ export default function FootprintsHome({
             className="absolute left-0 top-0 will-change-transform"
             style={{ opacity: 0 }}
           >
-            <PawShapes />
+            <PawDefs id={`${slotId}-${i}`} />
+            <PawShapes id={`${slotId}-${i}`} />
           </div>
         ))}
       </div>
@@ -590,25 +816,48 @@ export default function FootprintsHome({
         className="pointer-events-none absolute inset-0 z-10"
       />
 
-      {/* Ambient variant: bare frosted-footprint layer with caller-supplied
-          content above the frost. The wrapper stays pointer-events-none so the
-          cursor still lays prints in the gaps; interactive children opt back in
-          with pointer-events-auto. */}
-      {variant === "ambient" && (
-        <div
-          className="pointer-events-none absolute inset-0 z-20"
-          style={{ color: pal.ink }}
-        >
-          {children}
-        </div>
-      )}
+      {/* Bare frosted-footprint layer with caller-supplied content above the
+          frost. The wrapper stays pointer-events-none so the cursor still
+          lays prints in the gaps; interactive children opt back in with
+          pointer-events-auto. */}
+      <div
+        className="pointer-events-none absolute inset-0 z-20"
+        style={{ color: pal.ink }}
+      >
+        {children}
+      </div>
 
-      {/* Ambient footer controls — one bottom-RIGHT cluster: footprint picker ·
-          colour · bat, all on one h-9 baseline. Copyright (left) + colophon
-          (center) are rendered by the footer content. Each picker's swatches fan
+      {/* The same prints again, on top of the type in `screen`. Over the paper
+          this is a no-op (screening a pastel onto near-white leaves near-white),
+          so it shows up only where a print crosses a dark letterform, which is
+          where the letter takes on the print's colour. Only the headline
+          crossings feed it — see the ambient walker. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-30"
+        style={{ mixBlendMode: "screen" }}
+      >
+        {Array.from({ length: POOL_OVER }).map((_, i) => (
+          <div
+            key={i}
+            ref={(el) => {
+              if (el) pawsOver.current[i] = el;
+            }}
+            className="absolute left-0 top-0 will-change-transform"
+            style={{ opacity: 0 }}
+          >
+            <PawDefs id={`${slotId}-ov-${i}`} />
+            <PawShapes id={`${slotId}-ov-${i}`} />
+          </div>
+        ))}
+      </div>
+
+      {/* Footer controls — one bottom-RIGHT cluster: footprint picker · colour
+          · bat, all on one h-9 baseline. Copyright (left) + colophon (center)
+          are rendered by the footer content. Each picker's swatches fan
           upward from its trigger; data-quiet + stopPropagation keep prints from
           spawning over the controls. */}
-      {variant === "ambient" && footprintPicker && (
+      {footprintPicker && (
         <div className="pointer-events-auto absolute bottom-8 right-5 z-30 flex h-9 items-center gap-3 sm:right-8">
           <div
             data-quiet
@@ -638,8 +887,8 @@ export default function FootprintsHome({
                     data-cursor-label={a[0].toUpperCase() + a.slice(1)}
                     className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
                   >
-                    <svg viewBox="0 0 100 110" width="21" height="23" fill={pal.ink} style={{ opacity: 0.75 }}>
-                      {shapeChildren(a)}
+                    <svg viewBox="0 0 100 110" width="21" height="23" style={{ opacity: 0.75 }}>
+                      <ShapeGroup animal={a} fill={pal.ink} />
                     </svg>
                   </button>
                 ))}
@@ -654,142 +903,15 @@ export default function FootprintsHome({
                 className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
                 style={{ backgroundColor: pal.pickerActive, boxShadow: `inset 0 0 0 2px ${pal.ink}` }}
               >
-                <svg viewBox="0 0 100 110" width="21" height="23" fill={pal.ink}>
-                  {shapeChildren(sel)}
+                <svg viewBox="0 0 100 110" width="21" height="23">
+                  <ShapeGroup animal={sel} fill={pal.ink} />
                 </svg>
               </button>
             </div>
           </div>
-          {controls}
         </div>
       )}
 
-      {/* Home chrome — nav, colour rail, footprint picker. Only the full "home"
-          variant renders it; the "ambient" variant stays chrome-free. */}
-      {variant === "home" && (
-        <>
-      {/* Big links — idle: all sharp. Hover one: it stays clear, the rest frost. */}
-      <nav
-        aria-label="Sections"
-        className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
-      >
-        <motion.div
-          ref={stackRef}
-          variants={linkStack}
-          initial="hidden"
-          animate={revealed ? "show" : "hidden"}
-          className="pointer-events-auto flex flex-col items-center gap-[clamp(0.5rem,min(2.6vw,2.6vh),2.25rem)]"
-          onMouseLeave={() => setHovered(null)}
-        >
-          {LINKS.map((l) => {
-            const frost = hovered !== null && hovered !== l.href;
-            return (
-              <motion.div key={l.href} variants={linkReveal}>
-                <Link
-                  href={l.href}
-                  onMouseEnter={() => setHovered(l.href)}
-                  data-cursor-label={l.cursor}
-                  className="block lowercase"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 500,
-                    fontStyle: "italic",
-                    // cap by width AND height so the no-scroll home never clips
-                    // the stack on short / landscape phones
-                    fontSize: "clamp(2.25rem, min(11vw, 15vh), 7.875rem)",
-                    lineHeight: 1,
-                    letterSpacing: "-0.01em",
-                    color: pal.ink,
-                    opacity: frost ? 0.4 : 1,
-                    filter: frost ? "blur(7px)" : "blur(0px)",
-                    transition: "filter 0.3s ease, opacity 0.3s ease",
-                  }}
-                >
-                  {l.label}
-                </Link>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </nav>
-
-      {/* Color rail — the five papers. Picking one sets the background (and, in
-          dark mode, the ink). Each swatch shows its true pastel so the choice
-          reads the same in either polarity. */}
-      <div
-        ref={railRef}
-        className="absolute left-2 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center gap-2.5 sm:left-6 sm:gap-3"
-        style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.2s" }}
-        onPointerDown={(e) => e.stopPropagation()}
-        onPointerMove={(e) => e.stopPropagation()}
-      >
-        {PAPER_ORDER.map((c) => {
-          const active = color === c;
-          return (
-            <button
-              key={c}
-              onClick={() => setColor(c)}
-              aria-label={`${c} background`}
-              aria-pressed={active}
-              data-cursor-label={c === "blush" ? "Salmon" : c[0].toUpperCase() + c.slice(1)}
-              className="grid h-6 w-6 place-items-center rounded-full transition-transform hover:scale-110 sm:h-7 sm:w-7"
-              style={{
-                boxShadow: active ? `0 0 0 1.5px ${pal.ink}, 0 0 0 4px ${pal.bg}` : "none",
-              }}
-            >
-              <span
-                className="block h-[15px] w-[15px] rounded-full sm:h-[18px] sm:w-[18px]"
-                style={{
-                  backgroundColor: PAPER_COLORS[c],
-                  boxShadow: `inset 0 0 0 1px rgba(${rgbTriplet(pal.ink)}, 0.25)`,
-                }}
-              />
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Bottom — footprint picker + tagline */}
-      <div
-        ref={bottomRef}
-        className="relative z-30 mt-auto flex shrink-0 flex-col items-center gap-4 pb-8 pt-4"
-        style={{ opacity: revealed ? 1 : 0, transition: "opacity 0.7s ease 0.15s" }}
-        onPointerDown={(e) => e.stopPropagation()}
-        onPointerMove={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {ANIMALS.map((a) => {
-            const active = sel === a;
-            return (
-              <button
-                key={a}
-                onClick={() => select(a)}
-                aria-label={`${a} footprints`}
-                aria-pressed={active}
-                data-cursor-label={a[0].toUpperCase() + a.slice(1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity sm:h-11 sm:w-11"
-                style={
-                  active
-                    ? { backgroundColor: pal.pickerActive, boxShadow: `inset 0 0 0 2px ${pal.ink}` }
-                    : { opacity: 0.45 }
-                }
-              >
-                <svg viewBox="0 0 100 110" width="26" height="28" fill={pal.ink}>
-                  {shapeChildren(a)}
-                </svg>
-              </button>
-            );
-          })}
-        </div>
-        <p
-          className="text-sm italic opacity-60"
-          style={{ fontFamily: "var(--font-eb-garamond)" }}
-        >
-          Who doesn&rsquo;t love leaving a footprint!
-        </p>
-      </div>
-        </>
-      )}
     </div>
   );
 }

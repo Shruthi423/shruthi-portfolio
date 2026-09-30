@@ -4,16 +4,15 @@ import { useRef } from "react";
 import { gsap, useGSAP, ScrollSmoother } from "@/app/lib/gsap";
 // ScrollSmoother locates #smooth-wrapper / #smooth-content by id, so no element
 // refs are threaded into create() (which keeps the types null-free).
-import { WorkGrid } from "@/app/components/work/WorkGrid";
-import FootprintsHome from "@/app/components/home/FootprintsHome";
 import HeroStack from "@/app/components/home/HeroStack";
+import { WorkGrid } from "@/app/components/work/WorkGrid";
 import { SiteFooter } from "@/app/components/layout/SiteFooter";
-import { projects } from "@/app/lib/projects";
+import { activeProjects } from "@/app/lib/projects";
 
 /**
  * The home (`/`). A single soft-scrolling page so the work is one scroll + one
  * click from landing instead of buried behind a nav. Structure:
- * frosted-footprints hero → selected work → footer, the last carrying the
+ * editorial introduction → selected work → footer, the last carrying the
  * footprints as an ambient backdrop (paying off the "leaving a footprint"
  * colophon). GSAP ScrollSmoother provides the weighted feel. Rendered bare by
  * SiteFrame.
@@ -64,29 +63,12 @@ export default function HomeV2() {
           page. On the home its WORK / wordmark drive this ScrollSmoother. */}
       <div id="smooth-wrapper" ref={wrapper}>
         <div id="smooth-content">
-          {/* 1 — HERO — paper panel (same colour as work), now carrying the
-              frosted-footprint cursor track as an ambient backdrop (matching the
-              footer). The statement is a quiet zone so prints/wipes fade around
-              it and it stays readable. Held to 85vh (not full-screen) so the
-              Work section's "Selected projects" heading + filter chips peek
-              above the fold, signalling the work is right there. */}
-          <section
-            className="relative h-[85vh]"
-            style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
-          >
-            <FootprintsHome variant="ambient">
-              {/* pointer-events-none so prints spawn in the gaps; the stacked
-                  statement is non-interactive and reads through the frost. */}
-              <div className="pointer-events-none flex h-full flex-col items-center justify-center px-6">
-                <HeroStack />
-              </div>
-            </FootprintsHome>
-          </section>
+          {/* 1 — HERO — editorial introduction over the brush-loop backdrop. */}
+          <HeroStack />
 
-          {/* 2 — SELECTED PROJECTS — WorkGrid owns its own spacing so the list
-              view's accent flood can run edge-to-edge. */}
+          {/* 2 — Selected work keeps the compact, curated grid. */}
           <section id="work">
-            <WorkGrid projects={projects} heading="Selected projects" />
+            <WorkGrid projects={activeProjects} heading="Selected projects" />
           </section>
 
           {/* 3 — FOOTER — the shared <SiteFooter /> (footprint canvas + pickers

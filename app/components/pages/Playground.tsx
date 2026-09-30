@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useRef, type MouseEvent } from "react";
 import { gsap, useGSAP, ScrollTrigger } from "@/app/lib/gsap";
-import BoatPond from "@/app/components/pages/BoatPond";
 
 type Img = { f: string; w: number; h: number; l?: string };
 
@@ -29,7 +28,6 @@ const ILLUSTRATIONS: Img[] = [
   { f: "pixelfire.png", w: 1920, h: 1920, l: "All lit" },
   { f: "shy_tomatoes.png", w: 2360, h: 1640, l: "Blush mode" },
   { f: "fly.png", w: 1200, h: 1600, l: "Buzz off" },
-  { f: "ny1.png", w: 1024, h: 1024, l: "Cathedral near home in nyc" },
 ];
 
 
@@ -52,14 +50,14 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-16 grid grid-cols-1 gap-8 lg:mt-28 lg:grid-cols-[1fr_2fr] lg:gap-12">
+    <section className="mt-16 grid grid-cols-1 gap-8 lg:mt-16 lg:grid-cols-[1fr_2fr] lg:gap-8">
       <div className="lg:sticky lg:top-28 lg:self-start">
         <h2 className="font-heading text-h3 text-heading">{title}</h2>
         <p className="mt-2 font-mono text-caption-1 uppercase tracking-wide text-muted">
           {subtitle}
         </p>
         {note && (
-          <p className="mt-4 max-w-[26rem] text-balance font-body text-[15px] leading-relaxed text-muted">
+          <p className="mt-4 max-w-[26rem] text-balance font-body font-normal text-[15px] leading-relaxed text-text">
             {note}
           </p>
         )}
@@ -97,7 +95,7 @@ function Illustration({ img }: { img: Img }) {
       >
         <Image
           src={`/playground/illustrations/${img.f}`}
-          alt={`${prettify(img.f)} — illustration`}
+          alt={`${prettify(img.f)}, illustration`}
           width={img.w}
           height={img.h}
           sizes="(min-width: 1024px) 40vw, (min-width: 640px) 45vw, 90vw"
@@ -138,7 +136,7 @@ export default function Playground() {
       className="min-h-screen"
       style={{ backgroundColor: "var(--bg)" }}
     >
-      <div className="mx-auto max-w-[1440px] px-10 pb-24 pt-32">
+      <div className="mx-auto max-w-[1140px] px-6 pb-24 pt-32">
         {/* Illustrations — masonry. The tagline sits under the subtitle. */}
         <Section
           title="Illustrations"
@@ -157,23 +155,6 @@ export default function Playground() {
           </div>
         </Section>
 
-        {/* Set sail — a session-only pond of paper boats. Leave one for the next
-            visitor, the footprint idea carried onto water. */}
-        <Section
-          title="Set sail"
-          subtitle="Leave a little boat"
-          note={
-            <>
-              A quiet pond. Write a note, pick a boat or a duck, and click the water
-              to set one adrift for whoever floats through next. They sail off when
-              you leave.
-            </>
-          }
-        >
-          <div data-reveal>
-            <BoatPond />
-          </div>
-        </Section>
 
       </div>
     </div>

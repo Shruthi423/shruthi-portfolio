@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@/app/components/shared/ThemeProvider";
 import { gsap, useGSAP } from "@/app/lib/gsap";
 
 /**
@@ -15,8 +14,6 @@ import { gsap, useGSAP } from "@/app/lib/gsap";
  */
 
 // A calm workspace blue: readable on the cream day paper and the warm midnight.
-const ACCENT_LIGHT = "#2E6FB0";
-const ACCENT_DARK = "#8FC0EE";
 
 const SECTIONS = [
   { id: "overview", label: "overview" },
@@ -168,7 +165,7 @@ function Statement({
   return (
     <h2
       className={`font-heading leading-[1.1] text-text ${className}`}
-      style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.01em" }}
+      style={{ fontSize: "var(--text-h3)", letterSpacing: "-0.01em" }}
     >
       {children}
     </h2>
@@ -185,7 +182,7 @@ function Body({
   return (
     <p
       className={`font-body leading-relaxed text-text ${className}`}
-      style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}
+      style={{ fontSize: "var(--text-paragraph)" }}
     >
       {children}
     </p>
@@ -254,7 +251,7 @@ function StickyGallery({
       id={id}
       className="scroll-mt-24 px-6 py-8 sm:px-10 md:py-12 lg:pl-32 lg:pr-12"
     >
-      <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-16">
+      <div className="mx-auto grid max-w-[868px] gap-10 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-16">
         {/* Left — sticky text. self-start + h-fit lets it pin while the taller
             image column scrolls past. */}
         <div className="md:sticky md:top-28 md:h-fit md:self-start">
@@ -296,7 +293,7 @@ function Section({
       id={id}
       className={`scroll-mt-24 px-6 py-8 sm:px-10 md:py-12 lg:pl-32 lg:pr-12 ${className}`}
     >
-      <div className="mx-auto max-w-6xl">{children}</div>
+      <div className="mx-auto max-w-[868px]">{children}</div>
     </section>
   );
 }
@@ -321,7 +318,6 @@ function SectionRail({
             type="button"
             onClick={() => onJump(s.id)}
             aria-label={`Jump to ${s.label}`}
-            data-cursor-label={s.label}
             className="group relative flex items-center"
           >
             <span
@@ -334,10 +330,10 @@ function SectionRail({
               }}
             />
             <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
+              className={`pointer-events-none absolute left-7 whitespace-nowrap font-mono text-caption-2 uppercase tracking-wide transition-all duration-300 ease-out motion-reduce:transition-none ${
                 isActive
                   ? "opacity-100"
-                  : "opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0"
+                  : "opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0"
               }`}
               style={{ color: "var(--text)" }}
             >
@@ -379,8 +375,6 @@ function ProgressBar() {
 
 export function SpotHiveCaseStudy() {
   const [active, setActive] = useState<string>("overview");
-  const { resolvedTheme } = useTheme();
-  const accent = resolvedTheme === "dark" ? ACCENT_DARK : ACCENT_LIGHT;
 
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -409,10 +403,7 @@ export function SpotHiveCaseStudy() {
   };
 
   return (
-    <div
-      className="relative min-h-screen"
-      style={{ "--accent": accent } as React.CSSProperties}
-    >
+    <div className="relative min-h-screen">
       <ProgressBar />
       <SectionRail active={active} onJump={jumpTo} />
 
@@ -420,14 +411,14 @@ export function SpotHiveCaseStudy() {
         {/* 1 — OVERVIEW + hero */}
         <section
           id="overview"
-          className="scroll-mt-24 px-6 pb-8 pt-28 sm:px-10 md:pt-32 lg:pl-32 lg:pr-12"
+          className="scroll-mt-24 px-6 pb-8 pt-36 sm:px-10 md:pt-44 lg:pl-32 lg:pr-12"
         >
-          <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-[868px]">
             <Reveal>
               <h1
-                className="font-display leading-[1.02] text-text"
+                className="text-center font-display leading-[1.12] text-text"
                 style={{
-                  fontSize: "clamp(2.5rem, 7vw, 5rem)",
+                  fontSize: "var(--text-h1)",
                   fontWeight: 700,
                   letterSpacing: "-0.02em",
                 }}
@@ -437,16 +428,25 @@ export function SpotHiveCaseStudy() {
             </Reveal>
             <Reveal delay={80}>
               <p
-                className="mt-4 max-w-[46ch] font-heading italic text-muted"
-                style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.6rem)" }}
+                className="mx-auto mt-4 max-w-[46ch] text-center font-heading text-muted"
+                style={{ fontSize: "var(--text-paragraph-2)" }}
               >
                 A 0-to-1 workspace booking product, shipped in a month and rolled
                 out across Sharp&rsquo;s global offices.
               </p>
             </Reveal>
 
-            <Reveal delay={160}>
-              <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5 border-y border-border py-6">
+            <Reveal delay={240} variant="scale" className="mt-16">
+              {/* Hero triptych — three native-ratio screens (entry, home, map). */}
+              <div className="mx-auto grid max-w-2xl grid-cols-3 items-start gap-3 sm:gap-4">
+                {HERO_SHOTS.map((s) => (
+                  <PhoneShot key={s.src} src={s.src} label={s.label} cursorLabel={s.cursor} />
+                ))}
+              </div>
+            </Reveal>
+
+            <Reveal delay={280}>
+              <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5">
                 {META.map((m) => (
                   <div key={m.label}>
                     <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">
@@ -456,15 +456,6 @@ export function SpotHiveCaseStudy() {
                   </div>
                 ))}
               </dl>
-            </Reveal>
-
-            <Reveal delay={240} variant="scale" className="mt-10">
-              {/* Hero triptych — three native-ratio screens (entry, home, map). */}
-              <div className="mx-auto grid max-w-2xl grid-cols-3 items-start gap-3 sm:gap-4">
-                {HERO_SHOTS.map((s) => (
-                  <PhoneShot key={s.src} src={s.src} label={s.label} cursorLabel={s.cursor} />
-                ))}
-              </div>
             </Reveal>
 
             <Reveal delay={120}>

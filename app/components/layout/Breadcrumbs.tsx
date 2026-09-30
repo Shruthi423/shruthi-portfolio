@@ -27,6 +27,7 @@ const CASE_STUDIES: Record<string, string> = {
   "/onki": "Onki",
   "/handmade-homestead": "Handmade homestead",
   "/feeld": "Feeld",
+  "/domu": "Domu",
   "/umsi-expo-badges": "UMSI expo badges",
 };
 
@@ -80,7 +81,7 @@ export function Breadcrumbs() {
       <nav
         aria-label="Breadcrumb"
         className="flex items-center gap-2 rounded-full border border-border bg-surface/85 px-4 py-2 shadow-lg backdrop-blur-md"
-        style={{ fontFamily: "var(--font-eb-garamond)", fontSize: 14 }}
+        style={{ fontFamily: "var(--font-display)", fontSize: 14 }}
       >
         {crumbs.map((c, i) => (
           <Fragment key={c.label}>

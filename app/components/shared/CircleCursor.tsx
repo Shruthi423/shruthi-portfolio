@@ -8,8 +8,8 @@ const EDGE_THRESHOLD = 180;
 // Two-tone cursor: the pill is the ink, the label is the paper. Routed through
 // intermediate vars (falling back to ink/paper) so the home's inverted hero can
 // flip them via .hero-active and keep the cursor legible there.
-const CURSOR_PILL = "var(--cursor-pill, var(--ink))";
-const CURSOR_LABEL = "var(--cursor-label, var(--paper))";
+const CURSOR_PILL = "var(--cursor-pill, var(--text))";
+const CURSOR_LABEL = "var(--cursor-label, var(--bg))";
 
 type PillSide = "left" | "center" | "right";
 

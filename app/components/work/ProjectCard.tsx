@@ -1,42 +1,71 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { Body } from "matter-js";
-import { gsap, useGSAP, SplitText } from "@/app/lib/gsap";
+import { useRef, type ComponentType } from "react";
+import { gsap, useGSAP } from "@/app/lib/gsap";
+import { useThumbnailMotion } from "@/app/components/work/useThumbnailMotion";
+import { KolamThumbnail } from "@/app/components/work/KolamThumbnail";
+import { AmuseBoucheThumbnail } from "@/app/components/work/AmuseBoucheThumbnail";
+import { ZugeThumbnail } from "@/app/components/work/ZugeThumbnail";
+import { OpenTabsThumbnail } from "@/app/components/work/OpenTabsThumbnail";
+import { DeepCleanThumbnail } from "@/app/components/work/DeepCleanThumbnail";
+import { DomuThumbnail } from "@/app/components/work/DomuThumbnail";
+
+// Projects whose card art is a live component rather than a still cover. Each
+// one animates only while `active` (hover, or on screen on touch) and rests on
+// a still frame otherwise — see useThumbnailMotion.
+const LIVE_THUMBNAILS: Record<string, ComponentType<{ active: boolean }>> = {
+  "9and9": KolamThumbnail,
+  "Amuse Bouche": AmuseBoucheThumbnail,
+  DeepClean: DeepCleanThumbnail,
+  Domu: DomuThumbnail,
+  OpenTabs: OpenTabsThumbnail,
+  "Zuge Electric": ZugeThumbnail,
+};
+
+// Octicon mark-github. Sits in the label slot (where other cards carry their
+// discipline chip) so the card says where its link lands before you click it.
+function GitHubMark() {
+  return (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className="h-[15px] w-[15px]">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+    </svg>
+  );
+}
 
 export type Project = {
   name: string;
-  discipline: string; // primary category
+  archived?: boolean; // Hide from selected work while retaining all project content.
+  title?: string; // Concise public title: project name + what it is.
+  // The big line in the list view — a first-person "How I ..." framing of the
+  // problem. Falls back to `name` when absent (projects without real copy yet).
+  headline?: string;
+  // Primary category, or a few when the work spanned more than one. Omitted on
+  // in-progress tiles that are title-only until there's real copy.
+  discipline?: string | string[];
   type?: string; // Full-time / Internship / etc.
-  year: string;
+  year?: string;
   status: "built" | "building" | "soon"; // drives the /work filter chips (shipped / cooking / on the way)
   description?: string; // one-line summary
-  tags?: string[]; // bite-size pills that rain + pile in on hover
+  tags?: string[]; // Project topics and outcomes
   image?: string; // floating mockup — wired in later
   imageFit?: "cover" | "contain"; // default "cover"; use "contain" for portrait mockups where the subject must show in full
   hoverLabel?: string; // override the cursor pill on hover (default: "VIEW" when live, "Coming soon" otherwise)
+  // External repo/source link. It always sits in the label slot beside the
+  // title, next to the discipline chip, so every card carrying one looks the
+  // same. On a card that *also* links to a case study the title becomes the
+  // link instead of the whole meta block — nesting a link inside a link would
+  // be invalid markup.
+  repoHref?: string;
   href?: string;
-  accent?: string; // signature colour used to flood the viewport in the list view
 };
 
 
 export function ProjectCard({ project }: { project: Project }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
-  const frameRef = useRef<HTMLDivElement>(null);
-  const pillRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const [hovered, setHovered] = useState(false);
-
-  // Per-pill spawn delay → asynchronous, rain-like entry. Stable across renders.
-  const spawnDelays = useMemo(
-    () => (project.tags ?? []).map(() => Math.random() * 0.4),
-    [project.tags],
-  );
-
-  // Pills are monochrome now (ink on paper) — no per-project palette needed.
-
+  const panelRef = useRef<HTMLDivElement>(null);
+  const thumbnailActive = useThumbnailMotion(panelRef);
   useGSAP(
     () => {
       // Card rises + fades in as it enters the viewport.
@@ -70,192 +99,28 @@ export function ProjectCard({ project }: { project: Project }) {
     { scope: cardRef },
   );
 
-  // Physics: on hover, pills drop from the top, collide, and pile up. The
-  // Matter engine runs headless and we copy each body's position/angle onto the
-  // real DOM pills, so they keep their text, font, and colour.
-  useEffect(() => {
-    if (!hovered) return;
-    const frame = frameRef.current;
-    const pills = pillRefs.current.filter(Boolean) as HTMLSpanElement[];
-    if (!frame || pills.length === 0) return;
-
-    const rect = frame.getBoundingClientRect();
-    const W = rect.width;
-    const H = rect.height;
-    const pad = 14;
-
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    // Reduced motion → lay pills out statically at the bottom, no animation.
-    if (prefersReduced) {
-      const gap = 8;
-      let lineH = 0;
-      pills.forEach((el) => (lineH = Math.max(lineH, el.offsetHeight)));
-      let x = pad;
-      let y = H - pad - lineH;
-      pills.forEach((el) => {
-        const w = el.offsetWidth;
-        if (x + w > W - pad) {
-          x = pad;
-          y -= lineH + gap;
-        }
-        el.style.opacity = "1";
-        el.style.transform = `translate(${x}px, ${y}px)`;
-        x += w + gap;
-      });
-      return () => {
-        pills.forEach((el) => {
-          el.style.opacity = "0";
-          el.style.transform = "";
-        });
-      };
-    }
-
-    let stopped = false;
-    let rafId = 0;
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-
-    (async () => {
-      const Matter = await import("matter-js");
-      if (stopped) return;
-      const { Engine, Bodies, Composite, Body: MBody } = Matter;
-
-      const engine = Engine.create();
-      engine.gravity.y = 1.2;
-      engine.enableSleeping = true; // let the pile come fully to rest (no jitter)
-
-      const t = 80; // wall thickness (kept off-screen)
-      Composite.add(engine.world, [
-        Bodies.rectangle(W / 2, H + t / 2, W + t * 2, t, { isStatic: true }), // floor
-        Bodies.rectangle(-t / 2, H / 2, t, H * 3, { isStatic: true }), // left
-        Bodies.rectangle(W + t / 2, H / 2, t, H * 3, { isStatic: true }), // right
-      ]);
-
-      const bodies: (Body | null)[] = pills.map(() => null);
-      // Each pill is nudged upright only for a short window right after it
-      // lands, then left alone so friction + sleeping bring it fully to rest.
-      // (Righting every frame forever was what kept the pile twitching.)
-      const rightUntil: number[] = pills.map(() => 0);
-      const TWO_PI = Math.PI * 2;
-      const RIGHT_SPRING = 0.08; // pull toward upright
-      const RIGHT_DAMP = 0.88; // angular damping (lower = more viscous)
-      const RIGHT_WINDOW = 1800; // ms of active righting after a pill spawns
-
-      pills.forEach((el, i) => {
-        const to = setTimeout(
-          () => {
-            if (stopped) return;
-            const w = el.offsetWidth;
-            const h = el.offsetHeight;
-            const x = w / 2 + pad + Math.random() * Math.max(1, W - w - pad * 2);
-            const body = Bodies.rectangle(x, -h - Math.random() * 60, w, h, {
-              chamfer: { radius: h / 2 }, // pill (capsule) collision shape
-              restitution: 0.2, // soft landing, minimal bounce
-              friction: 0.55,
-              frictionAir: 0.012,
-              density: 0.0014,
-            });
-            MBody.setAngularVelocity(body, (Math.random() - 0.5) * 0.06);
-            bodies[i] = body;
-            rightUntil[i] = performance.now() + RIGHT_WINDOW;
-            Composite.add(engine.world, body);
-            el.style.opacity = "1";
-          },
-          (spawnDelays[i] ?? 0) * 1000,
-        );
-        timeouts.push(to);
-      });
-
-      const tick = () => {
-        if (stopped) return;
-        const now = performance.now();
-        // Nudge each pill toward upright, but ONLY during its righting window
-        // and while it's awake — once settled it sleeps and stays put.
-        bodies.forEach((b, i) => {
-          if (!b || b.isSleeping || now > rightUntil[i]) return;
-          const target = Math.round(b.angle / TWO_PI) * TWO_PI;
-          const av =
-            (b.angularVelocity + (target - b.angle) * RIGHT_SPRING) *
-            RIGHT_DAMP;
-          MBody.setAngularVelocity(b, av);
-        });
-        Engine.update(engine, 1000 / 60);
-        pills.forEach((el, i) => {
-          const b = bodies[i];
-          if (!b) return;
-          el.style.transform = `translate(${b.position.x - el.offsetWidth / 2}px, ${b.position.y - el.offsetHeight / 2}px) rotate(${b.angle}rad)`;
-        });
-        rafId = requestAnimationFrame(tick);
-      };
-      rafId = requestAnimationFrame(tick);
-    })();
-
-    return () => {
-      stopped = true;
-      cancelAnimationFrame(rafId);
-      timeouts.forEach(clearTimeout);
-      pills.forEach((el) => {
-        el.style.opacity = "0";
-        el.style.transform = "";
-      });
-    };
-  }, [hovered, spawnDelays]);
-
-  // Title hover: letters lift in a quick left-to-right bouncy wave (SplitText).
-  useEffect(() => {
-    const el = titleRef.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const split = new SplitText(el, { type: "chars" });
-    gsap.set(split.chars, { display: "inline-block", willChange: "transform" });
-
-    const onEnter = () => {
-      gsap.to(split.chars, {
-        keyframes: [
-          { y: -12, duration: 0.18, ease: "power2.out" },
-          { y: 0, duration: 0.4, ease: "elastic.out(1.05, 0.4)" },
-        ],
-        stagger: 0.035, // left-to-right wave
-        overwrite: true,
-      });
-    };
-    el.addEventListener("mouseenter", onEnter);
-
-    return () => {
-      el.removeEventListener("mouseenter", onEnter);
-      gsap.killTweensOf(split.chars);
-      split.revert();
-    };
-  }, []);
-
-  const eyebrow = [project.discipline, project.type, project.year]
-    .filter(Boolean)
-    .join(" · ");
-
-  const hasTags = !!project.tags && project.tags.length > 0;
+  const LiveThumbnail = LIVE_THUMBNAILS[project.name];
 
   const visual = (
-    // MOCKUP — Emma Wu wide stripe aspect (~2.7:1) + 2px corner radius.
-    // Revert: aspect-[4/3] and drop rounded-[2px].
+    // Consistent 4:3 image frames keep every project row aligned.
     <div
-      ref={frameRef}
+      ref={panelRef}
       data-cursor-label={project.hoverLabel ?? (project.href ? "VIEW" : "Coming soon")}
-      className="group relative aspect-[4/3] w-full overflow-hidden rounded-[2px]"
+      className="project-image-panel group relative aspect-[4/3] w-full overflow-hidden rounded-[10px]"
       style={{ backgroundColor: "var(--surface)" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
-      {project.image ? (
+      {LiveThumbnail ? (
+        <div className="absolute inset-0">
+          <LiveThumbnail active={thumbnailActive} />
+        </div>
+      ) : project.image ? (
         // Cover-fill by default (landscape hero photos), or contain for portrait
         // mockups that must show in full (they float on the monochrome surface).
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={project.image}
           alt={`${project.name} preview`}
-          className={`absolute inset-0 h-full w-full transition-[filter] duration-500 ease-out group-hover:grayscale ${
+          className={`absolute inset-0 h-full w-full ${
             project.imageFit === "contain" ? "object-contain" : "object-cover"
           }`}
         />
@@ -282,39 +147,76 @@ export function ProjectCard({ project }: { project: Project }) {
         </div>
       )}
 
-      {/* Pills — physics-driven: they rain from the top and pile up on hover. */}
-      {hasTags && (
-        <div className="pointer-events-none absolute inset-0">
-          {project.tags!.map((tag, i) => (
-            <span
-              key={tag}
-              ref={(el) => {
-                pillRefs.current[i] = el;
-              }}
-              className="absolute left-0 top-0 whitespace-nowrap rounded-full px-4 py-2 font-mono text-caption-1 font-medium uppercase tracking-wide opacity-0 will-change-transform"
-              style={{ backgroundColor: "var(--ink)", color: "var(--paper)" }}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
+
     </div>
   );
 
-  const meta = (
-    <div className="mt-4 flex flex-col items-start">
-      <p className="font-mono text-caption-1 uppercase tracking-wide text-muted">
-        {eyebrow}
-      </p>
-      <h3
-        ref={titleRef}
-        className="mt-1.5 inline-block font-heading text-h4 text-text"
-      >
-        {project.name}
-      </h3>
+  // The title text — a link of its own on cards whose meta block can't be
+  // wrapped in one (see `repoMeta` below).
+  const titleText = project.title ?? project.name;
+
+  const meta = (linkTitle: boolean) => (
+    <div className="mt-3.5 px-1">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1.5">
+        <h3 className="flex min-w-0 items-baseline gap-1.5 font-heading text-[19px] font-medium leading-6 text-text">
+          {linkTitle && project.href ? (
+            <Link href={project.href} className="min-w-0">
+              {titleText}
+            </Link>
+          ) : (
+            titleText
+          )}
+          {project.repoHref && !project.href && (
+            <a
+              href={project.repoHref}
+              target="_blank"
+              rel="noreferrer"
+              data-cursor-label="GitHub"
+              aria-label={`${project.name} on GitHub`}
+              className="shrink-0 self-center text-muted transition-colors duration-200 hover:text-text"
+            >
+              <svg
+                viewBox="0 0 256 256"
+                fill="currentColor"
+                aria-hidden="true"
+                className="h-[18px] w-[18px]"
+              >
+                <path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z" />
+              </svg>
+            </a>
+          )}
+        </h3>
+        <span className="flex shrink-0 flex-wrap items-baseline gap-1.5">
+          {(Array.isArray(project.discipline)
+            ? project.discipline
+            : project.discipline
+              ? [project.discipline]
+              : []
+          ).map((d) => (
+            <span
+              key={d}
+              className="project-discipline rounded-[3px] bg-[var(--soft-blue)] px-2 py-1 font-body text-[13px] leading-[17px] text-muted"
+            >
+              {d}
+            </span>
+          ))}
+          {/* A repo card carries the GitHub mark here, beside any discipline. */}
+          {project.repoHref && (
+            <a
+              href={project.repoHref}
+              target="_blank"
+              rel="noreferrer"
+              data-cursor-label="GitHub"
+              aria-label={`${project.name} on GitHub`}
+              className="project-discipline flex items-center rounded-[3px] bg-[var(--soft-blue)] px-2 py-1 text-muted transition-colors duration-200 hover:text-text"
+            >
+              <GitHubMark />
+            </a>
+          )}
+        </span>
+      </div>
       {project.description && (
-        <p className="mt-1.5 font-body text-body text-muted">
+        <p className="mt-2 font-body text-[16px] leading-6 text-muted">
           {project.description}
         </p>
       )}
@@ -323,18 +225,34 @@ export function ProjectCard({ project }: { project: Project }) {
 
   if (!project.href) {
     return (
-      <div ref={cardRef} className="block">
+      <div ref={cardRef} className="group/card block">
         {visual}
-        {meta}
+        {meta(false)}
+      </div>
+    );
+  }
+
+  // A card that links to a case study *and* carries a GitHub mark can't wrap
+  // its meta block in a <Link>, since the mark is a link itself and links
+  // can't nest. The title carries the link instead, and the artwork keeps its
+  // own — taken out of the tab order and the a11y tree so the card still
+  // announces as one link, the titled one, rather than two identical ones.
+  if (project.repoHref) {
+    return (
+      <div ref={cardRef} className="group/card">
+        <Link href={project.href} tabIndex={-1} aria-hidden="true" className="block">
+          {visual}
+        </Link>
+        {meta(true)}
       </div>
     );
   }
 
   return (
     <div ref={cardRef}>
-      <Link href={project.href} className="block">
+      <Link href={project.href} className="group/card block">
         {visual}
-        {meta}
+        {meta(false)}
       </Link>
     </div>
   );

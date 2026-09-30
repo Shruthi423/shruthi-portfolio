@@ -1,26 +1,15 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme {
-  /* ── Monochrome two-tone system ───────────────────────────────────────────
-   * Every theme is exactly TWO colors: the chosen pastel (--hue) + charcoal.
-   * Light:  paper = hue,  ink = charcoal.
-   * Dark:   paper = charcoal,  ink = hue.   (the hue swaps roles, never absent)
-   * The five pastels below are the picker options; --hue is set live by
-   * ThemeProvider (defaults here for SSR / no-JS). Charcoal is the constant. */
-  --color-paper-white: #fbfbf9;
-  --color-blush: #f4ccd0;
-  --color-butter: #fbe9a8;
-  --color-mint: #cdebc5;
-  --color-sky: #c8e8f6;
-  --color-charcoal: #17171b;
-
-  --hue: var(--color-paper-white); /* chosen pastel — overridden by JS */
-  --char: var(--color-charcoal);
-
-  /* Project cards — collapsed to the two-tone surface; refined per-page later. */
-  --color-placeholder: var(--surface);
+  /* Portfolio palette: warm blush canvas, poppy orange accent, cool + earthy supporting hues. */
+  --color-paper-white: #fafaf8;
+  --color-pale-blue: #cce1f2;
+  --color-lime: #cee295;
+  --color-orange: #ee5a36;
+  --color-blue: #9fc4e8;
+  --color-lavender: #cfa4cc;
+  --color-forest: #1a9562;
+  --color-charcoal: #202422;
 
   /* Semantic tokens — resolve via CSS variables so polarity can swap them */
   --color-bg: var(--bg);
@@ -31,21 +20,12 @@
   --color-accent: var(--accent);
   --color-heading: var(--heading);
 
-  /* Fonts — 3 families across 4 role tokens:
-   *   display  → EB Garamond (the big statement type — was Dahlia, now serif)
-   *   heading  → EB Garamond (section + case-study titles, italic leads)
-   *   body     → Figtree   (body, cards, metrics — default body font)
-   *   mono     → DM Mono   (the label face: nav, footer links, tags, cursor)
-   */
-  --font-display: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
-  --font-heading: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
-  --font-body: var(--font-figtree), "Figtree", "Helvetica Neue", Helvetica,
-    Arial, sans-serif;
-  /* `--font-mono` — the small-label face. Now a true monospace (DM Mono); the
-   * `font-mono` consumers (nav, footer links, tags, cursor pill, micro labels)
-   * pick it up automatically. */
-  --font-mono: var(--font-dm-mono), ui-monospace, "DM Mono", "SFMono-Regular",
-    Menlo, monospace;
+  /* Ovo for display type, Figtree for body, DM Mono for labels.
+   * PhotoStory's polaroid captions use Rock Salt directly. */
+  --font-display: var(--font-ovo), "Ovo", Georgia, serif;
+  --font-heading: var(--font-ovo), "Ovo", Georgia, serif;
+  --font-body: var(--font-figtree), "Figtree", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-dm-mono), "DM Mono", ui-monospace, monospace;
 
   /* NOTE: do NOT add named spacing tokens like --spacing-xl (xs/sm/md/lg/xl/2xl/3xl).
    * In Tailwind v4 they hijack the named max-width and width scale — e.g.
@@ -61,85 +41,71 @@
   --ease-slow: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Type scale — tuned for hierarchy: big hero, big footer CTA, small labels */
-  --text-h1: clamp(4rem, 14vw, 9rem);          /* 64 → 144 (hero) */
-  --text-h1--line-height: 0.8;
-  --text-h2: clamp(2.5rem, 8vw, 5rem);         /* 40 → 80 (footer CTA) */
+  /* Shared hierarchy across the portfolio and case studies. */
+  --text-h1: clamp(2rem, 4.5vw, 3rem);
+  --text-h1--line-height: 1.12;
+  --text-h2: clamp(1.75rem, 3.5vw, 2.5rem);
   --text-h2--line-height: 1.2;
-  --text-cta: clamp(1.25rem, 3.5vw, 2.75rem);  /* 20 → 44 (footer CTA, one line) */
-  --text-cta--line-height: 1.1;
-  --text-h3: clamp(1.5rem, 4vw, 2.5rem);       /* 24 → 40 */
+  --text-cta: clamp(1.5rem, 3vw, 2rem);
+  --text-cta--line-height: 1.2;
+  --text-h3: clamp(1.5rem, 3vw, 2rem);
   --text-h3--line-height: 1.2;
-  --text-h4: clamp(1.25rem, 3.5vw, 2.1875rem); /* 20 → 35 */
-  --text-h4--line-height: 1.2;
-  --text-paragraph: 1.25rem;                   /* 20 (body/card name, fixed) */
-  --text-paragraph--line-height: 1.2;
-  --text-paragraph-2: clamp(1.25rem, 2.5vw, 2rem); /* 20 → 32 (italic lead) */
-  --text-paragraph-2--line-height: 1.2;
-  --text-caption-1: 0.8125rem;                 /* 13 (nav links) */
-  --text-caption-1--line-height: 1.2;
-  --text-caption-2: 0.6875rem;                 /* 11 (micro labels) */
-  --text-caption-2--line-height: 1.2;
-  --text-link: 1.125rem;                       /* 18 (footer links) */
-  --text-link--line-height: 1.2;
-  --text-body: 1rem;                           /* 16 (body default) */
-  --text-body--line-height: 1.2;
+  --text-h4: clamp(1.25rem, 2vw, 1.5rem);
+  --text-h4--line-height: 1.3;
+  --text-paragraph: 1.0625rem;
+  --text-paragraph--line-height: 1.65;
+  --text-paragraph-2: clamp(1.25rem, 2.2vw, 1.5rem);
+  --text-paragraph-2--line-height: 1.5;
+  --text-caption-1: 0.8125rem;
+  --text-caption-1--line-height: 1.4;
+  --text-caption-2: 0.75rem;
+  --text-caption-2--line-height: 1.4;
+  --text-link: 1.0625rem;
+  --text-link--line-height: 1.5;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.6;
 }
 
-/* Light polarity (default): paper = chosen pastel, ink = charcoal. */
+/* Default weight for display/heading text. Ovo ships only weight 400, so
+ * pinned there — a heavier value here would force the browser to synthesize
+ * (fake) bold, which looks bad on a delicate serif. Sits in the `base` layer
+ * so any explicit font-normal/medium/bold utility (in `utilities`) still wins. */
+@layer base {
+  .font-display,
+  .font-heading {
+    font-weight: 400;
+  }
+}
+
+/* One polarity: the portfolio is light. The paper/ink two-tone system and the
+ * .dark block that inverted it are gone — the footprints carry the palette's
+ * colour now, and the only dark surface left is the footer, which the
+ * `inverted` prop on FootprintsHome paints directly.
+ *
+ * --invert-bg / --invert-text are still here because the footer (and the
+ * nav + cursor crossing over it) need the opposite polarity locally. They're a
+ * fixed pair now, not a theme. */
 :root {
-  --paper: var(--hue);
-  --ink: var(--char);
+  --accent: #ee5a36;
+  --surface: #f0efec;
+  --border: #e2e0db;
+  --muted: #6c6459;
+  --soft-blue: #eaf3fb;
+  --highlight: #cee295;
+  --invert-bg: #202422;
+  --invert-text: #fafaf8;
+  --bg: #fafaf8;
+  --text: #202422;
+  --heading: #202422;
   color-scheme: light;
 }
 
-/* Dark polarity: paper = charcoal, ink = chosen pastel. */
-.dark {
-  --paper: var(--char);
-  --ink: var(--hue);
-  color-scheme: dark;
-}
-
-/* Semantic tokens derived from the two tones. Surface/border/muted are the ink
- * mixed into the paper, so they ride along with whatever pastel is chosen. */
-:root,
-.dark {
-  --bg: var(--paper);
-  --text: var(--ink);
-  --heading: var(--ink);
-  --accent: var(--ink);
-  --surface: color-mix(in srgb, var(--ink) 6%, var(--paper));
-  --border: color-mix(in srgb, var(--ink) 16%, var(--paper));
-  --muted: color-mix(in srgb, var(--ink) 55%, var(--paper));
-}
-
-/* Section inversion — a block that runs at the OPPOSITE polarity to the page
- * around it. Light page → this block is charcoal-on-pastel; dark page → this
- * block is pastel-on-charcoal. Apply `.section-invert` to a section wrapper. */
-.section-invert {
-  --paper: var(--char);
-  --ink: var(--hue);
-  --bg: var(--paper);
-  --text: var(--ink);
-  --heading: var(--ink);
-  --accent: var(--ink);
-  --surface: color-mix(in srgb, var(--ink) 6%, var(--paper));
-  --border: color-mix(in srgb, var(--ink) 16%, var(--paper));
-  --muted: color-mix(in srgb, var(--ink) 55%, var(--paper));
-  background-color: var(--bg);
-  color: var(--text);
-}
-.dark .section-invert {
-  --paper: var(--hue);
-  --ink: var(--char);
-}
-
-/* Home hero panel is inverted — flip the global custom cursor so it stays
-   legible over it. (The bat toggle flip lives in Background's .bg-toggle rule;
-   both are driven by `.hero-active` toggled on <html> by HomeSlider.) */
+/* The footer panel is inverted — flip the global custom cursor so it stays
+   legible over it. Driven by `.hero-active`, toggled on <html> by SiteFooter's
+   intersection observer. */
 .hero-active {
-  --cursor-pill: var(--paper);
-  --cursor-label: var(--ink);
+  --cursor-pill: var(--invert-text);
+  --cursor-label: var(--invert-bg);
 }
 
 /* Shared top nav (SiteNav) — one bar on every page. Ink on the page normally;
@@ -150,8 +116,8 @@
   transition: color 0.6s ease;
 }
 .hero-active .site-nav {
-  color: var(--paper);
-  --nav-scrim: var(--ink);
+  color: var(--invert-text);
+  --nav-scrim: var(--invert-bg);
 }
 
 html,
@@ -176,6 +142,363 @@ body {
 }
 
 ::selection {
-  background-color: var(--text);
-  color: var(--bg);
+  background-color: var(--highlight);
+  color: #202422;
+}
+
+/* Orange marks navigation without reducing the contrast of its labels. */
+.site-nav a::after { background-color: var(--color-orange); }
+.site-nav a[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--color-orange); text-underline-offset: 6px; }
+a:focus-visible, button:focus-visible { outline-color: var(--color-orange); }
+
+
+/* Color lives in the project artwork panels, against a continuous neutral page. */
+.project-image-panel {
+  background-color: var(--project-color, #f26b22);
+}
+.project-discipline {
+  background: var(--surface);
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-image-panel > img { transition: none; }
+}
+
+/* Amuse-bouche live thumbnail: drifting florals under a self-typing title.
+   Sized in container units so the title scales with the card, not the page. */
+.amuse-cover {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #1a1410;
+  container-type: inline-size;
+}
+.amuse-cover__bg {
+  position: absolute;
+  inset: 0;
+  background: url("/amuse-bouche/cover.jpg") center / cover no-repeat;
+  transform: scale(1.04);
+  will-change: transform;
+}
+.amuse-cover__shade {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(20, 12, 8, 0.3) 0%, rgba(20, 12, 8, 0) 100%);
+}
+.amuse-cover__title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-weight: 400;
+  font-size: 13.5cqw;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: 0 0.02em 0.12em rgba(60, 20, 0, 0.25);
+}
+.amuse-cover__caret {
+  display: inline-block;
+  width: 0.06em;
+  height: 0.9em;
+  margin-left: 0.06em;
+  vertical-align: -0.08em;
+  background: #fff;
+}
+@keyframes amuse-blink { 50% { opacity: 0; } }
+@keyframes amuse-drift {
+  from { transform: scale(1.04) translate(0, 0); }
+  to { transform: scale(1.1) translate(-1.5%, -1%); }
+}
+/* The loop only runs while the card is hovered (or on screen, on touch) — the
+   `is-playing` class comes from useThumbnailMotion. */
+@media (prefers-reduced-motion: no-preference) {
+  .amuse-cover.is-playing .amuse-cover__bg {
+    animation: amuse-drift 18s ease-in-out infinite alternate;
+  }
+  .amuse-cover.is-playing .amuse-cover__caret {
+    animation: amuse-blink 1s steps(1) infinite;
+  }
+  /* Steady while letters are landing — a caret blinking mid-word reads as a glitch. */
+  .amuse-cover.is-playing .amuse-cover__caret.is-typing { animation: none; }
+}
+
+/* OpenTabs live thumbnail: the logo's door swings open, light blooms through it,
+   and the wordmark slides out from behind it on a 7s loop. Composed at
+   1600x1000 design px — `--s` is one of those px, so the whole scene scales
+   with the card. Only transform/opacity animate, so the loop stays on the
+   compositor. */
+.opentabs-cover {
+  --opentabs-bg: #0c0d0f;
+  --opentabs-fg: #e9eae8;
+  --opentabs-accent: #f3de8a;
+  --opentabs-loop: 7s;
+  --opentabs-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --opentabs-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--opentabs-bg);
+  container-type: size;
+}
+.opentabs-cover__stage {
+  --s: min(calc(100cqw / 1600), calc(100cqh / 1000));
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--s) * 56);
+}
+.opentabs-cover__glow,
+.opentabs-cover__doorway,
+.opentabs-cover__door,
+.opentabs-cover__word,
+.opentabs-cover__tabs-lit {
+  will-change: transform, opacity;
+}
+
+/* The open door from the OpenTabs rail. */
+.opentabs-cover__logo {
+  position: relative;
+  flex-shrink: 0;
+  width: calc(var(--s) * 240);
+  height: calc(var(--s) * 264);
+  perspective: calc(var(--s) * 1100);
+}
+.opentabs-cover__logo > * {
+  position: absolute;
+  box-sizing: border-box;
+}
+.opentabs-cover__glow,
+.opentabs-cover__doorway,
+.opentabs-cover__door {
+  left: calc(var(--s) * 32);
+  top: calc(var(--s) * 20);
+  width: calc(var(--s) * 176);
+  height: calc(var(--s) * 232);
+  border-radius: calc(var(--s) * 8) calc(var(--s) * 8) 0 0;
+}
+.opentabs-cover__glow {
+  background: var(--opentabs-accent);
+  opacity: 0;
+  filter: blur(calc(var(--s) * 48));
+}
+.opentabs-cover__doorway {
+  background: var(--opentabs-accent);
+  opacity: 0;
+}
+.opentabs-cover__door {
+  background: var(--opentabs-bg);
+  border: calc(var(--s) * 12) solid var(--opentabs-fg);
+  border-bottom: 0;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+.opentabs-cover__knob {
+  position: absolute;
+  right: calc(var(--s) * 18);
+  top: calc(var(--s) * 104);
+  width: calc(var(--s) * 20);
+  height: calc(var(--s) * 20);
+  border-radius: 50%;
+  background: var(--opentabs-fg);
+}
+.opentabs-cover__frame {
+  left: calc(var(--s) * 20);
+  top: calc(var(--s) * 8);
+  width: calc(var(--s) * 200);
+  height: calc(var(--s) * 244);
+  border: calc(var(--s) * 12) solid var(--opentabs-fg);
+  border-bottom: 0;
+  border-radius: calc(var(--s) * 18) calc(var(--s) * 18) 0 0;
+}
+.opentabs-cover__floor {
+  left: 0;
+  bottom: 0;
+  width: calc(var(--s) * 240);
+  height: calc(var(--s) * 12);
+  border-radius: calc(var(--s) * 6);
+  background: var(--opentabs-fg);
+}
+
+/* Wordmark: slides out from behind the door. */
+.opentabs-cover__mask {
+  overflow: hidden;
+  padding: calc(var(--s) * 8) calc(var(--s) * 8) calc(var(--s) * 20);
+}
+.opentabs-cover__word {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: calc(var(--s) * 184);
+  line-height: 1;
+  /* Slightly looser than the 800 weight carried, so the lighter strokes don't
+     collide at this size. */
+  letter-spacing: -0.035em;
+  color: var(--opentabs-fg);
+  white-space: nowrap;
+  transform: translateX(-104%);
+}
+/* "Tabs" lights up by crossfading a yellow copy over the white one. */
+.opentabs-cover__tabs {
+  position: relative;
+  display: inline-block;
+}
+.opentabs-cover__tabs-lit {
+  position: absolute;
+  inset: 0;
+  color: var(--opentabs-accent);
+  opacity: 0;
+}
+
+/* 7s loop: 0-9% rest, 9-30% door swings open and light blooms, 22-44% name
+   slides out, 42-54% "Tabs" warms to yellow, 54-80% hold, 80-97% back to rest. */
+@keyframes opentabs-swing {
+  0%, 9% { transform: rotateY(0deg); animation-timing-function: var(--opentabs-out); }
+  30%, 80% { transform: rotateY(-72deg); animation-timing-function: var(--opentabs-in-out); }
+  96%, 100% { transform: rotateY(0deg); }
+}
+@keyframes opentabs-light {
+  0%, 11% { opacity: 0; animation-timing-function: var(--opentabs-out); }
+  30%, 81% { opacity: 1; animation-timing-function: var(--opentabs-in-out); }
+  95%, 100% { opacity: 0; }
+}
+@keyframes opentabs-glow {
+  0%, 13% { opacity: 0; transform: scale(0.85); animation-timing-function: var(--opentabs-out); }
+  38%, 80% { opacity: 0.5; transform: scale(1); animation-timing-function: var(--opentabs-in-out); }
+  95%, 100% { opacity: 0; transform: scale(0.85); }
+}
+@keyframes opentabs-word {
+  0%, 22% { transform: translateX(-104%); animation-timing-function: var(--opentabs-out); }
+  44%, 79% { transform: translateX(0); animation-timing-function: var(--opentabs-in-out); }
+  93%, 100% { transform: translateX(-104%); }
+}
+@keyframes opentabs-lit {
+  0%, 42% { opacity: 0; animation-timing-function: var(--opentabs-in-out); }
+  54%, 78% { opacity: 1; animation-timing-function: var(--opentabs-in-out); }
+  86%, 100% { opacity: 0; }
+}
+/* The loop only runs while the card is hovered (or on screen, on touch). The
+   static rules above are the loop's first frame — a closed door — so there's no
+   jump when it starts. */
+@media (prefers-reduced-motion: no-preference) {
+  .opentabs-cover.is-playing .opentabs-cover__glow {
+    animation: opentabs-glow var(--opentabs-loop) infinite;
+  }
+  .opentabs-cover.is-playing .opentabs-cover__doorway {
+    animation: opentabs-light var(--opentabs-loop) infinite;
+  }
+  .opentabs-cover.is-playing .opentabs-cover__door {
+    animation: opentabs-swing var(--opentabs-loop) infinite;
+  }
+  .opentabs-cover.is-playing .opentabs-cover__word {
+    animation: opentabs-word var(--opentabs-loop) infinite;
+  }
+  .opentabs-cover.is-playing .opentabs-cover__tabs-lit {
+    animation: opentabs-lit var(--opentabs-loop) infinite;
+  }
+}
+/* Reduced motion: show the finished, open state. */
+@media (prefers-reduced-motion: reduce) {
+  .opentabs-cover__glow,
+  .opentabs-cover__doorway,
+  .opentabs-cover__door,
+  .opentabs-cover__word,
+  .opentabs-cover__tabs-lit {
+    animation: none;
+  }
+  .opentabs-cover__door { transform: rotateY(-72deg); }
+  .opentabs-cover__doorway,
+  .opentabs-cover__tabs-lit { opacity: 1; }
+  .opentabs-cover__glow { opacity: 0.5; }
+  .opentabs-cover__word { transform: none; }
+}
+
+/* ── The hero verb's keyframe effects ─────────────────────────────────────
+ * Most verb effects in RotatingWord are staggered transitions, driven by the
+ * active flag, because a transition re-runs by itself each time a word comes
+ * back around. Three kinds can't be:
+ *
+ *  - the ones that never stop (Pondering drifts and Imagining waves for as
+ *    long as the word holds) are infinite, which also sidesteps restarting
+ *    them on an element that is never unmounted;
+ *  - the ones that overshoot more than once (Shaping's wobble) or jump in hard
+ *    steps (Rewiring's glitch) need real keyframes, and RotatingWord restarts
+ *    those by keying the element on its flip counter.
+ *
+ * Amplitudes are in em so they track the headline's viewport clamp, and squash
+ * pivots on the baseline (transform-origin is set alongside, in the component)
+ * so a letter never appears to sink through the line.
+ */
+
+/* Pondering: the word itself, never quite arriving. */
+@keyframes verb-drift {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(0.03em, -0.035em) rotate(-0.35deg); }
+  50%  { transform: translate(0.06em, 0.01em) rotate(0.2deg); }
+  75%  { transform: translate(0.02em, 0.04em) rotate(0.4deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.verb-drift { animation: verb-drift 7s var(--ease-medium) infinite; }
+
+/* Pondering, the part you remember: one letter leaves the word, hangs above
+ * the line like a thought and then drops back into its own slot. It is the only
+ * place in the hero where a single letter behaves differently from its
+ * neighbours, which is the entire reason it is memorable, so nothing else is
+ * allowed to borrow it. */
+@keyframes verb-think {
+  0%, 12%  { transform: translateY(0) scale(1); }
+  34%      { transform: translateY(-0.62em) scale(1.08); }
+  58%      { transform: translateY(-0.66em) scale(1.08); }
+  82%, 100%{ transform: translateY(0) scale(1); }
+}
+.verb-think { animation: verb-think 3.6s var(--ease-medium) infinite; }
+
+/* Imagining: a crest travels through the letters, each one squashing as it
+ * lands. The delay per letter is set inline, which is what turns eight separate
+ * bounces into one wave. */
+@keyframes verb-wave {
+  0%, 62%, 100% { transform: translateY(0) scale(1, 1); }
+  18%           { transform: translateY(-0.4em) scale(0.93, 1.12); }
+  36%           { transform: translateY(0) scale(1.14, 0.86); }
+  48%           { transform: translateY(-0.07em) scale(0.98, 1.03); }
+}
+.verb-wave { animation: verb-wave 2.4s ease-in-out infinite; }
+
+/* Shaping: kneaded rather than placed. Four overshoots, each smaller than the
+ * last — a single transition can only overshoot once, which is why this is
+ * keyframes. */
+@keyframes verb-jelly {
+  0%   { transform: scale(0.62, 1.34); }
+  28%  { transform: scale(1.2, 0.84); }
+  50%  { transform: scale(0.9, 1.1); }
+  70%  { transform: scale(1.06, 0.96); }
+  87%  { transform: scale(0.98, 1.02); }
+  100% { transform: scale(1, 1); }
+}
+.verb-jelly { animation: verb-jelly 820ms var(--ease-medium) both; }
+
+/* Rewiring: a bad connection. steps() on purpose — every other effect on the
+ * page interpolates, so the one that jumps in hard frames is the one that
+ * reads as electrical. */
+@keyframes verb-glitch {
+  0%   { transform: translate(-0.14em, 0.09em); opacity: 0.35; }
+  15%  { transform: translate(0.11em, -0.07em); opacity: 1; }
+  30%  { transform: translate(-0.07em, 0.11em); opacity: 0.5; }
+  45%  { transform: translate(0.09em, 0.02em); opacity: 1; }
+  60%  { transform: translate(-0.04em, -0.06em); opacity: 0.85; }
+  75%  { transform: translate(0.03em, 0.03em); opacity: 1; }
+  100% { transform: translate(0, 0); opacity: 1; }
+}
+.verb-glitch { animation: verb-glitch 380ms steps(1, end) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .verb-drift,
+  .verb-think,
+  .verb-wave,
+  .verb-jelly,
+  .verb-glitch { animation: none; }
 }

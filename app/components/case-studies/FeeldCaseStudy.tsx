@@ -2,13 +2,20 @@
 /* eslint-disable @next/next/no-img-element -- case-study photos are tiny optimized JPGs, not gallery photos */
 
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@/app/components/shared/ThemeProvider";
 import { gsap, useGSAP, SplitText } from "@/app/lib/gsap";
+import {
+  Bleed,
+  CaseStudyFrame,
+  Hero,
+  Label,
+  prefersReduced,
+  Section,
+} from "@/app/components/case-studies/shared/CaseStudyLayout";
 
 /**
  * Feeld case study.
  *
- * Layout: editorial column (max-w-6xl), left-aligned text by default with
+ * Layout: the shared case-study template (CaseStudyLayout), left-aligned by default with
  * select centered moments. Pull / Body / Aside reveal word-by-word on scroll
  * via SplitText + ScrollTrigger. Key accent moments use the brand coral.
  * The "the app" section uses a pinned scroll reel — the phone frame stays
@@ -28,8 +35,6 @@ import { gsap, useGSAP, SplitText } from "@/app/lib/gsap";
  * No em-dashes in body copy (standing rule).
  */
 
-const ACCENT_LIGHT = "#CF4B3B";
-const ACCENT_DARK = "#F08C7E";
 
 // ---------------------------------------------------------------- data
 
@@ -40,7 +45,6 @@ const SECTIONS = [
   { id: "app", label: "the app" },
   { id: "hard", label: "the hard part" },
   { id: "privacy", label: "privacy" },
-  { id: "reflection", label: "reflection" },
 ] as const;
 
 const META = [
@@ -111,35 +115,6 @@ const APP_SCREENS = [
 ];
 
 // ---------------------------------------------------------------- helpers
-
-const prefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/**
- * Section eyebrow + squiggle. Default alignment is left to match the editorial
- * pattern used in Temple/Onki/Kodif/Zuge/HandmadeHomestead; pass align="center"
- * to override for the centered moments (app + privacy sections).
- */
-function Label({
-  children,
-  align = "left",
-}: {
-  children: React.ReactNode;
-  align?: "left" | "center";
-}) {
-  const isCenter = align === "center";
-  return (
-    <div className={isCenter ? "text-center" : "text-left"}>
-      <p
-        className="font-mono text-caption-1 uppercase tracking-wide"
-        style={{ color: "var(--accent)" }}
-      >
-        {children}
-      </p>
-    </div>
-  );
-}
 
 /** Inline accent highlight — used for the key word/name in a sentence. */
 function Em({ children }: { children: React.ReactNode }) {
@@ -232,7 +207,7 @@ function Body({
   return (
     <p
       ref={ref}
-      className={`font-body leading-relaxed text-muted text-paragraph ${widthAlign} ${className}`}
+      className={`font-body font-normal leading-relaxed text-text text-paragraph ${widthAlign} ${className}`}
     >
       {children}
     </p>
@@ -361,7 +336,7 @@ function RockSaltLine({
       ref={ref}
       className={`leading-snug text-white ${className}`}
       style={{
-        fontFamily: "var(--font-rocksalt)",
+        fontFamily: "var(--font-heading)",
         fontSize,
         textShadow:
           "0 1px 0 rgba(0,0,0,0.6), 0 0 12px rgba(0,0,0,0.55), 0 0 24px rgba(0,0,0,0.4)",
@@ -371,27 +346,6 @@ function RockSaltLine({
     </p>
   );
 }
-
-function GrainOverlay() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        opacity: 0.05,
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-      }}
-    />
-  );
-}
-
-// ---------------------------------------------------------------- aura particles
-// Canvas orbit-field: five named dimensions, each a colour, with breathing
-// radial glows and drifting motes. Used in the origin section as a visual
-// stand-in for the lens's POV. Pauses on prefers-reduced-motion, and pauses
-// when off-screen via IntersectionObserver so it doesn't burn frames on
-// long pages.
 
 const AURA_DIMS = {
   VITAL:   { color: "#E8854A", label: "Vital",   speed: 1.8, radius: 72, opacity: 0.9,  val: 72 },
@@ -661,7 +615,7 @@ function CyclingWord({
          surrounding sentence doesn't reflow as words swap. */}
       <span
         aria-hidden
-        style={{ visibility: "hidden", whiteSpace: "nowrap", fontStyle: "italic" }}
+        style={{ visibility: "hidden", whiteSpace: "nowrap" }}
       >
         {widest}
       </span>
@@ -678,7 +632,6 @@ function CyclingWord({
             left: 0,
             right: 0,
             whiteSpace: "nowrap",
-            fontStyle: "italic",
             // Inline initial opacity so only the first word shows on first
             // paint; gsap takes over after mount.
             opacity: i === 0 ? 1 : 0,
@@ -900,7 +853,7 @@ function ScreensReel() {
       aria-label="The Feeld app screens"
       className="relative h-screen overflow-hidden"
     >
-      <div className="mx-auto flex h-full max-w-7xl flex-col items-center justify-center gap-6 px-6 sm:px-10 md:flex-row md:gap-12 lg:px-16">
+      <div className="mx-auto flex h-full max-w-[1000px] flex-col items-center justify-center gap-6 px-6 sm:px-10 md:flex-row md:gap-12 lg:px-16">
         {/* Left: the changing label */}
         <div className="relative order-2 h-[28vh] w-full md:order-1 md:h-[80vh] md:w-2/5">
           {APP_SCREENS.map((s, i) => (
@@ -966,165 +919,18 @@ function ScreensReel() {
 
 // ---------------------------------------------------------------- chrome
 
-function SectionRail({ active, onJump }: { active: string; onJump: (id: string) => void }) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  return (
-    <nav
-      aria-label="Sections"
-      className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3.5 md:flex"
-    >
-      {SECTIONS.map((s) => {
-        const isActive = active === s.id;
-        const show = isActive || hovered === s.id;
-        const size = isActive ? 9 : 6;
-        return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onJump(s.id)}
-            onMouseEnter={() => setHovered(s.id)}
-            onMouseLeave={() => setHovered(null)}
-            aria-label={s.label}
-            aria-current={isActive ? "true" : undefined}
-            data-cursor-label={s.label}
-            className="group relative flex h-6 w-6 items-center justify-center"
-          >
-            <span
-              aria-hidden
-              style={{
-                width: size,
-                height: size,
-                borderRadius: "9999px",
-                backgroundColor: isActive ? "var(--accent)" : "var(--color-muted)",
-                opacity: isActive ? 1 : show ? 0.85 : 0.4,
-                transition: "all 0.2s ease-out",
-              }}
-            />
-            <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
-                show ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
-              }`}
-              style={{ color: isActive ? "var(--accent)" : "var(--text)" }}
-            >
-              {s.label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function ProgressBar() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const el = document.documentElement;
-      const max = el.scrollHeight - el.clientHeight;
-      setP(max > 0 ? (el.scrollTop / max) * 100 : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  return (
-    <div className="fixed inset-x-0 top-0 z-50 h-1 bg-muted/20 md:hidden">
-      <div
-        className="h-full transition-[width] duration-100 ease-out"
-        style={{ width: `${p}%`, backgroundColor: "var(--accent)" }}
-      />
-    </div>
-  );
-}
-
-// Sentence-heavy sections use this wrapper. max-w-6xl matches the editorial
-// column width used by Temple/Onki/Kodif/Zuge/HandmadeHomestead so the case
-// studies share one rail. Vertical padding stays at py-14 / md:py-20.
-function Section({
-  id,
-  children,
-  className = "",
-}: {
-  id?: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <section
-      id={id}
-      className={`scroll-mt-24 px-6 py-14 sm:px-10 md:py-20 lg:px-20 xl:px-24 ${className}`}
-    >
-      <div className="mx-auto max-w-6xl">{children}</div>
-    </section>
-  );
-}
-
 // ---------------------------------------------------------------- page
 
 export function FeeldCaseStudy() {
-  const [active, setActive] = useState<string>("overview");
-  const { resolvedTheme } = useTheme();
-  const accent = resolvedTheme === "dark" ? ACCENT_DARK : ACCENT_LIGHT;
-
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.find((e) => e.isIntersecting);
-        if (hit) setActive(hit.target.id);
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-    );
-    SECTIONS.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
-
-  const jump = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: prefersReduced() ? "auto" : "smooth",
-      block: "start",
-    });
-  };
-
   return (
-    <div
-      className="relative"
-      style={{ backgroundColor: "var(--bg)", ["--accent"]: accent } as React.CSSProperties}
-    >
-      <GrainOverlay />
-      <SectionRail active={active} onJump={jump} />
-      <ProgressBar />
-
-      <div className="relative z-10">
-        {/* 1 — OVERVIEW
-           Left-aligned hero; the title leads (no eyebrow above it) so it
-           matches the other case studies. */}
-        <Section id="overview" className="pt-28 md:pt-32">
-          <h1
-            className="text-left font-display leading-[1.02] text-text text-h1"
-            style={{ fontWeight: 700, letterSpacing: "-0.02em" }}
-          >
-            Sense the room.
-          </h1>
-
-          <p className="mt-5 text-left font-heading italic text-muted text-paragraph-2">
-            A wearable that proves what you already sense.
-          </p>
-
-          <dl className="mt-12 grid grid-cols-1 gap-x-12 gap-y-5 border-y border-border py-7 sm:grid-cols-2 md:grid-cols-4">
-            {META.map((m) => (
-              <div key={m.label} className="text-left">
-                <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">
-                  {m.label}
-                </dt>
-                <dd className="mt-1 font-body text-body text-text">{m.value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <div className="mt-14">
+    <CaseStudyFrame accent="feeld" sections={SECTIONS}>
+      <Hero
+        eyebrow="Feeld"
+        title="Sense the room."
+        intro="A wearable that proves what you already sense."
+        meta={META}
+        lead={
+          <Bleed>
             <Figure
               src="/feeld/hero.jpg"
               file="feeld/hero.jpg"
@@ -1132,14 +938,15 @@ export function FeeldCaseStudy() {
               aspect="aspect-[16/9]"
               cursorLabel="the room"
             />
-          </div>
-
-          {/* Value statement — the overview closer. */}
-          <Pull className="mt-16">
-            Most of what people carry stays invisible. <Em>Feeld</Em> makes it legible,
-            so you can understand others better and meet them with empathy.
-          </Pull>
-        </Section>
+          </Bleed>
+        }
+      >
+        {/* Value statement - the overview closer. */}
+        <Pull className="mt-16">
+          Most of what people carry stays invisible. <Em>Feeld</Em> makes it legible,
+          so you can understand others better and meet them with empathy.
+        </Pull>
+      </Hero>
 
         {/* 2 — ORIGIN (FigBuild 2026) */}
         <Section id="origin">
@@ -1318,28 +1125,7 @@ export function FeeldCaseStudy() {
             Go fully offline and you lose access to others&apos; signals too. Like
             WhatsApp read receipts. It works both ways.
           </Body>
-        </Section>
-
-        {/* 7 — REFLECTION */}
-        <Section id="reflection">
-          <Label>reflection</Label>
-
-          <Body className="mt-10">
-            Figma&apos;s challenge pushed us into territory none of us had designed in
-            before. Speculative UX, emerging technology, senses that don&apos;t exist
-            yet. It stretched the way I think about what design can even be.
-          </Body>
-
-          {/* Sign-off line — uppercased mono, matches the SectionRail and
-             the other case studies' sign-offs. */}
-          <p
-            className="mt-20 text-left font-mono text-caption-1 uppercase tracking-wide"
-            style={{ color: "var(--accent)" }}
-          >
-            Feeld. Sense the room.
-          </p>
-        </Section>
-      </div>
-    </div>
+      </Section>
+    </CaseStudyFrame>
   );
 }

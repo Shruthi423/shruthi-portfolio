@@ -2,8 +2,19 @@
 /* eslint-disable @next/next/no-img-element -- case-study screens are optimized PNGs in /public, not gallery photos */
 
 import { useEffect, useRef, useState } from "react";
-import { Rock_Salt } from "next/font/google";
-import { useTheme } from "@/app/components/shared/ThemeProvider";
+import {
+  Bleed,
+  Body,
+  CaseStudyFrame,
+  CountUp,
+  Hero,
+  Label,
+  Pill,
+  prefersReduced,
+  Reveal,
+  Section,
+  Statement,
+} from "@/app/components/case-studies/shared/CaseStudyLayout";
 
 /**
  * Onki / AICap case study - now wearing the site's personality.
@@ -16,14 +27,9 @@ import { useTheme } from "@/app/components/shared/ThemeProvider";
  * and the next case study inherits all of it.
  */
 
-// Rock Salt - the handwriting (same as the About polaroids).
-const rockSalt = Rock_Salt({ weight: "400", subsets: ["latin"], display: "swap" });
-
 // ---------------------------------------------------------------- project config
 
 // Onki's signature colour (from its /work card), split light/dark for contrast.
-const ACCENT_LIGHT = "#A67C20"; // amber - readable on morning mist
-const ACCENT_DARK = "#FCB34F"; // lighter amber - readable on warm midnight
 
 // Handwritten asides - DRAFTS in Shruthi's voice. Swap for your real ones.
 const NOTES = {
@@ -41,7 +47,6 @@ const SECTIONS = [
   { id: "problem", label: "problem" },
   { id: "design", label: "design" },
   { id: "outcome", label: "outcome" },
-  { id: "reflection", label: "reflection" },
 ] as const;
 
 const OVERVIEW_TAGS = [
@@ -149,12 +154,6 @@ const METRICS = [
 
 // ---------------------------------------------------------------- helpers
 
-const prefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-// Hand-drawn squiggle underline (accent) - the hand-made touch under eyebrows.
-// Hand-drawn arrow for the margin asides.
 function ArrowDoodle({ className = "" }: { className?: string }) {
   return (
     <svg width="44" height="34" viewBox="0 0 44 34" fill="none" className={className} aria-hidden>
@@ -178,7 +177,7 @@ function Aside({
     <div className={`hidden items-start gap-2 lg:flex ${className}`}>
       <ArrowDoodle className="mt-1 shrink-0" />
       <p
-        className={`${rockSalt.className} max-w-[210px] text-[0.95rem] leading-snug`}
+        className={`font-heading max-w-[210px] text-[0.95rem] leading-snug`}
         style={{ color: "var(--accent)", transform: `rotate(${rotate}deg)` }}
       >
         {children}
@@ -187,68 +186,6 @@ function Aside({
   );
 }
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <div>
-      <p
-        className="font-mono text-caption-1 uppercase tracking-wide"
-        style={{ color: "var(--accent)" }}
-      >
-        {children}
-      </p>
-    </div>
-  );
-}
-
-function Statement({
-  children,
-  center = false,
-  className = "",
-}: {
-  children: React.ReactNode;
-  center?: boolean;
-  className?: string;
-}) {
-  return (
-    <h2
-      className={`font-heading leading-[1.12] text-text ${center ? "text-center" : ""} ${className}`}
-      style={{ fontSize: "clamp(2rem, 3.6vw, 3.25rem)", letterSpacing: "-0.01em" }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function Body({
-  children,
-  center = false,
-  className = "",
-}: {
-  children: React.ReactNode;
-  center?: boolean;
-  className?: string;
-}) {
-  return (
-    <p
-      className={`font-body leading-relaxed text-muted ${center ? "text-center" : ""} ${className}`}
-      style={{ fontSize: "clamp(1rem, 1.3vw, 1.15rem)" }}
-    >
-      {children}
-    </p>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="border border-border px-3 py-1 font-mono text-caption-2 uppercase tracking-wide text-muted">
-      {children}
-    </span>
-  );
-}
-
-// Real image in an aspect frame, with a branded dashed placeholder as a
-// fallback when the src is missing or fails. fit="contain" centers tall or
-// off-ratio art on a surface; default "cover" fills the frame.
 function Figure({
   src,
   label,
@@ -301,300 +238,23 @@ function Figure({
 }
 
 // Frosted grain wash - paper texture so the page isn't flat (matches the home).
-function GrainOverlay() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        opacity: 0.05,
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-      }}
-    />
-  );
-}
-
-// Fade / slide-in on scroll entry.
-function Reveal({
-  children,
-  variant = "up",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  variant?: "up" | "fade" | "scale";
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setShown(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  const hidden =
-    variant === "fade"
-      ? "opacity-0"
-      : variant === "scale"
-        ? "opacity-0 scale-[0.97]"
-        : "opacity-0 translate-y-8";
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ease-out ${shown ? "opacity-100 translate-y-0 scale-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function CountUp({
-  value,
-  suffix = "",
-  duration = 1400,
-}: {
-  value: number;
-  suffix?: string;
-  duration?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setN(value);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const p = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - p, 3);
-          setN(Math.round(eased * value));
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      },
-      { threshold: 0.4 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [value, duration]);
-  return (
-    <span ref={ref}>
-      {n}
-      {suffix}
-    </span>
-  );
-}
-
-// ---------------------------------------------------------------- chrome
-
-function DotNav({ active, onJump }: { active: string; onJump: (id: string) => void }) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  return (
-    <nav
-      aria-label="Sections"
-      className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3.5 md:flex"
-    >
-      {SECTIONS.map((s) => {
-        const isActive = active === s.id;
-        const show = isActive || hovered === s.id;
-        const size = isActive ? 9 : 6;
-        return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onJump(s.id)}
-            onMouseEnter={() => setHovered(s.id)}
-            onMouseLeave={() => setHovered(null)}
-            aria-label={s.label}
-            aria-current={isActive ? "true" : undefined}
-            data-cursor-label={s.label}
-            className="group relative flex h-6 w-6 items-center justify-center"
-          >
-            <span
-              aria-hidden
-              style={{
-                width: size,
-                height: size,
-                borderRadius: "9999px",
-                backgroundColor: isActive ? "var(--accent)" : "var(--color-muted)",
-                opacity: isActive ? 1 : show ? 0.85 : 0.4,
-                transition: "all 0.2s ease-out",
-              }}
-            />
-            <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
-                show ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
-              }`}
-              style={{ color: isActive ? "var(--accent)" : "var(--text)" }}
-            >
-              {s.label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function ProgressBar() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const el = document.documentElement;
-      const max = el.scrollHeight - el.clientHeight;
-      setP(max > 0 ? (el.scrollTop / max) * 100 : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  return (
-    <div className="fixed inset-x-0 top-0 z-50 h-1 bg-muted/20 md:hidden">
-      <div
-        className="h-full transition-[width] duration-100 ease-out"
-        style={{ width: `${p}%`, backgroundColor: "var(--accent)" }}
-      />
-    </div>
-  );
-}
-
-// Mirrors Feeld's Section: one shared editorial column (max-w-6xl), uniform
-// px/py rhythm so Onki sits in the same family as the other case studies.
-function SectionWrap({
-  id,
-  children,
-  className = "",
-}: {
-  id: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <section
-      id={id}
-      className={`scroll-mt-24 px-6 py-14 sm:px-10 md:py-20 lg:px-20 xl:px-24 ${className}`}
-    >
-      <div className="mx-auto max-w-6xl">{children}</div>
-    </section>
-  );
-}
-
 // ---------------------------------------------------------------- page
 
 export function OnkiCaseStudy() {
-  const [active, setActive] = useState<string>("overview");
-  const { resolvedTheme } = useTheme();
-  const accent = resolvedTheme === "dark" ? ACCENT_DARK : ACCENT_LIGHT;
-
-  // Active-section detection via a centre-of-viewport band (robust for tall
-  // sections that never reach a 0.3 ratio).
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.find((e) => e.isIntersecting);
-        if (hit) setActive(hit.target.id);
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-    );
-    SECTIONS.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
-
-  const jump = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: prefersReduced() ? "auto" : "smooth",
-      block: "start",
-    });
-  };
-
   return (
-    <div
-      className="relative"
-      style={{ backgroundColor: "var(--bg)", ["--accent"]: accent } as React.CSSProperties}
-    >
-      <GrainOverlay />
-      <DotNav active={active} onJump={jump} />
-      <ProgressBar />
-
-      <div className="relative z-10">
-        {/* 1 - OVERVIEW — single editorial column, title leads (matches Feeld). */}
-        <SectionWrap id="overview" className="pt-28 md:pt-32">
-          <Reveal>
-            <h1
-              className="text-left font-display leading-[1.05] text-text"
-              style={{ fontSize: "clamp(2.25rem, 4vw, 3.75rem)", fontWeight: 700, letterSpacing: "-0.02em" }}
-            >
-              Designing an AI sommelier for the wine aisle.
-            </h1>
-          </Reveal>
-          <Reveal delay={100}>
-            <Body className="mt-6">
-              AICap is a voice + touch retail kiosk that helps shoppers discover
-              wine through conversational AI, built by Onki, a NYC startup
-              founded by ex-Amazon innovators.
-            </Body>
-          </Reveal>
-          <Reveal delay={200}>
-            <div className="mt-7 flex flex-wrap gap-2">
-              {OVERVIEW_TAGS.map((t) => (
-                <Pill key={t}>{t}</Pill>
-              ))}
-            </div>
-          </Reveal>
-          <Reveal delay={300}>
-            <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-5 border-y border-border py-7 sm:grid-cols-3 md:grid-cols-5">
-              {META.map((m) => (
-                <div key={m.label}>
-                  <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">
-                    {m.label}
-                  </dt>
-                  <dd className="mt-1 font-body text-body text-text">
-                    {m.href ? (
-                      <a
-                        href={m.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-cursor-label={`visit ${m.value}`}
-                        className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
-                      >
-                        {m.value}
-                      </a>
-                    ) : (
-                      m.value
-                    )}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </Reveal>
-          <Reveal delay={150} variant="scale" className="mt-14">
+    <CaseStudyFrame accent="onki" sections={SECTIONS}>
+      <Hero
+        eyebrow="Onki"
+        title="Designing an AI sommelier for the wine aisle."
+        intro={
+          <>
+            AICap is a voice + touch retail kiosk that helps shoppers discover wine through conversational AI, built by
+            Onki, a NYC startup founded by ex-Amazon innovators.
+          </>
+        }
+        meta={META}
+        lead={
+          <Bleed>
             <Figure
               src="/onki/hero.png"
               label="AiCap greeting screen"
@@ -603,11 +263,20 @@ export function OnkiCaseStudy() {
               cursorLabel="say hi to AiCap"
               className="border border-border bg-surface/40"
             />
-          </Reveal>
-        </SectionWrap>
+          </Bleed>
+        }
+      >
+        <Reveal delay={240}>
+          <div className="mt-10 flex flex-wrap gap-2">
+            {OVERVIEW_TAGS.map((t) => (
+              <Pill key={t}>{t}</Pill>
+            ))}
+          </div>
+        </Reveal>
+      </Hero>
 
         {/* 2 - CONTEXT */}
-        <SectionWrap id="context">
+        <Section id="context">
           <Reveal>
             <Statement className="max-w-3xl">
               Wine aisles have hundreds of choices and zero guidance.
@@ -636,12 +305,12 @@ export function OnkiCaseStudy() {
               />
             </div>
           </Reveal>
-        </SectionWrap>
+        </Section>
 
         {/* 3 - INSIGHTS */}
-        <SectionWrap id="insights">
+        <Section id="insights">
           <Reveal>
-            <Eyebrow>Key insights</Eyebrow>
+            <Label>Key insights</Label>
           </Reveal>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {INSIGHTS.map((c, i) => (
@@ -656,10 +325,10 @@ export function OnkiCaseStudy() {
               </Reveal>
             ))}
           </div>
-        </SectionWrap>
+        </Section>
 
         {/* 4 - PROBLEM */}
-        <SectionWrap id="problem">
+        <Section id="problem">
           <Reveal>
             <Statement className="max-w-3xl">
               Today&rsquo;s retail shelves are passive. AICap makes them talk back.
@@ -696,13 +365,13 @@ export function OnkiCaseStudy() {
               <p className="mt-3 font-mono text-caption-2 uppercase tracking-wide text-muted">after</p>
             </Reveal>
           </div>
-        </SectionWrap>
+        </Section>
 
         {/* 5 - DESIGN DECISIONS */}
-        <SectionWrap id="design">
+        <Section id="design">
           <div className="grid gap-12 lg:grid-cols-[1fr_1.45fr]">
             <div className="lg:sticky lg:top-28 lg:self-start">
-              <Eyebrow>Design decisions</Eyebrow>
+              <Label>Design decisions</Label>
               <Statement className="mt-4">The reasoning behind the work.</Statement>
               <Body className="mt-4">Every interaction had a UX principle behind it.</Body>
               <Aside className="mt-8" rotate={-2}>
@@ -740,10 +409,10 @@ export function OnkiCaseStudy() {
               information architecture
             </p>
           </Reveal>
-        </SectionWrap>
+        </Section>
 
         {/* 6 - OUTCOME */}
-        <SectionWrap id="outcome">
+        <Section id="outcome">
           <Reveal>
             <Statement>Designs shipped. Numbers followed.</Statement>
           </Reveal>
@@ -765,7 +434,7 @@ export function OnkiCaseStudy() {
                     className="font-display"
                     style={{
                       color: "var(--accent)",
-                      fontSize: "clamp(3rem, 7vw, 5.25rem)",
+                      fontSize: "var(--text-h1)",
                       fontWeight: 700,
                       letterSpacing: "-0.02em",
                       lineHeight: 1,
@@ -822,26 +491,7 @@ export function OnkiCaseStudy() {
               </Reveal>
             ))}
           </div>
-        </SectionWrap>
-
-        {/* 8 - REFLECTION — left-aligned Label + Body + sign-off, matching Feeld. */}
-        <SectionWrap id="reflection">
-          <Reveal variant="fade">
-            <Eyebrow>Reflection</Eyebrow>
-          </Reveal>
-          <Reveal variant="fade" delay={120}>
-            <Body className="mt-10">
-              Designing for conversational AI taught me that the hardest decisions
-              aren&rsquo;t visual, they&rsquo;re behavioral. What does the AI say
-              when a user hesitates? How do you make a stranger comfortable talking
-              to a kiosk in public? How do you reduce cognitive load without making
-              the experience feel patronizing? This project shaped how I think about
-              human-AI interaction: not as a feature to design around, but as a
-              relationship to design for.
-            </Body>
-          </Reveal>
-        </SectionWrap>
-      </div>
-    </div>
+      </Section>
+    </CaseStudyFrame>
   );
 }

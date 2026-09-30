@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deep Clean — Motion Thumbnail</title>
+<!-- Embedded as the DeepClean card art on the home work grid, via
+     app/components/work/DeepCleanThumbnail.tsx. The card frame is 4:3, so the
+     stage fills its box instead of forcing a letterboxed 16:9. Every size is in
+     cqw (a share of the stage width), so the layout is identical at either
+     ratio — 4:3 just gets more vertical breathing room. Still opens standalone.
+     Animation pauses itself while offscreen or the tab is hidden. -->
+<style>
+  :root{
+    --bg:#141414; --ink:#e8e6e3; --dim:#7d7a75; --faint:#4a4845; --line:#3a3835;
+    --orange:#d97757; --amber:#e3a44a; --green:#8cc084;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{width:100%;height:100%;margin:0;background:var(--bg);overflow:hidden}
+
+  .stage{position:absolute;inset:0;overflow:hidden;
+    container-type:inline-size;background:var(--bg);color:var(--ink);font-family:var(--mono)}
+
+  .viewport{position:absolute;inset:0;transform:scale(1);transform-origin:5% 50%;
+    transition:transform 1s cubic-bezier(.2,.75,.15,1),transform-origin 1s cubic-bezier(.2,.75,.15,1)}
+  /* Origin pinned to the left edge so the spider's thread stays in frame */
+  .stage.z-in .viewport{transform:scale(1.65);transform-origin:0% 94%}
+  .stage.z-pin .viewport{transform:scale(1.4);transform-origin:0% 8%}
+  .stage.z-sweep .viewport{transform:scale(1.35);transform-origin:0% 58%}
+
+  .term{position:absolute;inset:0;padding:3.2cqw 5cqw 3.6cqw;display:flex;flex-direction:column;justify-content:center;font-size:2cqw;line-height:1.65}
+
+  .top{display:flex;justify-content:space-between;color:var(--dim);font-size:1.5cqw;margin-bottom:1.2cqw}
+  .meter{display:flex;align-items:center;gap:.8cqw}
+  .bar{width:10cqw;height:.6cqw;background:#2a2826;display:block;overflow:hidden}
+  .bar i{display:block;height:100%;width:84%;background:var(--amber);transition:width 1.4s cubic-bezier(.2,.75,.15,1),background .6s}
+  .stage.cleaned .bar i{width:41%;background:var(--green)}
+  #pct{color:var(--amber);font-weight:700;min-width:3.2ch;text-align:right;transition:color .6s}
+  .stage.cleaned #pct{color:var(--green)}
+
+  .ln{white-space:nowrap}
+  .u{color:var(--dim)}
+  .a{color:var(--dim)}
+  .a .dot{color:var(--ink)}
+  .pin{color:var(--dim);transition:color .3s}
+  .pin .tag{color:var(--faint)}
+  .pin #pinText{color:var(--ink);transition:color .3s}
+  .pin.flag #pinText{color:var(--amber);text-decoration:underline wavy var(--amber);text-underline-offset:.35em}
+  .pin.ok #pinText{color:var(--green)}
+
+  .sweep{max-height:7cqw;overflow:hidden;transition:max-height .5s ease,opacity .5s ease}
+  .sweep.swept{max-height:0;opacity:0}
+  .archived{max-height:0;overflow:hidden;opacity:0;color:var(--faint);transition:max-height .5s ease .15s,opacity .5s ease .15s}
+  .archived.on{max-height:3.6cqw;opacity:1}
+
+  .dock{margin-top:1.4cqw}
+
+  .dock{display:grid}
+  .panel{grid-area:1/1;align-self:end;opacity:0;transition:opacity .3s ease}
+  .panel.on{opacity:1}
+  .input{border:1px solid var(--line);border-radius:.5cqw;padding:.9cqw 1.2cqw;display:flex;align-items:center}
+  .stage.z-in .input{border-color:#6a655f}
+  .chev{color:var(--dim);margin-right:1ch}
+  .caret{display:inline-block;width:.9ch;height:1.15em;background:var(--ink);animation:blink .9s steps(1,end) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .status{color:var(--dim)}
+  .spin{color:var(--orange);display:inline-block;width:1.4ch}
+  .ask{border:1px solid var(--orange);border-radius:.5cqw;padding:.9cqw 1.4cqw;font-size:1.7cqw;line-height:1.6}
+  .ask .h{color:var(--orange);font-weight:700}
+  .ask .opt{color:var(--dim);margin-right:3ch}
+  .ask .opts{display:flex}
+  .ask .opt.sel{color:var(--ink)}
+  .ask .opt.sel b{color:var(--orange)}
+  .ask .opt.go{color:var(--green)}
+  .done{color:var(--green)}
+  .done span{color:var(--dim)}
+
+  /* Original pixel spider + silk. It hangs from one thread in the left gutter
+     and only travels vertically, so nothing here animates sideways. */
+  .spider .eyes{animation:blinkeye 3.4s steps(1,end) infinite;transform-origin:6px 4.5px}
+  @keyframes blinkeye{0%,92%{opacity:1}94%{opacity:0}97%{opacity:1}}
+  .spider{position:absolute;left:0;top:0;width:4.2cqw;height:3.55cqw;z-index:5;
+    transition-property:top;transition-timing-function:linear}
+  .spider svg{width:100%;height:100%;display:block;shape-rendering:crispEdges;transform-origin:50% 0;animation:idle 2.4s ease-in-out infinite;filter:drop-shadow(0 0 .6cqw rgba(255,45,69,.45))}
+  .spider .lb{opacity:0}
+  .spider.hop svg{animation:hop .5s ease-out 2}
+  .silk{position:absolute;top:0;left:0;width:max(1px,.12cqw);height:0;background:rgba(232,230,227,.6);z-index:4;opacity:0;
+    transition-property:height,opacity;transition-timing-function:linear}
+  .silk.on{opacity:1}
+  .web{position:absolute;top:0;left:0;width:14cqw;height:14cqw;opacity:.28;pointer-events:none;transform:scaleX(-1)}
+  @keyframes idle{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+  @keyframes hop{40%{transform:translateY(-30%)}}
+
+  @media (prefers-reduced-motion:reduce){
+    .viewport,.bar i,.sweep,.archived,.panel,.spider{transition:none!important}
+    .caret,.spider svg{animation:none!important}
+  }
+</style>
+</head>
+<body>
+<main class="stage" id="stage" aria-label="Deep Clean: a red pixel spider reviews a long Claude Code chat, asks before changing a stale pin, archives an off-topic thread, and frees up context">
+  <div class="viewport">
+    <div class="term" id="term" aria-hidden="true">
+      <div class="top"><span>~/checkout-api</span><span class="meter">context <span class="bar"><i></i></span><b id="pct">84%</b></span></div>
+
+      <div class="log">
+        <div class="ln pin" id="pinLine"><span class="t"><span class="tag">pinned:</span> <span id="pinText">use REST endpoints</span></span></div>
+        <div class="ln"><span class="u">&gt;</span> add retry logic to the payment client</div>
+        <div class="ln a"><span class="dot">⏺</span> Added backoff to PaymentClient.retry()</div>
+        <div class="ln"><span class="u">&gt;</span> actually, switch the API to GraphQL</div>
+        <div class="ln a"><span class="dot">⏺</span> Migrated 4 endpoints to GraphQL</div>
+        <div class="sweep" id="sweep">
+          <div class="ln"><span class="t"><span class="u">&gt;</span> unrelated, why is my zsh prompt slow?</span></div>
+          <div class="ln a"><span class="dot">⏺</span> nvm is initializing on every prompt</div>
+        </div>
+        <div class="ln archived" id="archived">⎿ archived: zsh prompt debugging, 2 messages, restorable</div>
+        <div class="ln"><span class="u">&gt;</span> back to checkout, fix the failing test</div>
+      </div>
+
+
+      <div class="dock" id="dock">
+        <div class="panel input on" id="input"><span class="chev">&gt;</span><span id="cmd"></span><span class="caret" id="caret"></span></div>
+        <div class="panel status" id="status"><span class="spin" id="spin">✻</span> <span id="statusText">Reviewing 9 messages</span></div>
+        <div class="panel ask" id="ask">
+          <div class="h">Deep Clean has 1 question</div>
+          <div>Pin says "use REST endpoints", you later said "switch to GraphQL".</div>
+          <div class="opts"><span class="opt sel" id="opt1"><b>❯</b> 1. Update pin</span><span class="opt">2. Keep as is</span></div>
+        </div>
+        <div class="panel done" id="done"><span id="doneText">✓ Deep clean complete. <span>Context 84% to 41%. Nothing deleted.</span></span></div>
+      </div>
+
+      <svg class="web" viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="#e8e6e3" stroke-width=".6"><path d="M100 0L0 100M100 0L30 100M100 0L0 30M100 0L62 100M100 0L0 62"/><path d="M78 0Q82 12 100 22M56 0Q63 24 86 30Q74 44 100 44M34 0Q44 36 72 52Q56 70 100 66M12 0Q26 50 58 74Q40 92 100 88"/></svg>
+      <div class="silk" id="silk"></div>
+      <div class="spider" id="spider">
+        <svg viewBox="0 0 13 11" aria-hidden="true">
+          <g class="la" fill="#c0162a"><rect x="3" y="3" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="1" y="0" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="1" y="9" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="3" y="10" width="1" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/><rect x="11" y="1" width="1" height="1"/><rect x="11" y="0" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="9" y="7" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="9" y="10" width="1" height="1"/></g>
+          <g class="lb" fill="#c0162a"><rect x="3" y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="3" y="8" width="1" height="1"/><rect x="2" y="9" width="1" height="1"/><rect x="2" y="10" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="4" y="9" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="10" y="3" width="1" height="1"/><rect x="11" y="2" width="1" height="1"/><rect x="12" y="2" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="10" y="10" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="8" y="9" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/></g>
+          <g fill="#ff2d45"><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="7" y="2" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="7" y="3" width="1" height="1"/><rect x="8" y="3" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="7" y="5" width="1" height="1"/><rect x="8" y="5" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="7" y="6" width="1" height="1"/><rect x="5" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/><rect x="6" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/></g>
+          <g fill="#ff8a96"><rect x="5" y="2" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/></g>
+          <g class="eyes" fill="#ffffff"><rect x="5" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/></g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const $=id=>document.getElementById(id);
+  const stage=$('stage'), term=$('term'), spider=$('spider'), cmd=$('cmd'), caret=$('caret'), pct=$('pct');
+  const panels={input:$('input'),status:$('status'),ask:$('ask'),done:$('done')};
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Pause while offscreen, while the tab is hidden, or while the host card
+  // isn't hovered (the parent sends deepclean:play / deepclean:pause).
+  let onScreen=true, playing=false, gen=0, waiters=[];
+  const ABORT={};
+  const visible=()=>onScreen&&!document.hidden&&playing;
+  const wake=()=>{if(visible()){waiters.forEach(r=>r());waiters=[];}};
+  new IntersectionObserver(e=>{onScreen=e[0].isIntersecting;wake();}).observe(stage);
+  document.addEventListener('visibilitychange',wake);
+  // A paused run parks in its next sleep, then throws ABORT so the loop unwinds
+  // instead of resuming mid-crawl.
+  async function sleep(ms){
+    const my=gen;
+    await new Promise(r=>setTimeout(r,ms));
+    while(!visible()){ if(gen!==my) throw ABORT; await new Promise(r=>waiters.push(r)); }
+    if(gen!==my) throw ABORT;
+  }
+
+  const cqw=()=>stage.clientWidth/100;
+  const show=name=>Object.entries(panels).forEach(([k,el])=>el.classList.toggle('on',k===name));
+
+  // Spinner like a terminal agent
+  const frames='·✢✳✶✻✽✻✶✳✢'; let f=0;
+  setInterval(()=>{$('spin').textContent=frames[f++%frames.length];},120);
+
+  // The spider never crawls sideways: it hangs from one thread in the left
+  // gutter (clear of the terminal's 5cqw text inset) and only rides up and down
+  // it, stopping level with whichever line is being edited.
+  const homeX=()=>.4*cqw();
+  function idleSpot(){
+    const d=$('dock'), inp=panels.input;
+    return {x:homeX(), y:d.offsetTop+d.offsetHeight-inp.offsetHeight-spider.offsetHeight-1.2*cqw()};
+  }
+  function doneSpot(){
+    const d=$('dock');
+    return {x:homeX(), y:d.offsetTop+d.offsetHeight-spider.offsetHeight-.3*cqw()};
+  }
+  const silk=$('silk');
+  function setSilk(p,ms,on){
+    silk.style.transitionDuration=ms+'ms';
+    if(on){ silk.style.left=(p.x+spider.offsetWidth/2)+'px'; silk.classList.add('on'); silk.style.height=(p.y+spider.offsetHeight*.15)+'px'; }
+    else silk.classList.remove('on');
+  }
+  let pos={x:0,y:0};
+  function place(p){pos={...p};spider.style.transitionDuration='0ms';spider.style.left=p.x+'px';spider.style.top=p.y+'px';setSilk(p,0,true);}
+  // Every move is a vertical ride on the silk thread
+  async function walkTo(p){
+    const cy=pos.y, ms=Math.max(350,Math.abs(p.y-cy)/(stage.clientWidth*.16)*1000);
+    silk.style.transitionDuration='0ms'; silk.style.left=(p.x+spider.offsetWidth/2)+'px';
+    silk.style.height=(cy+spider.offsetHeight*.15)+'px'; silk.getBoundingClientRect();
+    setSilk(p,ms,true);
+    spider.style.transitionDuration=ms+'ms';
+    spider.style.left=p.x+'px'; spider.style.top=p.y+'px'; pos={...p};
+    await sleep(ms);
+    return ms;
+  }
+  // Spider hangs level with the bottom of a line
+  const onLine=el=>({x:homeX(), y:el.offsetTop+el.offsetHeight-spider.offsetHeight+.2*cqw()});
+
+  function countTo(a,b,ms){const t0=performance.now(),my=gen;(function tick(t){if(gen!==my)return;const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3);pct.textContent=Math.round(a+(b-a)*e)+'%';if(k<1)requestAnimationFrame(tick);})(t0);}
+
+  function reset(){
+    stage.className='stage'; cmd.textContent=''; caret.style.opacity='1'; pct.textContent='84%';
+    $('pinLine').className='ln pin'; $('pinText').textContent='use REST endpoints';
+    $('sweep').className='sweep'; $('archived').className='ln archived';
+    $('opt1').className='opt sel'; $('statusText').textContent='Reviewing 9 messages';
+    spider.className='spider'; show('input'); place(idleSpot());
+  }
+
+  function showFinal(){
+    reset(); stage.classList.add('cleaned'); pct.textContent='41%';
+    $('pinLine').classList.add('ok'); $('pinText').textContent='use GraphQL endpoints';
+    $('sweep').classList.add('swept'); $('archived').classList.add('on'); show('done');
+    setTimeout(()=>place(doneSpot()),600);
+  }
+
+  async function play(){
+    reset();
+    await sleep(1500);                                  // poster: messy chat, 84%, spider waiting
+    stage.classList.add('z-in'); await sleep(900);
+    for(const ch of '/deepclean'){cmd.textContent+=ch;await sleep(ch==='/'?170:85+Math.random()*40);}
+    await sleep(350);
+    caret.style.opacity='0'; show('status');
+    stage.classList.remove('z-in'); stage.classList.add('z-pin');
+
+    const pinLine=$('pinLine');
+    await walkTo(onLine(pinLine));                      // climb to the stale pin
+    pinLine.classList.add('flag'); await sleep(500);
+    stage.classList.remove('z-pin');
+    show('ask'); await sleep(2500);                     // hold: user decides
+    $('opt1').classList.add('go'); await sleep(450);
+    $('statusText').textContent='Archiving off-topic thread'; show('status');
+    const sweep=$('sweep'), first=sweep.firstElementChild;
+    stage.classList.add('z-sweep');
+    const drop=walkTo(onLine(first));                   // lower down to the off-topic thread
+    await sleep(350);
+    pinLine.classList.remove('flag'); pinLine.classList.add('ok'); $('pinText').textContent='use GraphQL endpoints';
+    await drop;
+    sweep.style.transition='opacity 1.6s linear'; sweep.style.opacity='.15';
+    await sleep(1100);
+    sweep.style.transition=''; sweep.style.opacity=''; sweep.classList.add('swept'); $('archived').classList.add('on');
+    await sleep(700);
+
+    show('done'); stage.classList.remove('z-sweep'); stage.classList.add('cleaned'); countTo(84,41,1400);
+    await sleep(50);
+    await walkTo(doneSpot());                           // drop down beside the result
+    spider.classList.add('hop'); await sleep(3300);
+    play();
+  }
+
+  addEventListener('resize',()=>place(idleSpot()));
+
+  function start(){ if(playing||reduce) return; playing=true; play().catch(e=>{ if(e!==ABORT) throw e; }); }
+  function stop(){ if(!playing) return; playing=false; gen++; reset(); }
+  addEventListener('message',e=>{ if(e.origin!==location.origin) return; if(e.data==='deepclean:play') start(); else if(e.data==='deepclean:pause') stop(); });
+
+  // Poster frame until the host card says go. Opened on its own (not in the
+  // card's iframe), the page just plays.
+  reduce ? showFinal() : (reset(), window.top===window && start());
+</script>
+</body>
+</html>

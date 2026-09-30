@@ -9,7 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
   const caseStudies = [
     "/kodif", "/zuge", "/spothive", "/temple",
-    "/onki", "/handmade-homestead", "/feeld",
+    "/onki", "/handmade-homestead", "/feeld", "/domu",
     // "/umsi-expo-badges" — hidden until finished
   ];
   return [

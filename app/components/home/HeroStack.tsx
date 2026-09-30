@@ -1,158 +1,106 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { isSplashLifted, onSplashLift, splashWillPlay } from "@/app/lib/splash";
+import { useCallback, useEffect, useState } from "react";
+
+import FootprintsHome from "@/app/components/home/FootprintsHome";
+import RotatingWord from "@/app/components/home/RotatingWord";
 
 /**
- * Wake-reveal hero. The statement sits faint — like fresh, unwalked ground — and
- * ignites word by word in the trail the visitor's cursor leaves, paying off the
- * site's footprint motif: you literally reveal the intro by walking across it.
+ * The hero: the headline standing on live ground.
  *
- * Guardrails so it never traps the copy: the remaining words auto-reveal after a
- * short idle, and on touch / reduced-motion the whole line simply fades in. The
- * reveal is driven by raw cursor proximity (the footprints already follow that
- * same path), so it stays decoupled from the print engine. data-quiet keeps
- * prints from spawning over the text so it stays readable.
+ * The backdrop is the same footprint engine the footer runs
+ * (`FootprintsHome`), but in its "cross" greeting: a walker enters off the
+ * left edge and crosses the full width along a slow arc through the lower
+ * third. The box is a whole viewport now, and four prints scuffed into a
+ * corner (the footer's greeting) left the screen looking dead until the
+ * pointer moved. It sits on the page's own paper (no `inverted`), so the hero
+ * reads as part of the page rather than a panel the way the footer does. It
+ * stops a little short of a full viewport so the work below shows at the
+ * bottom edge and the page reads as having somewhere to go.
+ *
+ * The headline's first word is alive: <RotatingWord /> cycles it through eight
+ * verbs while the tail ("how humans meet AI.") stays fixed. Each verb owns a
+ * hue and a motion of its own, and its slot is pinned to the widest word, so
+ * the sentence holds exactly one length and nothing around it ever moves,
+ * however far a letter travels to get there.
+ *
+ * That colour is the hinge between the two systems. The live hue rides back up
+ * here as `tint` and straight into the footprint canvas, so when the verb turns
+ * orange the prints mix orange with it. Charcoal reports null, which lets the
+ * trail roll its own blends again — so the coupling reveals itself on the
+ * coloured words and relaxes on the resting one.
+ *
+ * There is deliberately no picker here: the footer holds the only one, and the
+ * choice is shared + persisted in FootprintProvider, so picking there changes
+ * the hero too.
  */
 
-const WORDS =
-  "A multidisciplinary design engineer who loves storytelling, craft, and making products easy to use.".split(
-    " ",
-  );
-
-// px radius around the cursor that lights a word — roughly one footfall's reach.
-const REACH = 120;
-// ms of stillness after which the remaining words reveal themselves.
-const IDLE_MS = 1900;
+/** The sentence's entrance, and the head start the verb gets before it starts
+ *  turning over — the line should land before anything moves.
+ *
+ *  The order is: the headline fades up over ENTRANCE_MS with the verb's slot
+ *  held empty, then "Designing" writes itself into it in script, then the
+ *  first flip. FIRST_HOLD_MS is one full dwell, so the opening word gets to
+ *  be read after it finishes being written rather than swapping the moment
+ *  the last letter lands. */
+const ENTRANCE_MS = 1000;
+const FIRST_HOLD_MS = 2200;
 
 export default function HeroStack() {
-  const scope = useRef<HTMLParagraphElement>(null);
-  const hintRef = useRef<HTMLSpanElement>(null);
+  const [tint, setTint] = useState<string | null>(null);
+  const [entered, setEntered] = useState(false);
 
+  // Identity-stable so RotatingWord's publish effect doesn't re-fire on every
+  // parent render.
+  const onTint = useCallback((hue: string | null) => setTint(hue), []);
+
+  // One frame after mount, so the transition has an "off" state to leave.
   useEffect(() => {
-    const root = scope.current;
-    if (!root) return;
-    const words = Array.from(root.querySelectorAll<HTMLElement>(".hero-word"));
-    if (!words.length) return;
-
-    const revealed = new Set<number>();
-    let raf = 0;
-    let idle: number | undefined;
-    let hintShown = true;
-
-    const hideHint = () => {
-      if (!hintShown) return;
-      hintShown = false;
-      if (hintRef.current) hintRef.current.style.opacity = "0";
-    };
-
-    function cleanup() {
-      window.removeEventListener("mousemove", onMove);
-      window.clearTimeout(idle);
-      if (raf) cancelAnimationFrame(raf);
-    }
-
-    const light = (i: number) => {
-      if (revealed.has(i)) return;
-      revealed.add(i);
-      const el = words[i];
-      el.style.opacity = "1";
-      el.style.transform = "translateY(0) scale(1)";
-      if (revealed.size === words.length) cleanup();
-    };
-
-    // Stagger the leftovers so an idle / touch reveal still reads as a walk.
-    const revealAll = () =>
-      words.forEach((_, i) => setTimeout(() => light(i), i * 55));
-
-    const onMove = (e: MouseEvent) => {
-      hideHint();
-      window.clearTimeout(idle);
-      idle = window.setTimeout(revealAll, IDLE_MS);
-      if (raf) return;
-      const { clientX: cx, clientY: cy } = e;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        for (let i = 0; i < words.length; i++) {
-          if (revealed.has(i)) continue;
-          const r = words[i].getBoundingClientRect();
-          const dx = cx - (r.left + r.width / 2);
-          const dy = cy - (r.top + r.height / 2);
-          if (dx * dx + dy * dy < REACH * REACH) light(i);
-        }
-      });
-    };
-
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const noHover = window.matchMedia("(hover: none)").matches;
-
-    const start = () => {
-      if (reduce || noHover) {
-        hideHint();
-        revealAll();
-        return;
-      }
-      window.addEventListener("mousemove", onMove);
-      // A touch longer before the FIRST auto-reveal, to give a still visitor a
-      // beat to notice the invitation and move.
-      idle = window.setTimeout(revealAll, IDLE_MS + 900);
-    };
-
-    let offSplash: (() => void) | undefined;
-    if (!splashWillPlay() || isSplashLifted()) start();
-    else
-      offSplash = onSplashLift(() => {
-        start();
-        offSplash?.();
-      });
-
-    return () => {
-      cleanup();
-      offSplash?.();
-    };
+    const id = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   return (
-    <div className="relative flex flex-col items-center gap-6">
-      <p
-        ref={scope}
-        data-quiet
-        className="flex max-w-[18ch] flex-wrap justify-center gap-x-[0.3em] gap-y-[0.08em] text-center"
-        style={{
-          fontFamily: "var(--font-display)",
-          fontWeight: 600,
-          fontStyle: "italic",
-          letterSpacing: "-0.01em",
-          lineHeight: 1.12,
-          fontSize: "clamp(1.7rem, 5vw, 3.4rem)",
-          color: "var(--ink)",
-        }}
-      >
-        {WORDS.map((w, i) => (
-          <span
-            key={i}
-            className="hero-word inline-block"
+    <div className="relative isolate min-h-[88svh] w-full overflow-hidden">
+      <FootprintsHome tint={tint} introWalk="cross">
+        <section
+          aria-labelledby="hero-title"
+          className="flex h-full w-full items-center justify-center px-6"
+        >
+          <h1
+            id="hero-title"
+            // data-quiet keeps the engine from stamping prints over the
+            // sentence: the walker's arc passes below it, and anything that
+            // strays near fades out through quietFactor.
+            data-quiet
+            /* Sized off the viewport rather than --text-h1: the whole
+               sentence has to hold one line down to phone width, and the
+               slot is pinned to "Prototyping", so that is the one length the
+               clamp is tuned against. */
+            className="max-w-full whitespace-nowrap text-center text-[clamp(1.15rem,6vw,3.25rem)] font-display font-normal leading-[1.12] tracking-[-0.025em] text-text transition-[opacity,transform,filter] ease-slow"
             style={{
-              opacity: 0.22,
-              transform: "translateY(0.06em) scale(0.985)",
-              transition:
-                "opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
-              willChange: "opacity, transform",
+              transitionDuration: `${ENTRANCE_MS}ms`,
+              opacity: entered ? 1 : 0,
+              // Rises and sharpens into place, like it is being set rather
+              // than switched on.
+              transform: entered ? "translateY(0)" : "translateY(0.22em)",
+              filter: entered ? "blur(0px)" : "blur(6px)",
             }}
           >
-            {w}
-          </span>
-        ))}
-      </p>
-
-      <span
-        ref={hintRef}
-        data-quiet
-        className="font-mono text-caption-1 uppercase tracking-wide"
-        style={{ color: "var(--ink)", opacity: 0.5, transition: "opacity 0.5s ease" }}
-      >
-        move to leave a trail
-      </span>
+            {/* The whole sentence, once, for screen readers and for anything
+                parsing the page — the visual version below is decorative. */}
+            <span className="sr-only">Designing how humans meet AI.</span>
+            <span aria-hidden="true">
+              <RotatingWord
+                startDelayMs={ENTRANCE_MS + FIRST_HOLD_MS}
+                armDelayMs={ENTRANCE_MS}
+                onTint={onTint}
+              />{" "}
+              how humans meet AI.
+            </span>
+          </h1>
+        </section>
+      </FootprintsHome>
     </div>
   );
 }

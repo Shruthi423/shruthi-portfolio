@@ -1,8 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@/app/components/shared/ThemeProvider";
+import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/app/lib/gsap";
+import {
+  Bleed,
+  Body,
+  CaseStudyFrame,
+  CountUp,
+  Hero,
+  Label,
+  Pill,
+  prefersReduced,
+  Reveal,
+  Section,
+  Statement,
+} from "@/app/components/case-studies/shared/CaseStudyLayout";
 
 /**
  * Kodif case study - same editorial template, tuned for a brand + growth-design
@@ -11,8 +23,6 @@ import { gsap, useGSAP } from "@/app/lib/gsap";
  * own brand is black + orange/pink/yellow). Images live in /public/kodif/.
  */
 
-const ACCENT_LIGHT = "#C81E7E"; // Kodif magenta - readable on morning mist
-const ACCENT_DARK = "#F06CB8"; // lighter pink - readable on warm midnight
 
 // ---------------------------------------------------------------- data
 
@@ -24,7 +34,6 @@ const SECTIONS = [
   { id: "guidelines", label: "brand guidelines" },
   { id: "principles", label: "principles" },
   { id: "outcome", label: "the outcome" },
-  { id: "reflection", label: "reflection" },
 ] as const;
 
 const META: { label: string; value: string; href?: string }[] = [
@@ -152,60 +161,8 @@ const SECONDARY_STATS = [
   { value: "5", label: "design principles, one system" },
 ];
 
-const REFLECTIONS = [
-  {
-    title: "Ask why, not just how",
-    body: "Working under a designer who questioned every decision taught me to justify why something should exist, not only how it looks.",
-  },
-  {
-    title: "Design that's aligned, not just pretty",
-    body: "Every asset had to be visually cohesive and tied to a growth goal. Decoration without a job got cut.",
-  },
-  {
-    title: "Purpose is the differentiator",
-    body: "As AI interfaces become commodities, the edge belongs to designers who ask deeper questions about value and impact.",
-  },
-];
-
 // ---------------------------------------------------------------- helpers
 
-const prefersReduced = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="font-mono text-caption-1 uppercase tracking-wide" style={{ color: "var(--accent)" }}>{children}</p>
-    </div>
-  );
-}
-
-function Statement({ children, className = "", maxW = "30ch", style }: { children: React.ReactNode; className?: string; maxW?: string; style?: React.CSSProperties }) {
-  return (
-    <h2 className={`font-heading leading-[1.1] text-text ${className}`} style={{ maxWidth: maxW, fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.01em", ...style }}>
-      {children}
-    </h2>
-  );
-}
-
-function Body({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <p className={`font-body leading-relaxed text-muted ${className}`} style={{ fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)" }}>
-      {children}
-    </p>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return <span className="border border-border px-3 py-1 font-mono text-caption-2 uppercase tracking-wide text-muted">{children}</span>;
-}
-
-/**
- * The homepage, framed as a faux browser window. The full-page capture is ~5-6
- * viewports tall, so it lives in its own scroll container and the window stays
- * a fixed height while you scroll within it.
- */
 function SiteBrowser({ src, alt, url = "kodif.ai" }: { src: string; alt: string; url?: string }) {
   return (
     <div>
@@ -359,300 +316,51 @@ function Figure({
   );
 }
 
-function GrainOverlay() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        opacity: 0.05,
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-      }}
-    />
-  );
-}
-
-function Reveal({
-  children,
-  variant = "up",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  variant?: "up" | "fade" | "scale" | "left" | "right";
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setShown(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  const hidden =
-    variant === "fade"
-      ? "opacity-0"
-      : variant === "scale"
-        ? "opacity-0 scale-[0.98]"
-        : variant === "left"
-          ? "opacity-0 -translate-x-10"
-          : variant === "right"
-            ? "opacity-0 translate-x-10"
-            : "opacity-0 translate-y-8";
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ease-out ${shown ? "translate-x-0 translate-y-0 scale-100 opacity-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function CountUp({
-  value,
-  prefix = "",
-  suffix = "",
-  decimals = 0,
-  duration = 1400,
-}: {
-  value: number;
-  prefix?: string;
-  suffix?: string;
-  decimals?: number;
-  duration?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (prefersReduced()) {
-      setN(value);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const p = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - p, 3);
-          setN(eased * value);
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      },
-      { threshold: 0.4 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [value, duration]);
-  const display = decimals > 0 ? n.toFixed(decimals) : Math.round(n).toLocaleString("en-US");
-  return (
-    <span ref={ref}>
-      {prefix}
-      {display}
-      {suffix}
-    </span>
-  );
-}
-
-// ---------------------------------------------------------------- chrome
-
-function SectionRail({ active, onJump }: { active: string; onJump: (id: string) => void }) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  return (
-    <nav aria-label="Sections" className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3.5 md:flex">
-      {SECTIONS.map((s) => {
-        const isActive = active === s.id;
-        const show = isActive || hovered === s.id;
-        const size = isActive ? 9 : 6;
-        return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onJump(s.id)}
-            onMouseEnter={() => setHovered(s.id)}
-            onMouseLeave={() => setHovered(null)}
-            aria-label={s.label}
-            aria-current={isActive ? "true" : undefined}
-            data-cursor-label={s.label}
-            className="group relative flex h-6 w-6 items-center justify-center"
-          >
-            <span
-              aria-hidden
-              style={{
-                width: size,
-                height: size,
-                borderRadius: "9999px",
-                backgroundColor: isActive ? "var(--accent)" : "var(--color-muted)",
-                opacity: isActive ? 1 : show ? 0.85 : 0.4,
-                transition: "all 0.2s ease-out",
-              }}
-            />
-            <span
-              className={`pointer-events-none absolute left-7 whitespace-nowrap rounded-md bg-surface px-2 py-0.5 font-mono text-caption-2 uppercase tracking-wide shadow-sm transition-all duration-200 ease-out ${
-                show ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0"
-              }`}
-              style={{ color: isActive ? "var(--accent)" : "var(--text)" }}
-            >
-              {s.label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function ProgressBar() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const el = document.documentElement;
-      const max = el.scrollHeight - el.clientHeight;
-      setP(max > 0 ? (el.scrollTop / max) * 100 : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  return (
-    <div className="fixed inset-x-0 top-0 z-50 h-1 bg-muted/20 md:hidden">
-      <div className="h-full transition-[width] duration-100 ease-out" style={{ width: `${p}%`, backgroundColor: "var(--accent)" }} />
-    </div>
-  );
-}
-
-function Section({ id, children, className = "" }: { id: string; children: React.ReactNode; className?: string }) {
-  return (
-    <section id={id} className={`scroll-mt-24 px-6 py-12 sm:px-10 md:py-20 lg:pl-32 lg:pr-12 ${className}`}>
-      <div className="mx-auto max-w-6xl">{children}</div>
-    </section>
-  );
-}
-
 // ---------------------------------------------------------------- page
 
 export function KodifCaseStudy() {
-  const [active, setActive] = useState<string>("overview");
-  const { resolvedTheme } = useTheme();
-  const accent = resolvedTheme === "dark" ? ACCENT_DARK : ACCENT_LIGHT;
-
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.find((e) => e.isIntersecting);
-        if (hit) setActive(hit.target.id);
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-    );
-    SECTIONS.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, []);
-
-  const jump = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: prefersReduced() ? "auto" : "smooth", block: "start" });
-  };
-
   return (
-    <div className="relative" style={{ backgroundColor: "var(--bg)", ["--accent"]: accent } as React.CSSProperties}>
-      <GrainOverlay />
-      <SectionRail active={active} onJump={jump} />
-      <ProgressBar />
-
-      <div className="relative z-10">
-        {/* 1 - OVERVIEW */}
-        <section id="overview" className="scroll-mt-24 px-6 pb-8 pt-28 sm:px-10 md:pt-32 lg:pl-32 lg:pr-12">
-          <div className="mx-auto max-w-6xl">
-            <Reveal>
-              <h1 className="whitespace-nowrap font-display leading-[1.02] text-text" style={{ fontSize: "clamp(0.9rem, 4.4vw, 3.8rem)", fontWeight: 500, letterSpacing: "-0.02em" }}>
-                Shaping an AI concierge for e-commerce.
-              </h1>
-            </Reveal>
-            <Reveal delay={80}>
-              <p className="mt-4 font-heading italic text-muted" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.6rem)" }}>
-                Kodif&rsquo;s product had outgrown its brand. I redesigned the website and built the growth assets to close the gap.
-              </p>
-            </Reveal>
-
-            <Reveal delay={160}>
-              <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5 border-y border-border py-6">
-                {META.map((m) => (
-                  <div key={m.label}>
-                    <dt className="font-mono text-caption-2 uppercase tracking-wide text-muted">{m.label}</dt>
-                    <dd className="mt-1 font-body text-body text-text">
-                      {m.href ? (
-                        <a
-                          href={m.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          data-cursor-label={`visit ${m.value}`}
-                          className="underline decoration-1 underline-offset-4 transition-colors hover:text-[var(--accent)]"
-                        >
-                          {m.value}
-                        </a>
-                      ) : (
-                        m.value
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
-
-            {/* hero: product walkthrough video. Replaces the two static
-                one-pager colourways with the agent surfacing answers in the
-                Surface/Assess/Enrich/Route/Act flow. Auto-loops, muted. */}
-            <Reveal delay={200} variant="scale">
-              <div
-                className="relative mt-10 w-full overflow-hidden border border-border aspect-[16/9]"
-                style={{ backgroundColor: "var(--bg)" }}
-                data-cursor-label="website in action"
-              >
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                <video
-                  src="/kodif/agent-in-action.mp4"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  aria-label="The Kodif agent surfacing answers across the Surface, Assess, Enrich, Route, Act flow"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              </div>
-            </Reveal>
-
-            <Reveal delay={120}>
-              <p className="mt-12 whitespace-nowrap font-heading leading-[1.12] text-text" style={{ fontSize: "clamp(0.9rem, 4.5vw, 2.6rem)", letterSpacing: "-0.01em" }}>
-                The product had evolved <span className="italic" style={{ color: "var(--accent)" }}>faster</span> than the brand.
-              </p>
-            </Reveal>
-          </div>
-        </section>
+    <CaseStudyFrame accent="kodif" sections={SECTIONS}>
+      <Hero
+        eyebrow="Kodif"
+        title="Shaping an AI concierge for e-commerce."
+        intro={
+          <>
+            Kodif&rsquo;s product had outgrown its brand. I redesigned the website and built the growth assets to close
+            the gap.
+          </>
+        }
+        meta={META}
+        lead={
+          // product walkthrough: the agent surfacing answers across the
+          // Surface/Assess/Enrich/Route/Act flow. Auto-loops, muted.
+          <Bleed>
+            <div
+              className="relative w-full overflow-hidden border border-border aspect-[16/9]"
+              style={{ backgroundColor: "var(--bg)" }}
+              data-cursor-label="website in action"
+            >
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <video
+                src="/kodif/agent-in-action.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-label="The Kodif agent surfacing answers across the Surface, Assess, Enrich, Route, Act flow"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+          </Bleed>
+        }
+      >
+        <Reveal delay={240}>
+          <Statement maxW="none" className="mt-14">
+            The product had evolved <span style={{ color: "var(--accent)" }}>faster</span> than the brand.
+          </Statement>
+        </Reveal>
+      </Hero>
 
         {/* 2 - WHY A REDESIGN */}
         <Section id="why">
@@ -660,7 +368,7 @@ export function KodifCaseStudy() {
             <Label>why a redesign</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(1rem, 6.3vw, 3rem)" }}>
+            <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>
               A story that had fallen out of step.
             </Statement>
           </Reveal>
@@ -698,7 +406,7 @@ export function KodifCaseStudy() {
             <Label>the work</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(1rem, 5vw, 3rem)" }}>One brand, from landing page to tote bag.</Statement>
+            <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>One brand, from landing page to tote bag.</Statement>
           </Reveal>
           <Reveal delay={120}>
             <Body className="mt-5">
@@ -880,7 +588,7 @@ export function KodifCaseStudy() {
                     className="shrink-0 font-display leading-none sm:w-20"
                     style={{
                       color: "var(--accent)",
-                      fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
+                      fontSize: "var(--text-h4)",
                       fontWeight: 700,
                       fontVariantNumeric: "tabular-nums",
                     }}
@@ -903,13 +611,13 @@ export function KodifCaseStudy() {
             <Label>the outcome</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5 whitespace-nowrap" style={{ fontSize: "clamp(0.9rem, 4.4vw, 3rem)" }}>The narrative caught up, and so did the numbers.</Statement>
+            <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>The narrative caught up, and so did the numbers.</Statement>
           </Reveal>
           <div className="mt-12 grid gap-6 sm:grid-cols-3">
             {METRICS.map((m, i) => (
               <Reveal key={m.label} delay={i * 80}>
                 <div className="border border-border p-8" style={{ backgroundColor: "var(--bg)" }}>
-                  <p className="font-display" style={{ color: "var(--accent)", fontSize: "clamp(2.75rem, 6vw, 4.5rem)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}>
+                  <p className="font-display" style={{ color: "var(--accent)", fontSize: "var(--text-h1)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}>
                     <CountUp value={m.value} prefix={m.prefix} suffix={m.suffix} decimals={m.decimals} />
                   </p>
                   <Body className="mt-2">{m.label}</Body>
@@ -987,37 +695,11 @@ export function KodifCaseStudy() {
 
           {/* the lasting deliverable, as a single-line kicker under the clips */}
           <Reveal delay={120}>
-            <p className="mt-12 whitespace-nowrap font-heading leading-[1.2] text-text" style={{ fontSize: "clamp(0.42rem, 2vw, 1.8rem)", letterSpacing: "-0.01em" }}>
+            <p className="mt-12 font-heading leading-[1.2] text-text" style={{ fontSize: "var(--text-paragraph-2)", letterSpacing: "-0.01em" }}>
               I left Kodif with more than a homepage: a component library and design tokens the team still builds on.
             </p>
           </Reveal>
-        </Section>
-
-        {/* 7 - REFLECTION */}
-        <Section id="reflection">
-          <Reveal>
-            <Label>reflection</Label>
-          </Reveal>
-          <Reveal delay={60}>
-            <Statement className="mt-5">What I&rsquo;d carry into the next one.</Statement>
-          </Reveal>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {REFLECTIONS.map((r, i) => (
-              <Reveal key={r.title} delay={i * 80}>
-                <div className="h-full border border-border p-7" style={{ backgroundColor: "var(--bg)" }}>
-                  <h3 className="font-heading text-h4 leading-snug text-text">{r.title}</h3>
-                  <Body className="mt-3 !max-w-none">{r.body}</Body>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal variant="fade" delay={140} className="mt-16">
-            <p className="font-heading leading-[1.5] text-text" style={{ fontSize: "clamp(1.2rem, 2vw, 1.6rem)" }}>
-              Ask why something should exist, not just how it should look. That question is the whole job.
-            </p>
-          </Reveal>
-        </Section>
-      </div>
-    </div>
+      </Section>
+    </CaseStudyFrame>
   );
 }
