@@ -5,7 +5,7 @@ import "./globals.css";
 import { FootprintProvider } from "@/app/components/shared/FootprintProvider";
 import { SiteFrame } from "@/app/components/layout/SiteFrame";
 import { CircleCursor } from "@/app/components/shared/CircleCursor";
-import { BackgroundStyles } from "@/app/components/layout/Background";
+import Splash from "@/app/components/layout/Splash";
 
 // Ovo — section / case-study titles + the italic moments (the wordmark,
 // section headers, italic taglines). Single weight, no italic face (the
@@ -89,12 +89,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <FootprintProvider>
-          <BackgroundStyles />
-          {/* Route-aware: home (/) renders the footprints page bare; inner
-              pages get the top bar + sticky sky backdrop + curtain footer. */}
-          {/* Light/dark lives in the footer's FooterControls (the bat toggle),
-              shared by every page — no separate global floating bat. */}
+          {/* Route-aware: the home (/) renders bare; inner pages get the
+              shared nav + footer appended around the page content. */}
           <SiteFrame>{children}</SiteFrame>
+          {/* Above the frame and the cursor: once per tab, the count climbs to
+              100 and then lifts into whatever page you actually asked for. */}
+          <Splash />
           <CircleCursor />
         </FootprintProvider>
         {/* GA only loads when the env var is set — silent in dev without a key */}

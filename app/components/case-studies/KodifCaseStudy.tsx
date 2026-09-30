@@ -340,7 +340,6 @@ export function KodifCaseStudy() {
               style={{ backgroundColor: "var(--bg)" }}
               data-cursor-label="website in action"
             >
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
                 src="/kodif/agent-in-action.mp4"
                 autoPlay
@@ -649,7 +648,6 @@ export function KodifCaseStudy() {
                 style={{ backgroundColor: "var(--bg)" }}
                 data-cursor-label="wired into their stack"
               >
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                 <video
                   src="/kodif/integrations.mp4"
                   autoPlay
@@ -675,7 +673,6 @@ export function KodifCaseStudy() {
                 style={{ backgroundColor: "var(--bg)" }}
                 data-cursor-label="eight weeks, week by week"
               >
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                 <video
                   src="/kodif/time-to-roi.mp4"
                   autoPlay

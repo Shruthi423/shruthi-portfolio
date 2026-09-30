@@ -282,4 +282,3 @@ export const projects: Project[] = [
 
 // Flip archived to false (or remove it) when a project is ready to return.
 export const activeProjects = projects.filter((project) => !project.archived);
-export const archivedProjects = projects.filter((project) => project.archived);

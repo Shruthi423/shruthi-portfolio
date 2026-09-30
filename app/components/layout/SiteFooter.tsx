@@ -5,10 +5,10 @@ import { useEffect, useRef } from "react";
 import FootprintsHome from "@/app/components/home/FootprintsHome";
 
 /**
- * The one footer for every page — footprint canvas + colour picker + footprint
- * picker + theme toggle + CTA + colophon. Rendered as the last full-screen
- * section on the home and (via SiteFrame) at the bottom of every inner page, so
- * all pages share exactly one footer.
+ * The one footer for every page — footprint canvas + footprint picker + CTA +
+ * copyright. Rendered as the last full-screen section on the home and (via
+ * SiteFrame) at the bottom of every inner page, so all pages share exactly one
+ * footer.
  *
  * An IntersectionObserver flips the global `.hero-active` (nav + cursor go paper)
  * whenever this dark footer fills the viewport. It reads true rendered geometry,
@@ -105,8 +105,8 @@ export function SiteFooter() {
 
         </div>
 
-        {/* Bottom bar, all on one h-9 baseline: copyright (left) · footprint +
-            bat cluster (right, from FootprintsHome). This sits OUTSIDE the
+        {/* Bottom bar, on the same h-9 baseline as the footprint picker
+            FootprintsHome anchors to the right. This sits OUTSIDE the
             max-w-[1140px] column on purpose — anchored to that column it was
             inset by the centring gutter on wide screens, which read as floating
             rather than as a corner. The picker cluster it pairs with is

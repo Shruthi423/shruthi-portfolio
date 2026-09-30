@@ -10,7 +10,7 @@ import { Fragment, useEffect, useState } from "react";
  *
  * It only shows on case-study routes, and only in the middle of the scroll:
  * it fades/slides in once you're past the hero, and tucks away as the
- * curtain-reveal footer (the savanna + CTA) starts to surface, so it never
+ * footprint footer (prints + CTA) starts to surface, so it never
  * covers the call to action.
  *
  * Kept on neutral theme tokens (not the per-project `--accent`, which is scoped
@@ -65,9 +65,9 @@ export function Breadcrumbs() {
   if (!current) return null;
 
   const crumbs = [
-    { label: "Shruthi", href: "/", cursor: "Home" },
-    { label: "Work", href: "/#work", cursor: "All work" },
-    { label: current, href: null, cursor: null },
+    { label: "Shruthi", href: "/" },
+    { label: "Work", href: "/#work" },
+    { label: current, href: null },
   ];
 
   return (

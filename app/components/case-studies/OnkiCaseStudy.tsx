@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- case-study screens are optimized PNGs in /public, not gallery photos */
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   Bleed,
   Body,
@@ -10,7 +10,6 @@ import {
   Hero,
   Label,
   Pill,
-  prefersReduced,
   Reveal,
   Section,
   Statement,

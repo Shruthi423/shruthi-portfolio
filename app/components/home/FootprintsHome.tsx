@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { gsap } from "@/app/lib/gsap";
 import { useFootprint } from "@/app/components/shared/FootprintProvider";
 import {
@@ -28,8 +28,8 @@ const rgbTriplet = (hex: string) => {
 // real color values (not CSS vars) — hence the plain objects below.
 
 // Five characterful tracks, one per picker slot. The animal picks the shape;
-// the color is a random multi-hue blend, not a per-animal hue. The list lives
-// in ThemeProvider because the chosen one is shared, persisted site state.
+// the color is a random multi-hue blend, not a per-animal hue. Which one is
+// chosen is shared, persisted site state — see FootprintProvider.
 const ANIMALS = FOOTPRINT_ANIMALS;
 type Animal = FootprintAnimal;
 
@@ -84,7 +84,6 @@ const SPEED_MAX = 2.0; // px/ms above which a step reads as "light"
 const WIPE_R = 85;
 const REFOG_MS = 1700;
 const WIPE_MIN = 14; // min cursor travel between fog wipes
-const GRAIN = 0; // frost speckle removed — the home section stays grain-free
 const QUIET_FADE = 110; // px band around the menu where prints/wipes ramp down
 const QUIET_PAD = 40; // padding around the link box that stays calm
 // Minimum pocket so tiny chrome (wordmark, icons) gets the same calm as the links.
@@ -370,21 +369,22 @@ export default function FootprintsHome({
     };
   }, [pickerOpen]);
 
-  // Surface palette. The canvas reads palRef every frame, a leftover from when
-  // this could change under it; it's a fixed pair now. Prints are independent
-  // of it either way — they're mixed from HUES/BLENDS.
-  const { paper, ink } = SURFACE;
-  // Dark frost + paper prints on a light page, and the reverse in dark mode —
-  // when asked (the one-pager footer). The hero backdrop keeps the page's own
-  // polarity (inverted stays false there).
-  const bg = inverted ? ink : paper;
-  const fg = inverted ? paper : ink;
-  const pal: Palette = {
-    bg,
-    fog: `rgba(${rgbTriplet(bg)}, 0.72)`,
-    ink: fg,
-    pickerActive: `rgba(${rgbTriplet(fg)}, 0.12)`,
-  };
+  // Surface palette. Dark frost + paper prints on a light page, and the reverse
+  // on the one-pager footer, which asks for `inverted`. The hero backdrop keeps
+  // the page's own polarity. Prints are independent of this either way — they're
+  // mixed from HUES/BLENDS.
+  const pal: Palette = useMemo(() => {
+    const { paper, ink } = SURFACE;
+    const bg = inverted ? ink : paper;
+    const fg = inverted ? paper : ink;
+    return {
+      bg,
+      fog: `rgba(${rgbTriplet(bg)}, 0.72)`,
+      ink: fg,
+      pickerActive: `rgba(${rgbTriplet(fg)}, 0.12)`,
+    };
+  }, [inverted]);
+  // The canvas paints off the gsap ticker, so it reads the palette from a ref.
   const palRef = useRef(pal);
   useEffect(() => {
     palRef.current = pal;
@@ -525,19 +525,6 @@ export default function FootprintsHome({
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
 
-    // Grayscale noise tile → repeating pattern for the frost's grain.
-    const noise = document.createElement("canvas");
-    noise.width = noise.height = 160;
-    const nctx = noise.getContext("2d")!;
-    const img = nctx.createImageData(noise.width, noise.height);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = (Math.random() * 255) | 0;
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-      img.data[i + 3] = 255;
-    }
-    nctx.putImageData(img, 0, 0);
-    const grain = ctx.createPattern(noise, "repeat")!;
-
     const sizeCanvas = () => {
       const el = root.current!;
       const w = el.clientWidth;
@@ -554,21 +541,16 @@ export default function FootprintsHome({
       const rt = root.current;
       if (!rt) return;
       const o = rt.getBoundingClientRect();
-      const els = [
-        // Callers (e.g. the footer, the hero) mark their text with [data-quiet]
-        // so prints fade around it and it stays readable + clickable.
-        ...Array.from(rt.querySelectorAll<HTMLElement>("[data-quiet]")),
-      ];
-      quietBoxes.current = els.flatMap((el) => {
-        if (!el) return [];
+      // Callers (e.g. the footer, the hero) mark their text with [data-quiet]
+      // so prints fade around it and it stays readable + clickable.
+      const els = rt.querySelectorAll<HTMLElement>("[data-quiet]");
+      quietBoxes.current = Array.from(els, (el) => {
         const r = el.getBoundingClientRect();
         const cx = (r.left + r.right) / 2 - o.left;
         const cy = (r.top + r.bottom) / 2 - o.top;
         const hw = Math.max(r.width / 2 + QUIET_PAD, QUIET_MIN_HW);
         const hh = Math.max(r.height / 2 + QUIET_PAD, QUIET_MIN_HH);
-        return [
-          { left: cx - hw, top: cy - hh, right: cx + hw, bottom: cy + hh },
-        ];
+        return { left: cx - hw, top: cy - hh, right: cx + hw, bottom: cy + hh };
       });
     };
     const onResize = () => {
@@ -586,13 +568,6 @@ export default function FootprintsHome({
       ctx.globalCompositeOperation = "source-over";
       ctx.fillStyle = palRef.current.fog;
       ctx.fillRect(0, 0, w, h);
-      // Speckle the frost — jittered each frame for a live, glassy shimmer.
-      ctx.save();
-      ctx.globalAlpha = GRAIN;
-      ctx.translate(-(Math.random() * 60), -(Math.random() * 60));
-      ctx.fillStyle = grain;
-      ctx.fillRect(0, 0, w + 60, h + 60);
-      ctx.restore();
       ctx.globalCompositeOperation = "destination-out";
       wipes.current = wipes.current.filter((wp) => {
         wp.s -= dt / REFOG_MS;
@@ -852,11 +827,10 @@ export default function FootprintsHome({
         ))}
       </div>
 
-      {/* Footer controls — one bottom-RIGHT cluster: footprint picker · colour
-          · bat, all on one h-9 baseline. Copyright (left) + colophon (center)
-          are rendered by the footer content. Each picker's swatches fan
-          upward from its trigger; data-quiet + stopPropagation keep prints from
-          spawning over the controls. */}
+      {/* The footprint picker, bottom-RIGHT, on the same h-9 baseline as the
+          copyright the footer renders on the left. Its animals fan upward from
+          the trigger; data-quiet + stopPropagation keep prints from spawning
+          over the controls. */}
       {footprintPicker && (
         <div className="pointer-events-auto absolute bottom-8 right-5 z-30 flex h-9 items-center gap-3 sm:right-8">
           <div

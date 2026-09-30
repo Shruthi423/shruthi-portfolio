@@ -70,10 +70,11 @@ import { INK_HUES, SURFACE } from "@/app/lib/footprints";
  *             there like a thought, and drops back into its slot
  *  wave     — letters bounce up in a travelling crest, squashing as they land
  *  untangle — letters arrive spun most of the way round, unwinding from one end
- *  drop     — letters fall in from above the line and bounce on the way in
- *  jelly    — the word is kneaded: squashed, then wobbled through four
- *             decreasing overshoots
- *  glitch   — letters jump in hard frames, flickering, then lock solid
+ *  pile     — letters fall from above onto one spot, heaping up, then shuffle
+ *             sideways out of the pile into the word
+ *  trampoline — the word drops in, sags below the line, and is thrown back up
+ *  rewire   — letters jump in hard frames, and then the dots over the two i's
+ *             trade places
  *
  * The amplitudes are deliberately large. An earlier pass kept every effect
  * under about 0.2em and it read as interface polish rather than as character —
@@ -87,9 +88,9 @@ type Effect =
   | "think"
   | "wave"
   | "untangle"
-  | "drop"
-  | "jelly"
-  | "glitch";
+  | "pile"
+  | "trampoline"
+  | "rewire";
 
 type Verb = {
   word: string;
@@ -115,9 +116,9 @@ const VERBS: readonly Verb[] = [
   { word: "Pondering", color: INK_HUES.forest, effect: "think" },
   { word: "Imagining", color: INK_HUES.lavender, effect: "wave" },
   { word: "Untangling", color: INK_HUES.pink, effect: "untangle" },
-  { word: "Building", color: INK_HUES.blue, effect: "drop" },
-  { word: "Shaping", color: INK_HUES.plum, effect: "jelly" },
-  { word: "Rewiring", color: INK_HUES.lime, effect: "glitch" },
+  { word: "Building", color: INK_HUES.blue, effect: "pile" },
+  { word: "Shaping", color: INK_HUES.plum, effect: "trampoline" },
+  { word: "Rewiring", color: INK_HUES.lime, effect: "rewire" },
 ];
 // Every word here has to finish the sentence, and the tail starts with "how" —
 // which is a preposition-shaped hole. "Designing how", "Untangling how",
@@ -141,6 +142,18 @@ const SWAP_MS = 380;
 const SWASH_EM = 0.06;
 /** How long a letter takes to cross to its own seat in the anagram. */
 const ANAGRAM_MS = 560;
+/** The pile: how long one letter takes to fall, how far apart the falls are,
+ *  and how long the sideways spread out of the heap takes afterwards. */
+const FALL_MS = 340;
+const FALL_STAGGER_MS = 70;
+const SPREAD_MS = 520;
+/** The dotless i the two rewired letters are set in, and the tittle drawn over
+ *  it: its diameter, and how far it is pulled back down from the top of the
+ *  letter's box. Both in em so they track the headline's clamp, and DOT_DROP_EM
+ *  is the one value in this file set by eye against Ovo rather than measured. */
+const DOTLESS_I = "\u0131";
+const DOT_EM = 0.085;
+const DOT_DROP_EM = 0.3;
 
 /** Deterministic 0..1 from an integer — the scatter has to be identical on the
  *  server and the client or hydration complains, so no Math.random(). */
@@ -160,9 +173,6 @@ const LETTER_TIMING: Record<string, { ms: number; stagger: number; ease: string 
   // settling, not as arriving.
   typeset: { ms: 1000, stagger: 60, ease: "var(--ease-slow)" },
   untangle: { ms: 760, stagger: 58, ease: "var(--ease-spring)" },
-  // The landing is the point, so the curve overshoots hard and comes back:
-  // the letter dips past the baseline and recovers, which is a bounce.
-  drop: { ms: 560, stagger: 72, ease: "cubic-bezier(0.2, 1.8, 0.4, 1)" },
 };
 
 /**
@@ -189,14 +199,43 @@ function restingLetter(effect: Effect, i: number): string | undefined {
       ).toFixed(3)}em) rotate(${(
         (i % 2 === 0 ? 1 : -1) * (120 + noise(i * 13.1) * 60)
       ).toFixed(1)}deg)`;
-    // From above the line, well above it, every letter the same distance so
-    // the eye reads a row being built rather than a scatter. The bounce is in
-    // the timing function, not here.
-    case "drop":
-      return "translateY(-0.95em)";
     default:
       return undefined;
   }
+}
+
+/**
+ * Every letter's horizontal centre, in px, relative to the word.
+ *
+ * Three effects need to know where the letters actually are rather than
+ * choosing an offset by eye: the anagram (letter i starts where letter perm[i]
+ * belongs), the pile (every letter starts heaped on one spot) and the dot swap
+ * (each tittle has to travel exactly as far as the next i). Measured on mount,
+ * again once the webfont resolves — the fallback's advance widths are not
+ * Ovo's — and again on resize, because the headline is a viewport clamp.
+ *
+ * Letters are measured while their word is sitting at opacity 0, which is fine:
+ * it is transparent, not display:none, so the metrics are real.
+ */
+function useLetterCentres(word: string) {
+  const refs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [centres, setCentres] = useState<number[] | null>(null);
+
+  useLayoutEffect(() => {
+    const measure = () =>
+      setCentres(
+        refs.current.map((el) =>
+          el ? el.offsetLeft + el.offsetWidth / 2 : 0,
+        ),
+      );
+
+    measure();
+    document.fonts?.ready.then(measure);
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [word]);
+
+  return { refs, centres };
 }
 
 /**
@@ -240,21 +279,13 @@ function derange(n: number): number[] {
  */
 function AnagramLetters({ word, landed }: { word: string; landed: boolean }) {
   const letters = [...word];
-  const refs = useRef<(HTMLSpanElement | null)[]>([]);
-  const [offsets, setOffsets] = useState<number[] | null>(null);
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const xs = refs.current.map((el) => el?.offsetLeft ?? 0);
-      const perm = derange(xs.length);
-      setOffsets(xs.map((x, i) => xs[perm[i]] - x));
-    };
-
-    measure();
-    document.fonts?.ready.then(measure);
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [word]);
+  const { refs, centres } = useLetterCentres(word);
+  const offsets = centres
+    ? (() => {
+        const perm = derange(centres.length);
+        return centres.map((x, i) => centres[perm[i]] - x);
+      })()
+    : null;
 
   return (
     <>
@@ -288,6 +319,155 @@ function AnagramLetters({ word, landed }: { word: string; landed: boolean }) {
 }
 
 /**
+ * Building: letters fall from above onto a single spot, heap up there, and then
+ * shuffle sideways out of the pile into the word.
+ *
+ * Two movements that must not blur into each other, which is why each letter is
+ * two nested spans: the inner one owns the fall (Y), the outer one owns the
+ * spread (X). One transform cannot do it — the fall has to finish before the
+ * spread begins, and a single transform interpolates both at once, which looks
+ * like letters drifting in diagonally. Nested, the timings are independent: the
+ * inner spans drop one after another, and every outer span waits until the last
+ * letter has landed before anything slides.
+ *
+ * The pile sits at the word's own centre, so the heap is under the middle of
+ * the slot and the letters spread outward in both directions from it.
+ */
+function PileLetters({ word, landed }: { word: string; landed: boolean }) {
+  const letters = [...word];
+  const { refs, centres } = useLetterCentres(word);
+  const pile = centres ? (centres[0] + centres[centres.length - 1]) / 2 : 0;
+  // Every letter has fallen by the time the last one lands; the spread starts
+  // there.
+  const fallTotal = FALL_MS + (letters.length - 1) * FALL_STAGGER_MS;
+
+  return (
+    <>
+      {letters.map((letter, i) => (
+        <span
+          key={`${letter}-${i}`}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
+          className="inline-block"
+          style={{
+            // The spread. Until the letters have been measured there is no
+            // pile to spread out of, so the word simply sits correct.
+            transform:
+              landed || !centres
+                ? undefined
+                : `translateX(${pile - centres[i]}px)`,
+            transitionProperty: "transform",
+            transitionDuration: `${SPREAD_MS}ms`,
+            transitionTimingFunction: "var(--ease-spring)",
+            transitionDelay: landed ? `${fallTotal + i * 34}ms` : "0ms",
+          }}
+        >
+          <span
+            className="inline-block"
+            style={{
+              // The fall. Well above the line, so it reads as dropping in from
+              // outside the sentence rather than rising into it.
+              transform: landed ? undefined : "translateY(-1.15em)",
+              transitionProperty: "transform",
+              transitionDuration: `${FALL_MS}ms`,
+              // Overshoots past the baseline and recovers: the letter lands on
+              // the heap rather than arriving at it.
+              transitionTimingFunction: "cubic-bezier(0.3, 1.7, 0.45, 1)",
+              transitionDelay: landed ? `${i * FALL_STAGGER_MS}ms` : "0ms",
+            }}
+          >
+            {letter}
+          </span>
+        </span>
+      ))}
+    </>
+  );
+}
+
+/**
+ * Rewiring: the letters flicker in, and then the dots over the two i's trade
+ * places.
+ *
+ * The swap is the word's own joke, and it is the reason those two letters are
+ * set as dotless i's (U+0131, in Google's standard latin subset) with a tittle
+ * of our own drawn above each. A real i's dot is part of its glyph and cannot
+ * be moved; a drawn one can. Everything else about the letters is untouched.
+ *
+ * Each dot travels the measured gap to the other i, so the landing is exact at
+ * any viewport size, and the two take different arcs — one over the top, one
+ * skimming the letters — so they cross instead of colliding. They keep their
+ * new places for as long as the word holds, and the next time round they start
+ * over from home, which is why the whole thing is keyed on the flip counter.
+ */
+function RewireWord({
+  word,
+  landed,
+  pulse,
+}: {
+  word: string;
+  landed: boolean;
+  pulse: number;
+}) {
+  const letters = [...word];
+  const { refs, centres } = useLetterCentres(word);
+  const dotted = letters.flatMap((c, i) => (c.toLowerCase() === "i" ? [i] : []));
+
+  return (
+    <>
+      {letters.map((letter, i) => {
+        const dot = dotted.indexOf(i);
+        // Which way this dot travels, and how far: to the other i's centre.
+        const partner = dot === 0 ? dotted[1] : dotted[0];
+        const swap =
+          dot >= 0 && centres && partner !== undefined
+            ? centres[partner] - centres[i]
+            : 0;
+
+        return (
+          <span
+            key={`${letter}-${i}-${pulse}`}
+            ref={(el) => {
+              refs.current[i] = el;
+            }}
+            className={`relative inline-block ${landed ? "verb-glitch" : ""}`}
+            style={{ animationDelay: `${i * 26}ms` }}
+          >
+            {dot >= 0 ? DOTLESS_I : letter}
+            {dot >= 0 && (
+              <span
+                aria-hidden="true"
+                // Anchored above the letter's own box and pulled back down —
+                // the same trick VerbDoodles uses for its shoulder marks, and
+                // the one number here that is set by eye rather than measured.
+                className={`absolute rounded-full bg-current ${
+                  landed
+                    ? dot === 0
+                      ? "verb-swap-over"
+                      : "verb-swap-under"
+                    : ""
+                }`}
+                style={
+                  {
+                    left: "50%",
+                    bottom: "100%",
+                    marginLeft: `-${DOT_EM / 2}em`,
+                    marginBottom: `-${DOT_DROP_EM}em`,
+                    width: `${DOT_EM}em`,
+                    height: `${DOT_EM}em`,
+                    "--swap": `${swap}px`,
+                  } as CSSProperties
+                }
+              />
+            )}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+/**
  * Which letter leaves the word in "think". The first "o" if there is one (it is
  * the roundest letter in the face, so it reads as a bubble the moment it clears
  * the line), otherwise the middle letter — never the first or last, which would
@@ -303,16 +483,11 @@ function Letters({
   word,
   effect,
   landed,
-  pulse,
 }: {
   word: string;
   effect: Effect;
   /** False while the letters are still waiting to come in. */
   landed: boolean;
-  /** Flip counter. Keyframe effects are restarted by keying on it — an element
-   *  that is never unmounted would otherwise play its animation once, on the
-   *  first pass, and sit still for every loop after that. */
-  pulse: number;
 }) {
   const timing = LETTER_TIMING[effect];
   const letters = [...word];
@@ -324,19 +499,13 @@ function Letters({
         // The keyframe effects carry no inline transform at all: the animation
         // owns it, and a transform here would be overwritten the moment it
         // started.
-        const keyframed =
-          effect === "wave" || effect === "think" || effect === "glitch";
+        const keyframed = effect === "wave" || effect === "think";
 
         const style: CSSProperties = keyframed
           ? {
               // The only per-letter value a wave needs: the delay that turns
               // separate bounces into one crest travelling through the word.
-              animationDelay:
-                effect === "wave"
-                  ? `${i * 90}ms`
-                  : effect === "glitch"
-                    ? `${i * 26}ms`
-                    : undefined,
+              animationDelay: effect === "wave" ? `${i * 90}ms` : undefined,
               transformOrigin: effect === "wave" ? "50% 100%" : undefined,
             }
           : {
@@ -352,20 +521,16 @@ function Letters({
               transitionDelay: landed ? `${i * (timing?.stagger ?? 0)}ms` : "0ms",
             };
 
-        // Only the live word animates. The glitch also has to start over on
-        // every flip, so its letters are keyed on the counter and remount.
         const animClass =
           effect === "wave"
             ? "verb-wave"
             : effect === "think" && i === lifts
               ? "verb-think"
-              : effect === "glitch" && landed
-                ? "verb-glitch"
-                : "";
+              : "";
 
         return (
           <span
-            key={effect === "glitch" ? `${letter}-${i}-${pulse}` : `${letter}-${i}`}
+            key={`${letter}-${i}`}
             className={`inline-block ${animClass}`}
             style={style}
           >
@@ -395,6 +560,11 @@ export default function RotatingWord({
   onTint?: (hue: string | null) => void;
 }) {
   const [index, setIndex] = useState(0);
+  // Counts flips rather than tracking the index, because the index repeats
+  // every loop and the keyframe effects need something that never does: it is
+  // what their elements are keyed on, and a key that repeated would leave the
+  // glitch and the knead playing once and then sitting still forever.
+  const [pulse, setPulse] = useState(0);
   // Mirrors the OS setting so the doodles can render fully drawn instead of
   // stroking themselves on, and so no word plays an effect. Read in an effect,
   // not at render, so SSR and the first client paint agree.
@@ -434,10 +604,10 @@ export default function RotatingWord({
     let id = 0;
     const arm = window.setTimeout(() => setArmed(true), armDelayMs);
     const start = window.setTimeout(() => {
-      id = window.setInterval(
-        () => setIndex((i) => (i + 1) % VERBS.length),
-        DWELL_MS,
-      );
+      id = window.setInterval(() => {
+        setIndex((i) => (i + 1) % VERBS.length);
+        setPulse((p) => p + 1);
+      }, DWELL_MS);
     }, startDelayMs);
 
     return () => {
@@ -473,8 +643,8 @@ export default function RotatingWord({
       className="inline-grid items-baseline justify-items-center align-baseline"
       style={{
         // The cushion is not slop: every verb here ends in "g", and Ovo's g
-        // finishes with a tail that overhangs its own advance width (the
-        // script face's is longer still). A slot measured to the advance is
+        // finishes with a tail that overhangs its own advance width. A slot
+        // measured to the advance is
         // therefore a few px short of the ink, and the tail lands on the "h"
         // of "how". The padding puts the cushion entirely on the right
         // (border-box, so the content box is still exactly the measured
@@ -487,8 +657,8 @@ export default function RotatingWord({
     >
       {/* The baseline anchor: a zero-width space in the sentence's own font and
           size, in the same cell as the words. It draws nothing and takes no
-          width, and it gives the grid a baseline that no word can drag around
-          . */}
+          width, and it gives the grid a baseline that no word can drag
+          around. */}
       <span className="[grid-area:1/1]">{"\u200b"}</span>
       {VERBS.map((verb, i) => {
         const active = i === index;
@@ -504,16 +674,17 @@ export default function RotatingWord({
             }}
             className={`relative [grid-area:1/1] whitespace-nowrap transition-[opacity,transform,color] ease-slow ${
               active ? "opacity-100" : "opacity-0"
-            } ${verb.effect === "drift" && !calm ? "verb-drift" : ""}`}
+            } ${verb.effect === "think" && !calm ? "verb-drift" : ""}`}
             style={{
               color: verb.color,
               transitionDuration: `${SWAP_MS}ms`,
               // Resting words sit a hair low; the active one rises to the
               // baseline. So the incoming word lifts in as the outgoing one
-              // settles back down, both on the same curve. The drift keyframe
-              // owns the transform on its own word, so that one is left alone.
+              // settles back down, both on the same curve. "Pondering" is the
+              // exception: its drift keyframe owns the transform on that word,
+              // so this leaves it alone.
               transform:
-                verb.effect === "drift"
+                verb.effect === "think"
                   ? undefined
                   : active
                     ? "translateY(0)"
@@ -521,25 +692,29 @@ export default function RotatingWord({
             }}
           >
             <span
-              // The text layer. The squash lives here rather than on the
-              // parent so the doodle beside it is untouched.
-              className="inline-block"
+              // The text layer. The bounce lives here rather than on the
+              // parent so the whole word takes the trampoline as one piece and
+              // the doodle beside it is untouched. Keyed on the flip counter so
+              // the animation restarts every time the word comes back around —
+              // an element that is never unmounted would otherwise play it once
+              // and sit still for every loop after that.
+              key={verb.effect === "trampoline" ? `bounce-${pulse}` : undefined}
+              className={`inline-block ${
+                verb.effect === "trampoline" && landed ? "verb-trampoline" : ""
+              }`}
               style={{
-                ...(verb.effect === "squash"
-                  ? {
-                      transformOrigin: "50% 100%",
-                      transform: landed ? "scale(1, 1)" : "scale(0.72, 1.16)",
-                      transition: calm
-                        ? "none"
-                        : "transform 560ms var(--ease-spring)",
-                    }
-                  : {}),
+                transformOrigin:
+                  verb.effect === "trampoline" ? "50% 100%" : undefined,
               }}
             >
-              {verb.effect === "drift" || verb.effect === "squash" ? (
+              {verb.effect === "trampoline" ? (
                 verb.word
               ) : verb.effect === "anagram" ? (
                 <AnagramLetters word={verb.word} landed={landed} />
+              ) : verb.effect === "pile" ? (
+                <PileLetters word={verb.word} landed={landed} />
+              ) : verb.effect === "rewire" ? (
+                <RewireWord word={verb.word} landed={landed} pulse={pulse} />
               ) : (
                 <Letters word={verb.word} effect={verb.effect} landed={landed} />
               )}

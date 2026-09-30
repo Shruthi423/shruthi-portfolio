@@ -20,12 +20,6 @@ const SIDE_TRANSLATE_X: Record<PillSide, string> = {
   center: "-50%", // pill centered on the cursor
 };
 
-function parsePillSide(value: string | null): PillSide | null {
-  return value === "left" || value === "right" || value === "center"
-    ? value
-    : null;
-}
-
 export function CircleCursor() {
   const [enabled, setEnabled] = useState(false);
   const [ready, setReady] = useState(false);
@@ -35,10 +29,7 @@ export function CircleCursor() {
   // the cursor pill instead of (or alongside) the text label. Used to give
   // the AI-video tab an actual AI-generated thumbnail at the cursor.
   const [image, setImage] = useState<string | null>(null);
-  const [autoPillSide, setAutoPillSide] = useState<PillSide>("center");
-  const [pillSideOverride, setPillSideOverride] = useState<PillSide | null>(
-    null,
-  );
+  const [pillSide, setPillSide] = useState<PillSide>("center");
   const hasMovedRef = useRef(false);
 
   const mouseX = useMotionValue(0);
@@ -62,7 +53,7 @@ export function CircleCursor() {
         setReady(true);
       }
       const w = window.innerWidth;
-      setAutoPillSide((prev) => {
+      setPillSide((prev) => {
         // cursor near left viewport edge → pill to the RIGHT (stay onscreen)
         // cursor near right viewport edge → pill to the LEFT (stay onscreen)
         const next: PillSide =
@@ -98,29 +89,24 @@ export function CircleCursor() {
     if (!labeledEl) {
       setLabel(null);
       setImage(null);
-      setPillSideOverride(null);
       return;
     }
     const read = () => {
       setLabel(labeledEl.getAttribute("data-cursor-label"));
       setImage(labeledEl.getAttribute("data-cursor-image"));
-      setPillSideOverride(
-        parsePillSide(labeledEl.getAttribute("data-cursor-anchor")),
-      );
     };
     read();
     const observer = new MutationObserver(read);
     observer.observe(labeledEl, {
       attributes: true,
-      attributeFilter: ["data-cursor-label", "data-cursor-anchor", "data-cursor-image"],
+      attributeFilter: ["data-cursor-label", "data-cursor-image"],
     });
     return () => observer.disconnect();
   }, [labeledEl]);
 
   if (!enabled || !ready) return null;
 
-  const effectiveSide = pillSideOverride ?? autoPillSide;
-  const translateX = SIDE_TRANSLATE_X[effectiveSide];
+  const translateX = SIDE_TRANSLATE_X[pillSide];
   const pillBg = CURSOR_PILL;
   const pillText = CURSOR_LABEL;
 
@@ -145,7 +131,6 @@ export function CircleCursor() {
             image || label
               ? undefined
               : `0 0 0 1.5px color-mix(in srgb, ${pillText} 60%, transparent)`,
-          mixBlendMode: "normal",
           transform: `translate(${translateX}, -50%)`,
           minWidth: 12,
           minHeight: 12,

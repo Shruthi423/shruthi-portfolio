@@ -106,7 +106,7 @@ export function ProjectCard({ project }: { project: Project }) {
     <div
       ref={panelRef}
       data-cursor-label={project.hoverLabel ?? (project.href ? "VIEW" : "Coming soon")}
-      className="project-image-panel group relative aspect-[4/3] w-full overflow-hidden rounded-[10px]"
+      className="group relative aspect-[4/3] w-full overflow-hidden rounded-[10px]"
       style={{ backgroundColor: "var(--surface)" }}
     >
       {LiveThumbnail ? (
@@ -146,8 +146,6 @@ export function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
       )}
-
-
     </div>
   );
 
@@ -166,25 +164,6 @@ export function ProjectCard({ project }: { project: Project }) {
           ) : (
             titleText
           )}
-          {project.repoHref && !project.href && (
-            <a
-              href={project.repoHref}
-              target="_blank"
-              rel="noreferrer"
-              data-cursor-label="GitHub"
-              aria-label={`${project.name} on GitHub`}
-              className="shrink-0 self-center text-muted transition-colors duration-200 hover:text-text"
-            >
-              <svg
-                viewBox="0 0 256 256"
-                fill="currentColor"
-                aria-hidden="true"
-                className="h-[18px] w-[18px]"
-              >
-                <path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z" />
-              </svg>
-            </a>
-          )}
         </h3>
         <span className="flex shrink-0 flex-wrap items-baseline gap-1.5">
           {(Array.isArray(project.discipline)
@@ -195,7 +174,7 @@ export function ProjectCard({ project }: { project: Project }) {
           ).map((d) => (
             <span
               key={d}
-              className="project-discipline rounded-[3px] bg-[var(--soft-blue)] px-2 py-1 font-body text-[13px] leading-[17px] text-muted"
+              className="project-discipline rounded-[3px] px-2 py-1 font-body text-[13px] leading-[17px]"
             >
               {d}
             </span>
@@ -208,7 +187,7 @@ export function ProjectCard({ project }: { project: Project }) {
               rel="noreferrer"
               data-cursor-label="GitHub"
               aria-label={`${project.name} on GitHub`}
-              className="project-discipline flex items-center rounded-[3px] bg-[var(--soft-blue)] px-2 py-1 text-muted transition-colors duration-200 hover:text-text"
+              className="project-discipline flex items-center rounded-[3px] px-2 py-1 transition-colors duration-200 hover:text-text"
             >
               <GitHubMark />
             </a>
