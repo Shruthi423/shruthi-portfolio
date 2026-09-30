@@ -164,6 +164,29 @@ export function ProjectCard({ project }: { project: Project }) {
           ) : (
             titleText
           )}
+          {/* Outbound cue on a card whose only link is its repo/demo: the chip
+              below is the announced link, so this one is hidden from the a11y
+              tree and the tab order rather than repeating it. */}
+          {project.repoHref && !project.href && (
+            <a
+              href={project.repoHref}
+              target="_blank"
+              rel="noreferrer"
+              tabIndex={-1}
+              aria-hidden="true"
+              data-cursor-label="GitHub"
+              className="shrink-0 self-center text-muted transition-colors duration-200 hover:text-text"
+            >
+              <svg
+                viewBox="0 0 256 256"
+                fill="currentColor"
+                aria-hidden="true"
+                className="h-[18px] w-[18px]"
+              >
+                <path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z" />
+              </svg>
+            </a>
+          )}
         </h3>
         <span className="flex shrink-0 flex-wrap items-baseline gap-1.5">
           {(Array.isArray(project.discipline)
