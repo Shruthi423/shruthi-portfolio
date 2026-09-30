@@ -77,13 +77,21 @@
   .done span{color:var(--dim)}
 
   /* Original pixel spider + silk. It hangs from one thread in the left gutter
-     and only travels vertically, so nothing here animates sideways. */
+     and only travels vertically, so nothing here animates sideways. The sprite
+     is drawn head-down (eyes at the bottom), which is how it hangs and how it
+     rides down. Going up it comes about — .up turns the body 180deg so the
+     head leads — and the two leg poses alternate into a crawl. */
   .spider .eyes{animation:blinkeye 3.4s steps(1,end) infinite;transform-origin:6px 4.5px}
   @keyframes blinkeye{0%,92%{opacity:1}94%{opacity:0}97%{opacity:1}}
   .spider{position:absolute;left:0;top:0;width:4.2cqw;height:3.55cqw;z-index:5;
     transition-property:top;transition-timing-function:linear}
+  .spider .body{width:100%;height:100%;transform-origin:50% 50%;transition:transform .26s ease-in-out}
+  .spider.up .body{transform:rotate(180deg)}
   .spider svg{width:100%;height:100%;display:block;shape-rendering:crispEdges;transform-origin:50% 0;animation:idle 2.4s ease-in-out infinite;filter:drop-shadow(0 0 .6cqw rgba(255,45,69,.45))}
   .spider .lb{opacity:0}
+  .spider.up svg{transform-origin:50% 50%;animation:crawl .34s ease-in-out infinite}
+  .spider.up .la{animation:legA .26s steps(1,end) infinite}
+  .spider.up .lb{animation:legB .26s steps(1,end) infinite}
   .spider.hop svg{animation:hop .5s ease-out 2}
   .silk{position:absolute;top:0;left:0;width:max(1px,.12cqw);height:0;background:rgba(232,230,227,.6);z-index:4;opacity:0;
     transition-property:height,opacity;transition-timing-function:linear}
@@ -91,10 +99,13 @@
   .web{position:absolute;top:0;left:0;width:14cqw;height:14cqw;opacity:.28;pointer-events:none;transform:scaleX(-1)}
   @keyframes idle{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
   @keyframes hop{40%{transform:translateY(-30%)}}
+  @keyframes crawl{0%,100%{transform:translateY(5%) rotate(-3deg)}50%{transform:translateY(-5%) rotate(3deg)}}
+  @keyframes legA{0%,49%{opacity:1}50%,100%{opacity:0}}
+  @keyframes legB{0%,49%{opacity:0}50%,100%{opacity:1}}
 
   @media (prefers-reduced-motion:reduce){
-    .viewport,.bar i,.sweep,.archived,.panel,.spider{transition:none!important}
-    .caret,.spider svg{animation:none!important}
+    .viewport,.bar i,.sweep,.archived,.panel,.spider,.spider .body{transition:none!important}
+    .caret,.spider svg,.spider .la,.spider .lb{animation:none!important}
   }
 </style>
 </head>
@@ -133,6 +144,7 @@
       <svg class="web" viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="#e8e6e3" stroke-width=".6"><path d="M100 0L0 100M100 0L30 100M100 0L0 30M100 0L62 100M100 0L0 62"/><path d="M78 0Q82 12 100 22M56 0Q63 24 86 30Q74 44 100 44M34 0Q44 36 72 52Q56 70 100 66M12 0Q26 50 58 74Q40 92 100 88"/></svg>
       <div class="silk" id="silk"></div>
       <div class="spider" id="spider">
+        <div class="body">
         <svg viewBox="0 0 13 11" aria-hidden="true">
           <g class="la" fill="#c0162a"><rect x="3" y="3" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="1" y="0" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="1" y="9" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="3" y="10" width="1" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/><rect x="11" y="1" width="1" height="1"/><rect x="11" y="0" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="9" y="7" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="9" y="10" width="1" height="1"/></g>
           <g class="lb" fill="#c0162a"><rect x="3" y="3" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="3" y="8" width="1" height="1"/><rect x="2" y="9" width="1" height="1"/><rect x="2" y="10" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="4" y="9" width="1" height="1"/><rect x="4" y="10" width="1" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="10" y="3" width="1" height="1"/><rect x="11" y="2" width="1" height="1"/><rect x="12" y="2" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="10" y="10" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="8" y="9" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/></g>
@@ -140,6 +152,7 @@
           <g fill="#ff8a96"><rect x="5" y="2" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/></g>
           <g class="eyes" fill="#ffffff"><rect x="5" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/></g>
         </svg>
+        </div>
       </div>
     </div>
   </div>
@@ -195,8 +208,12 @@
   }
   let pos={x:0,y:0};
   function place(p){pos={...p};spider.style.transitionDuration='0ms';spider.style.left=p.x+'px';spider.style.top=p.y+'px';setSilk(p,0,true);}
-  // Every move is a vertical ride on the silk thread
+  // Every move is a vertical ride on the silk thread. Downward it just drops
+  // head-first; upward it turns its body around first, then crawls up.
+  const TURN=260;
   async function walkTo(p){
+    const up=p.y<pos.y-1;
+    if(up){ spider.classList.add('up'); await sleep(TURN); }     // come about before the climb
     const cy=pos.y, ms=Math.max(350,Math.abs(p.y-cy)/(stage.clientWidth*.16)*1000);
     silk.style.transitionDuration='0ms'; silk.style.left=(p.x+spider.offsetWidth/2)+'px';
     silk.style.height=(cy+spider.offsetHeight*.15)+'px'; silk.getBoundingClientRect();
@@ -204,6 +221,7 @@
     spider.style.transitionDuration=ms+'ms';
     spider.style.left=p.x+'px'; spider.style.top=p.y+'px'; pos={...p};
     await sleep(ms);
+    if(up){ spider.classList.remove('up'); await sleep(TURN); }  // settle back to hanging
     return ms;
   }
   // Spider hangs level with the bottom of a line
