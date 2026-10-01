@@ -379,6 +379,7 @@ export default function FootprintsHome({
   tint = null,
   introWalk = "corner",
   awaitReveal = false,
+  flowHeight = false,
   children,
 }: {
   // Render the 5-animal picker (which critter's prints appear).
@@ -398,6 +399,14 @@ export default function FootprintsHome({
   // behind the page, so without this its walkers would amble across a hidden
   // panel for the whole visit and the reveal would land on an empty one.
   awaitReveal?: boolean;
+  // Take height from the content instead of filling the parent, outside the
+  // `curtain` condition (see globals.css). The box is normally `absolute
+  // inset-0` on a parent that owns the height; the footer needs the opposite on
+  // a phone, where it is a static block as tall as its own lists. Only the box
+  // and the content layer change — the canvas, the print pools and the picker
+  // stay pinned to the box, and the ResizeObserver below keeps the veil in step
+  // with the new height.
+  flowHeight?: boolean;
   children?: ReactNode;
 } = {}) {
   // SVG ids are document-global, so each mount (hero + footer both render this)
@@ -983,7 +992,9 @@ export default function FootprintsHome({
       onPointerMove={onMove}
       onPointerDown={onDown}
       onPointerLeave={onLeave}
-      className="absolute inset-0 z-0 flex flex-col"
+      className={`z-0 flex flex-col ${
+        flowHeight ? "relative curtain:absolute curtain:inset-0" : "absolute inset-0"
+      }`}
       style={{
         // Inverted (the footer): the colour loop above owns this, via the var,
         // and supplies its own easing — hence no CSS transition on it here.
@@ -1047,7 +1058,9 @@ export default function FootprintsHome({
           lays prints in the gaps; interactive children opt back in with
           pointer-events-auto. */}
       <div
-        className="pointer-events-none absolute inset-0 z-20"
+        className={`pointer-events-none z-20 ${
+          flowHeight ? "relative curtain:absolute curtain:inset-0" : "absolute inset-0"
+        }`}
         style={{ color: pal.ink }}
       >
         {children}

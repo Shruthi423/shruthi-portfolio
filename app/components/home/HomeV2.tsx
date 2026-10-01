@@ -6,7 +6,7 @@ import { gsap, useGSAP, ScrollSmoother } from "@/app/lib/gsap";
 // refs are threaded into create() (which keeps the types null-free).
 import HeroStack from "@/app/components/home/HeroStack";
 import { WorkGrid } from "@/app/components/work/WorkGrid";
-import { SiteFooter, FooterCurtainGap } from "@/app/components/layout/SiteFooter";
+import { SiteFooter, FooterCurtainGap, CURTAIN_MQ } from "@/app/components/layout/SiteFooter";
 import { activeProjects } from "@/app/lib/projects";
 
 /**
@@ -32,25 +32,48 @@ export default function HomeV2() {
       // the document happens to be at before the smoother reads it.
       window.scrollTo(0, 0);
 
-      const smoother = ScrollSmoother.create({
-        smooth: 1.2,
-        effects: true,
-        normalizeScroll: true,
+      /**
+       * The smoother runs only where the footer is still a fixed curtain.
+       * ScrollSmoother makes #smooth-wrapper a fixed, transformed box, which
+       * takes the whole page out of normal flow — and outside `curtain` the
+       * footer below it is a static block that has to BE in flow to scroll in
+       * (see SiteFooter). So the two go together, matchMedia'd rather than
+       * read once, so narrowing a desktop window hands the page back to native
+       * scrolling instead of leaving a fixed wrapper over a flowed footer.
+       *
+       * Nothing is lost on a phone: ScrollSmoother doesn't smooth touch scroll
+       * by default anyway, and no element here uses data-speed effects.
+       */
+      const mm = gsap.matchMedia();
+      mm.add(CURTAIN_MQ, () => {
+        const smoother = ScrollSmoother.create({
+          smooth: 1.2,
+          effects: true,
+          normalizeScroll: true,
+        });
+
+        // Arriving from an inner page's "WORK" nav (/#work) — ScrollSmoother
+        // owns a transformed container, so native hash scrolling can't reach
+        // the grid. Jump there manually once the smoother is live.
+        if (window.location.hash === "#work") {
+          smoother.scrollTo("#work", false);
+        } else {
+          // Once the smoother is live it owns the scroll position, and a plain
+          // window.scrollTo no longer moves it. Park it at the top through the
+          // smoother itself, immediately and again after layout settles (images
+          // and fonts resize the page under us, and normalizeScroll re-reads
+          // the offset on the next frame).
+          smoother.scrollTop(0);
+          requestAnimationFrame(() => smoother.scrollTop(0));
+        }
+
+        return () => smoother.kill();
       });
 
-      // Arriving from an inner page's "WORK" nav (/#work) — ScrollSmoother owns
-      // a transformed container, so native hash scrolling can't reach the grid.
-      // Jump there manually once the smoother is live.
-      if (window.location.hash === "#work") {
-        smoother.scrollTo("#work", false);
-      } else {
-        // Once the smoother is live it owns the scroll position, and a plain
-        // window.scrollTo no longer moves it. Park it at the top through the
-        // smoother itself, immediately and again after layout settles (images
-        // and fonts resize the page under us, and normalizeScroll re-reads the
-        // offset on the next frame).
-        smoother.scrollTop(0);
-        requestAnimationFrame(() => smoother.scrollTop(0));
+      // Same arrival, under native scroll: no transformed container in the way,
+      // so the element can simply be scrolled to.
+      if (!window.matchMedia(CURTAIN_MQ).matches && window.location.hash === "#work") {
+        document.getElementById("work")?.scrollIntoView();
       }
 
       // Gentle rise-in for each section eyebrow/heading as it enters.
@@ -68,7 +91,7 @@ export default function HomeV2() {
 
       return () => {
         reveals.forEach((r) => r.scrollTrigger?.kill());
-        smoother.kill();
+        mm.kill();
       };
     },
     { scope: wrapper },
@@ -99,8 +122,11 @@ export default function HomeV2() {
 
       {/* FOOTER — the shared <SiteFooter /> (footprint canvas + pickers +
           colophon), identical on every page. Outside #smooth-wrapper on
-          purpose: it's `fixed`, and ScrollSmoother transforms #smooth-content,
-          which would otherwise become its containing block. */}
+          purpose: under `curtain` it's `fixed`, and ScrollSmoother transforms
+          #smooth-content, which would otherwise become its containing block.
+          Outside `curtain` it is a static block here instead — which is why the
+          smoother is gated on the same query above, so this is never a flowed
+          element sitting behind a fixed wrapper. */}
       <SiteFooter />
     </>
   );

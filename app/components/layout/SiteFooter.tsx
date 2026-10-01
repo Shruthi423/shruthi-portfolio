@@ -15,11 +15,20 @@ import { WobbleUnderline } from "@/app/components/shared/WobbleUnderline";
  * opaque content. Scrolling to the end slides the page off the footer instead
  * of scrolling the footer into view, so the footer is uncovered in place.
  *
+ * ...but only where the whole panel fits one viewport, which is the `curtain`
+ * variant in globals.css (mirrored here as CURTAIN_MQ). On a phone the four
+ * lists stack one per row and need ~700px against an iPhone SE's ~553px, and a
+ * fixed panel taller than the viewport hides its own bottom where no scroll can
+ * reach it. So outside that condition the curtain is dropped: the footer is a
+ * static block at its natural height, the gap below the content collapses to
+ * nothing, and the footer scrolls in like any other section.
+ *
  * Two pieces, because `position: fixed` breaks inside a transformed ancestor:
  *   <SiteFooter />      the fixed panel — must live OUTSIDE ScrollSmoother's
  *                       #smooth-wrapper on the home.
  *   <FooterCurtainGap /> the empty space at the end of the scrolling content
- *                       that uncovers it, and the IntersectionObserver that
+ *                       that uncovers it (zero-height outside `curtain`, where
+ *                       there is nothing to uncover), and the observer that
  *                       flips the global `.hero-active` (nav + cursor go paper)
  *                       once the footer is at least half revealed. The gap
  *                       reads true rendered geometry, so it works under both
@@ -161,8 +170,8 @@ function FooterColumn({
       <p className="font-apple text-eyebrow">{label}</p>
       {/* pointer-events-auto so links stay clickable while the surrounding
           footer stays transparent to the footprint engine underneath. The
-          tighter top margin on a phone is part of fitting the whole panel into
-          one small viewport — see the note on --footer-h. */}
+          tighter top margin on a phone keeps the stacked lists compact, since
+          there they are four rows rather than one. */}
       <ul className="pointer-events-auto mt-3 flex flex-col gap-2 sm:mt-6">
         {items.map((item) => (
           <li key={item.label}>
@@ -189,6 +198,58 @@ function FooterColumn({
 }
 
 /**
+ * Where the footer is still a fixed curtain — the JS twin of the `curtain`
+ * variant in globals.css. Keep the two literally in step: the panel's layout
+ * comes from the variant, while the reveal sensor and the home's ScrollSmoother
+ * read this.
+ */
+export const CURTAIN_MQ = "(min-width: 40rem) and (min-height: 34rem)";
+
+/**
+ * Flips the global `.hero-active` (nav + cursor go paper, and the footer's
+ * ambient walkers start) once the watched element is at least half on screen.
+ *
+ * Which element that is depends on the layout: under `curtain` it is the gap,
+ * because half the gap showing is half the footer uncovered; outside it the
+ * footer scrolls in on its own and watches itself. `forCurtain` says which of
+ * the two this caller is, and the sensor only arms itself when the viewport
+ * agrees, so the gap and the panel can never fight over the class.
+ */
+function useRevealSensor(
+  ref: React.RefObject<HTMLElement | null>,
+  forCurtain: boolean,
+) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const mq = window.matchMedia(CURTAIN_MQ);
+    let io: IntersectionObserver | null = null;
+    const sync = () => {
+      io?.disconnect();
+      io = null;
+      if (mq.matches !== forCurtain) return;
+      io = new IntersectionObserver(
+        ([entry]) => {
+          document.documentElement.classList.toggle(
+            "hero-active",
+            entry.intersectionRatio >= 0.5,
+          );
+        },
+        { threshold: [0, 0.5, 1] },
+      );
+      io.observe(el);
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => {
+      mq.removeEventListener("change", sync);
+      io?.disconnect();
+      document.documentElement.classList.remove("hero-active");
+    };
+  }, [ref, forCurtain]);
+}
+
+/**
  * The empty space at the tail of the scrolling content that uncovers the fixed
  * footer. Goes last inside whatever element actually scrolls (#smooth-content
  * on the home, the flex column on inner pages), directly after the page's own
@@ -199,24 +260,13 @@ function FooterColumn({
  */
 export function FooterCurtainGap() {
   const ref = useRef<HTMLDivElement>(null);
+  // Only where the gap has a height. Outside `curtain` it is zero-height, and
+  // the IntersectionObserver spec reports ratio 1 for a zero-area target the
+  // moment it intersects — which would latch `.hero-active` on for the whole
+  // page. There the footer watches itself instead (see useRevealSensor).
+  useRevealSensor(ref, true);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        document.documentElement.classList.toggle("hero-active", entry.intersectionRatio >= 0.5);
-      },
-      { threshold: [0, 0.5, 1] },
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      document.documentElement.classList.remove("hero-active");
-    };
-  }, []);
-
-  return <div ref={ref} aria-hidden className="h-[var(--footer-h)] shrink-0" />;
+  return <div ref={ref} aria-hidden className="h-0 shrink-0 curtain:h-[var(--footer-h)]" />;
 }
 
 /** Where the bottom bar sits, and the breath it needs above the columns —
@@ -301,35 +351,30 @@ export function SiteFooter() {
     return () => el.removeEventListener("pointermove", onMove);
   }, []);
 
+  // Outside `curtain` the panel scrolls in on its own, so it is its own reveal
+  // sensor; under `curtain` the gap owns the flip and this stays dormant.
+  useRevealSensor(ref, false);
+
   return (
-    // Pinned behind the page; the curtain gap below the content uncovers it.
+    // Under `curtain`: pinned behind the page, uncovered by the gap below the
+    // content. Outside it: a static block at its natural height, in flow after
+    // the page, scrolling in like any other section.
     <section
       ref={ref}
-      className="fixed bottom-0 left-0 z-0 h-[var(--footer-h)] w-full"
+      className="relative z-10 w-full curtain:fixed curtain:bottom-0 curtain:left-0 curtain:z-0 curtain:h-[var(--footer-h)]"
     >
-      <FootprintsHome footprintPicker inverted introWalk="cross" awaitReveal>
-        {/* Below sm the four lists stack one per row, which is taller than the
-            panel — and the panel is capped at one small viewport (see
-            --footer-h), so the overflow would be clipped with nothing able to
-            reach it. This scroller is what turns that clip into a scroll.
-
-            It has to take pointer events to be swipeable, so it only opts in
-            below sm; from sm up it goes back to being transparent and the
-            footprint canvas underneath sees the pointer again as before. */}
-        <div className="pointer-events-auto absolute inset-0 overflow-y-auto overscroll-contain sm:pointer-events-none sm:overflow-visible">
+      <FootprintsHome footprintPicker inverted introWalk="cross" awaitReveal flowHeight>
         {/* Four columns + contact row + colophon. The wrapper is
             pointer-events-none so footprints spawn in the gaps; links opt in.
-            min-h-full only from sm: on mobile the bottom bar is in flow after
-            the columns, and a full-height wrapper would push it past the
-            panel's own bottom edge. */}
-        <div className="pointer-events-none relative mx-auto flex max-w-[1140px] flex-col px-5 sm:min-h-full sm:px-8">
+            min-h-full only under `curtain`, where the panel has a height to
+            fill; outside it the content IS the height, and stretching to a
+            parent that is sized by this would be circular. */}
+        <div className="pointer-events-none relative mx-auto flex max-w-[1140px] flex-col px-5 curtain:min-h-full sm:px-8">
           {/* The measured block. Its own padding is inside the measurement, and
               min-h-full sits on the parent rather than here so this stays
               natural-height — see the note on the effect above.
 
-              One column on a phone, 2x2 from sm, four across from md. Stacked,
-              the lists are taller than the panel can be (see --footer-h), so
-              the scroller above carries the overflow. */}
+              One column on a phone, 2x2 from sm, four across from md. */}
           <div
             ref={columnsRef}
             className="grid grid-cols-1 gap-x-6 gap-y-6 pt-12 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-12 sm:pt-28 md:grid-cols-4 md:gap-x-10 lg:gap-x-14"
@@ -350,8 +395,8 @@ export function SiteFooter() {
             out, so at sm the last line ran off the right edge. Below lg they
             stack instead.
 
-            Below sm it is in flow, directly after the stacked lists, so it
-            scrolls with them. From sm up it goes back to being absolutely
+            Outside `curtain` it is in flow, directly after the lists, so it
+            scrolls with them. Under `curtain` it goes back to being absolutely
             pinned to the bottom of the panel, OUTSIDE the max-w-[1140px]
             column on purpose —
             anchored to that column it was inset by the centring gutter on wide
@@ -361,7 +406,7 @@ export function SiteFooter() {
         <div
           ref={barRef}
           data-quiet
-          className="pointer-events-none mx-5 mt-7 mb-8 flex flex-col gap-1 pr-14 font-mono text-caption-1 uppercase opacity-70 sm:absolute sm:bottom-8 sm:left-8 sm:right-8 sm:mx-0 sm:mb-0 sm:mt-0 sm:gap-1.5 sm:pr-16 lg:h-9 lg:flex-row lg:items-center lg:justify-between lg:gap-6"
+          className="pointer-events-none mx-5 mt-7 mb-8 flex flex-col gap-1 pr-14 font-mono text-caption-1 uppercase opacity-70 sm:gap-1.5 sm:pr-16 curtain:absolute curtain:bottom-8 curtain:left-8 curtain:right-8 curtain:mx-0 curtain:mt-0 curtain:mb-0 lg:h-9 lg:flex-row lg:items-center lg:justify-between lg:gap-6"
         >
           <p className="whitespace-nowrap">Copyright @ shruthi aragonda</p>
           <p className="flex items-center gap-1.5 whitespace-nowrap">
@@ -369,7 +414,6 @@ export function SiteFooter() {
             Lives in San Francisco, California
           </p>
           <p className="whitespace-nowrap">Last updated on {process.env.NEXT_PUBLIC_LAST_UPDATED}</p>
-        </div>
         </div>
       </FootprintsHome>
 

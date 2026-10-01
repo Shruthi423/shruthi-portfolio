@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* The footer is a CURTAIN only where its content can fit one viewport.
+   `curtain:` is that condition: wide enough that the four lists aren't stacked
+   one per row, and tall enough to hold them once they are. Outside it (a phone,
+   a short landscape window) the footer stops being fixed and becomes a static
+   block at its natural height that scrolls in like any other section — a fixed
+   panel can never be scrolled, so one taller than the viewport would hide its
+   own bottom with nothing able to reach it. SiteFooter mirrors this query in JS
+   as CURTAIN_MQ, for the reveal sensor and the home's smoother; keep the two in
+   step. */
+@custom-variant curtain (@media (min-width: 40rem) and (min-height: 34rem));
+
 @theme {
   /* Portfolio palette: warm blush canvas, poppy orange accent, cool + earthy supporting hues. */
   --color-paper-white: #fafaf8;
@@ -126,9 +137,11 @@
      where nothing can ever scroll to it — the panel is fixed and the curtain
      gap only slides the page off it. svh (the small viewport, URL bar showing)
      rather than vh, because vh on a phone is the taller bar-hidden measure and
-     would still clip. Below sm the four lists stack into one column, which
-     needs ~700px of panel against an iPhone SE's ~553px, so the footer's own
-     content gets a scroller there rather than being clipped at this ceiling. */
+     would still clip. Where the content genuinely cannot fit a viewport — below
+     the `curtain` variant above, e.g. a phone, where the four lists stack into
+     one column needing ~700px against an iPhone SE's ~553px — the footer isn't
+     fixed at all and this whole height is unused, so the ceiling only ever
+     applies where the panel fits under it. */
   --footer-h: min(100svh, max(65vh, 560px, var(--footer-content-h, 0px)));
   --surface: #f0efec;
   --border: #e2e0db;
