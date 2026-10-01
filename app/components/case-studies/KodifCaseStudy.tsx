@@ -366,7 +366,7 @@ export function KodifCaseStudy() {
         {/* 2 - WHY A REDESIGN */}
         <Section id="why">
           <Reveal>
-            <Label>Why a redesign</Label>
+            <Label>Why a Redesign</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>
@@ -383,7 +383,7 @@ export function KodifCaseStudy() {
         {/* 3 - THE CHALLENGES */}
         <Section id="challenges">
           <Reveal>
-            <Label>The challenges</Label>
+            <Label>The Challenges</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Three gaps to close at once.</Statement>
@@ -404,7 +404,7 @@ export function KodifCaseStudy() {
         {/* 4 - THE WORK */}
         <Section id="work">
           <Reveal>
-            <Label>The work</Label>
+            <Label>The Work</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>One brand, from landing page to tote bag.</Statement>
@@ -465,7 +465,7 @@ export function KodifCaseStudy() {
         {/* 4b - REVISED BRAND GUIDELINES (rebuilt natively from the token sheets) */}
         <Section id="guidelines">
           <Reveal>
-            <Label>Revised brand guidelines</Label>
+            <Label>Revised Brand Guidelines</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">The redesign, codified.</Statement>
@@ -609,7 +609,7 @@ export function KodifCaseStudy() {
         {/* 6 - THE OUTCOME */}
         <Section id="outcome">
           <Reveal>
-            <Label>The outcome</Label>
+            <Label>The Outcome</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>The narrative caught up, and so did the numbers.</Statement>

@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { ScrollSmoother } from "@/app/lib/gsap";
 import { WobbleUnderline } from "@/app/components/shared/WobbleUnderline";
 
 // Shared navigation: social links left, centered wordmark, page links right.
 // The socials are icon-only until hovered, when the platform name unfurls
-// beside the glyph (see `.social-link` in globals.css).
+// beside the glyph (see `.social-link` in globals.css). Below sm there is no
+// room for four glyphs beside the wordmark, so they collapse behind one @ mark
+// that drops them down as a named list.
 const SOCIALS = [
   {
     "label": "LinkedIn",
@@ -31,6 +34,10 @@ const SOCIALS = [
   }
 ];
 
+/** Phosphor at-sign — the mark the phone's socials live behind. */
+const AT_PATH =
+  "M128,24a104,104,0,0,0,0,208c21.51,0,44.1-6.48,60.43-17.33a8,8,0,0,0-8.86-13.33C166,210.38,146.21,216,128,216a88,88,0,1,1,88-88c0,26.45-10.88,32-20,32s-20-5.55-20-32V88a8,8,0,0,0-16,0v4.26a48,48,0,1,0,5.93,65.1c6,12,16.35,18.64,30.07,18.64,22.54,0,36-17.94,36-48A104.11,104.11,0,0,0,128,24Zm0,136a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z";
+
 const NAV: { label: string; href: string; section?: string }[] = [
   { label: "WORK", href: "/#work", section: "#work" },
   { label: "PLAYGROUND", href: "/playground" },
@@ -45,6 +52,29 @@ const LINK_CLASS =
 export function SiteNav() {
   const pathname = usePathname();
   const onHome = pathname === "/";
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // A dropdown over a page that also scrolls: close it on Escape and on any
+  // pointer landing outside it, so it can never be left hanging open.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
+
+  // Navigating away should not carry the menu to the next page.
+  useEffect(() => setMenuOpen(false), [pathname]);
 
   const scrollTo = (target: number | string) => (e: React.MouseEvent) => {
     // On the home the target lives on this same page — scroll instead of
@@ -75,7 +105,60 @@ export function SiteNav() {
         className="relative grid min-h-16 grid-cols-[1fr_auto_1fr] items-center gap-y-1 px-3 py-3 sm:px-8"
         aria-label="Primary"
       >
-        <ul className="pointer-events-auto col-start-1 row-start-1 flex items-center justify-self-start" aria-label="Social links">
+        {/* The phone's collapsed socials. Hidden from sm up, where the real row
+            below takes over — two renderings rather than one, because the row
+            version's hover-to-unfurl has no meaning on touch: here every name
+            is simply spelled out. */}
+        <div ref={menuRef} className="pointer-events-auto relative col-start-1 row-start-1 justify-self-start sm:hidden">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label="Social links"
+            aria-expanded={menuOpen}
+            aria-controls="nav-socials"
+            // h-11 is the finger, not the glyph — same tap target the icons in
+            // the sm row get.
+            className="flex h-11 w-11 items-center justify-center rounded opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+          >
+            <svg className="h-[22px] w-[22px]" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+              <path d={AT_PATH} />
+            </svg>
+          </button>
+          <ul
+            id="nav-socials"
+            // The panel carries its own colours rather than inheriting the
+            // nav's: the nav flips to paper over the inverted footer, and a
+            // menu that flipped with it would be paper text on paper.
+            className="absolute left-0 top-full z-50 flex min-w-[9.5rem] flex-col gap-0.5 rounded-sm border p-1.5 shadow-xl transition-[opacity,transform] duration-200 ease-out"
+            style={{
+              background: "var(--bg)",
+              borderColor: "var(--border)",
+              color: "var(--text)",
+              opacity: menuOpen ? 1 : 0,
+              transform: `translateY(${menuOpen ? "0" : "-0.4rem"})`,
+              visibility: menuOpen ? "visible" : "hidden",
+            }}
+          >
+            {SOCIALS.map(({ label, href, path }) => (
+              <li key={label}>
+                <a
+                  href={href}
+                  target={href.startsWith("mailto:") ? undefined : "_blank"}
+                  rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex h-10 items-center gap-2.5 rounded px-2 font-mono text-caption-1 uppercase tracking-wide opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                >
+                  <svg className="h-[18px] w-[18px] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+                    <path d={path} />
+                  </svg>
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <ul className="pointer-events-auto col-start-1 row-start-1 hidden items-center justify-self-start sm:flex" aria-label="Social links">
           {SOCIALS.map(({ label, href, path }) => (
             <li key={label}>
               <a
@@ -83,16 +166,9 @@ export function SiteNav() {
                 aria-label={label}
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
                 rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
-                // h-11 on a phone is the tap target, not the look: the glyph is
-                // 19px either way, the box around it is just finger-sized. The
-                // side padding only opens up past 360px — at 320px four icons
-                // and the wordmark have no room to spare on this row.
-                className="social-link flex h-11 items-center rounded px-0.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current min-[360px]:px-1 sm:h-9 sm:px-1.5"
+                className="social-link flex h-9 items-center rounded px-1.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
               >
-                {/* 19px below sm. Four icons and the wordmark share row one on
-                    a phone, and at 22px with px-1 the row outgrew a 320px
-                    viewport and the name got squeezed. */}
-                <svg className="social-icon h-[19px] w-[19px] shrink-0 sm:h-[22px] sm:w-[22px]" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+                <svg className="social-icon h-[22px] w-[22px] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
                   <path d={path} />
                 </svg>
                 {/* The name unfurls out of the icon; aria-label already says it,
@@ -112,14 +188,13 @@ export function SiteNav() {
           // The splash's written name flies into this box and lands on it, so
           // it needs to be findable from outside the tree.
           data-wordmark
-          // The side padding is the gap to the social icons, which share this
-          // row on a phone and were landing 4px off the name. It grows the
-          // centre column symmetrically, so the wordmark stays centred. Held
-          // back below 360px, where there is no width to spend.
-          className="pointer-events-auto col-start-2 row-start-1 justify-self-center whitespace-nowrap tracking-tight opacity-90 transition-opacity duration-150 hover:opacity-70 min-[360px]:px-2"
-          // The 12px floor is for the phone, where this shares row one with the
-          // four social icons; 1.7vw doesn't reach 14px until ~825px wide.
-          style={{ fontFamily: "var(--font-apple)", fontSize: "clamp(12px, 1.7vw, 17px)", color: "var(--wordmark)" }}
+          // The side padding is the gap to the socials, which share this row.
+          // It grows the centre column symmetrically, so the wordmark stays
+          // centred.
+          className="pointer-events-auto col-start-2 row-start-1 justify-self-center whitespace-nowrap px-2 tracking-tight opacity-90 transition-opacity duration-150 hover:opacity-70"
+          // The 13px floor is for the phone, where this shares row one with the
+          // @ mark; 1.7vw doesn't reach 14px until ~825px wide.
+          style={{ fontFamily: "var(--font-apple)", fontSize: "clamp(13px, 1.7vw, 17px)", color: "var(--wordmark)" }}
         >
           Shruthi Aragonda
         </Link>

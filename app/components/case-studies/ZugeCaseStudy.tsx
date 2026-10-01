@@ -65,25 +65,25 @@ const REDESIGN_FEATURES = [
   {
     eyebrow: "Voice",
     title: "Mitra, a voice guide",
-    body: "Riders talk to it in English or 8 Indian languages, hands on the handlebars.",
+    body: "Drivers talk to it in English or 8 Indian languages, hands on the handlebars.",
     clip: "/zuge/zuge-clip-mitra.html",
   },
   {
     eyebrow: "Orders",
     title: "Spill-aware orders",
-    body: "It flags liquid orders at accept, gives a tip at pickup, and alerts the rider before speed breakers.",
+    body: "It flags liquid orders at accept, gives a tip at pickup, and alerts the driver before speed breakers.",
     clip: "/zuge/zuge-clip-spill-aware.html",
   },
   {
     eyebrow: "Modes",
     title: "Riding modes",
-    body: "Drive, Power, and Eco, each with its own colour. The rider reads the state before reading a single number.",
+    body: "Drive, Power, and Eco, each with its own colour. The driver reads the state before reading a single number.",
     clip: "/zuge/zuge-clip-modes.html",
   },
   {
     eyebrow: "Light",
     title: "Day and night",
-    body: "A bright map that holds up in direct sun, fully dark after sunset so nothing glares. The light sensor switches it, not the rider.",
+    body: "A bright map that holds up in direct sun, fully dark after sunset so nothing glares. The light sensor switches it, not the driver.",
     clip: "/zuge/zuge-clip-day-night.html",
   },
   {
@@ -116,13 +116,13 @@ const SCREENS = [
   { file: "zuge/screen-parked.jpg", label: "Parked", cursor: "take off your stand" },
 ];
 
-// The overlays the rider actually touches mid-shift, shown as standalone
+// The overlays the driver actually touches mid-shift, shown as standalone
 // components rather than full screens. Each sits centred in a uniform tile so
 // the landscape and portrait pieces read as one consistent set.
 const COMPONENTS = [
   { file: "zuge/meter.png", label: "Battery & range", cursor: "96% · 145 km" },
   { file: "zuge/orders.png", label: "Incoming order", cursor: "₹350 · accept" },
-  { file: "zuge/location.png", label: "Rider location", cursor: "500 m away" },
+  { file: "zuge/location.png", label: "Driver location", cursor: "500 m away" },
 ];
 
 // The shipped UI rendered on the real chassis. Two frames, one riding and one
@@ -136,7 +136,7 @@ const PROTOTYPES = [
 const METRICS = [
   { prefix: "", value: 73, decimals: 0, suffix: "%", label: "Less phone use on the road", sub: null },
   { prefix: "", value: 20, decimals: 0, suffix: "%", label: "Faster task completion", sub: null },
-  { prefix: "", value: 2, decimals: 0, suffix: "M+", label: "Gig riders on the platform", sub: null },
+  { prefix: "", value: 2, decimals: 0, suffix: "M+", label: "Gig drivers on the platform", sub: null },
 ];
 
 
@@ -248,7 +248,7 @@ export function ZugeCaseStudy() {
         title="Two seconds, eyes down."
         intro={
           <>
-            Zuge makes electric scooters for delivery riders in Bengaluru, India. Riders run 30+ orders a day. I designed
+            Zuge makes electric scooters for delivery drivers in Bengaluru, India. Drivers run 30+ orders a day. I designed
             the dashboard as a design consultant at Sharp.
           </>
         }
@@ -271,13 +271,13 @@ export function ZugeCaseStudy() {
               >
                 AI suggests.
                 <br />
-                <span style={{ color: "var(--accent)" }}>The rider decides.</span>
+                <span style={{ color: "var(--accent)" }}>The driver decides.</span>
               </p>
               <p
                 className="font-body leading-relaxed text-muted lg:pb-2"
                 style={{ fontSize: "var(--text-paragraph)" }}
               >
-                Nothing is accepted, rerouted, or batched without the rider&rsquo;s confirmation.
+                Nothing is accepted, rerouted, or batched without the driver&rsquo;s confirmation.
               </p>
             </div>
           </div>
@@ -287,10 +287,10 @@ export function ZugeCaseStudy() {
         {/* 2 - THE OUTCOME */}
         <Section id="outcome">
           <Reveal>
-            <Label>The outcome</Label>
+            <Label>The Outcome</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5">Less looking down, more riding.</Statement>
+            <Statement maxW="none" className="mt-5">Less looking down, more driving.</Statement>
           </Reveal>
 
           {/* An editorial list, not a grid: one number per row, hairline-ruled. */}
@@ -326,11 +326,11 @@ export function ZugeCaseStudy() {
         {/* 3 - THE PROBLEM */}
         <Section id="problem">
           <Reveal>
-            <Label>The problem</Label>
+            <Label>The Problem</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5">
-              Every rider was doing this job with a phone taped to the handlebar.
+              Every driver was doing this job with a phone taped to the handlebar.
             </Statement>
           </Reveal>
           <Reveal delay={120}>
@@ -362,7 +362,7 @@ export function ZugeCaseStudy() {
             <Label>2026</Label>
           </Reveal>
           <Reveal delay={60}>
-            <Statement maxW="none" className="mt-5">Built AI native, so the dashboard thinks before the rider has to.</Statement>
+            <Statement maxW="none" className="mt-5">Built AI native, so the dashboard thinks before the driver has to.</Statement>
           </Reveal>
           <Reveal delay={120}>
             <Body className="mt-5">
@@ -382,7 +382,7 @@ export function ZugeCaseStudy() {
         {/* 7 - THE DASHBOARD */}
         <Section id="dashboard">
           <Reveal>
-            <Label>Before screens</Label>
+            <Label>Before Screens</Label>
           </Reveal>
           <Reveal delay={80} className="mt-8">
             <SetLabel>the overlays, as components</SetLabel>
@@ -440,14 +440,14 @@ export function ZugeCaseStudy() {
         {/* 8 - IN CONTEXT */}
         <Section id="context">
           <Reveal>
-            <Label>In context</Label>
+            <Label>In Context</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5">Final screens, on the bike.</Statement>
           </Reveal>
           <Reveal delay={120}>
             <Body className="mt-5">
-              Rendered on the real chassis, across the colourways riders actually buy. The hierarchy that held up at a desk
+              Rendered on the real chassis, across the colourways drivers actually buy. The hierarchy that held up at a desk
               had to hold up here too: at a glance, in sun, mid-shift.
             </Body>
           </Reveal>

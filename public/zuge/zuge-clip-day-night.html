@@ -77,17 +77,17 @@ if(!hasG||RM){(function(H){H.screen('rideday',true);document.getElementById('sky
 var master=gsap.timeline({repeat:-1,repeatDelay:.6});
 (function(H,m){var hl=H.$('#hl'),c=H.$('#cap');
   m.call(function(){gsap.set('#sun',{y:0});gsap.set('#moon',{y:-1100});gsap.set('#stars',{opacity:1});gsap.set('#skyD',{opacity:0});H.screen('ride',true);
-    gsap.to('#moon',{y:0,duration:.8,ease:'power2.in'});gsap.to('#stars',{opacity:0,duration:1.2,ease:'power2.inOut'});hl.innerHTML='Day mode';c.innerHTML=''},null,0);
-  m.to('#skyD',{opacity:1,duration:2,ease:'power2.inOut'},.2);
-  m.to('#sun',{y:-1100,duration:2.4,ease:'power2.out'},.2);
+    gsap.to('#moon',{y:0,duration:.45,ease:'power2.in'});gsap.to('#stars',{opacity:0,duration:.8,ease:'power2.inOut'});hl.innerHTML='Day mode';c.innerHTML=''},null,0);
+  m.to('#skyD',{opacity:1,duration:1.2,ease:'power2.inOut'},.2);
+  m.to('#sun',{y:-1100,duration:1.2,ease:'power2.out'},.2);
   m.to([hl,c],{color:'#124224',duration:1.2,ease:'power2.inOut'},.6);
   m.call(function(){H.screen('rideday');H.cap('Bright map that stays readable in direct sun.')},null,.5);
-  m.to('#sun',{y:0,duration:1.8,ease:'power2.in'},5.0);
-  m.to('#skyD',{opacity:0,duration:1.8,ease:'power2.inOut'},5.2);
+  m.to('#sun',{y:0,duration:.9,ease:'power2.in'},5.0);
+  m.to('#skyD',{opacity:0,duration:1,ease:'power2.inOut'},5.2);
   m.to([hl,c],{color:'#F4FBEA',duration:1,ease:'power2.inOut'},5.6);
   m.call(function(){H.screen('ride');hl.innerHTML='Night mode';gsap.fromTo(hl,{y:16,autoAlpha:0},{y:0,autoAlpha:1,duration:.45,ease:'power3.out'});H.cap('Everything goes dark. No glare after sunset.')},null,6.0);
-  m.to('#moon',{y:-1100,duration:2.2,ease:'power2.out'},6.2);
-  m.to('#stars',{opacity:1,duration:1.6,ease:'power2.inOut'},6.6);
+  m.to('#moon',{y:-1100,duration:1.1,ease:'power2.out'},6.2);
+  m.to('#stars',{opacity:1,duration:1,ease:'power2.inOut'},6.6);
   m.call(function(){H.cap('Switches on its own with the light sensor.')},null,9.4);
   m.set({},{},11.6);})(H,master);
 if('IntersectionObserver' in window){new IntersectionObserver(function(e){e[0].isIntersecting?master.play():master.pause()}).observe(document.body)}

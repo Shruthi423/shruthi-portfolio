@@ -474,7 +474,7 @@ export function SpotHiveCaseStudy() {
         {/* 2 — CHALLENGE */}
         <Section id="challenge">
           <Reveal>
-            <Label>The challenge</Label>
+            <Label>The Challenge</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Zero to shipped, in a month.</Statement>
@@ -522,7 +522,7 @@ export function SpotHiveCaseStudy() {
         {/* 3 — ONBOARDING (sticky text + login screens) */}
         <StickyGallery
           id="onboarding"
-          label="Getting in"
+          label="Getting In"
           title="Getting in, fast."
           shots={ONBOARDING_SHOTS}
         >
@@ -537,7 +537,7 @@ export function SpotHiveCaseStudy() {
         {/* 4 — SYSTEM (sticky text + dashboard / settings / profile) */}
         <StickyGallery
           id="system"
-          label="The system"
+          label="The System"
           title="A component kit built to scale."
           shots={SYSTEM_SHOTS}
         >
@@ -553,7 +553,7 @@ export function SpotHiveCaseStudy() {
         {/* 5 — SEAT MAP (sticky text + booking flow) */}
         <StickyGallery
           id="seatmap"
-          label="The seat map"
+          label="The Seat Map"
           title="Availability you can read at a glance."
           shots={SEATMAP_SHOTS}
         >
@@ -568,7 +568,7 @@ export function SpotHiveCaseStudy() {
         {/* 5 — ROLLOUT */}
         <Section id="rollout">
           <Reveal>
-            <Label>The outcome</Label>
+            <Label>The Outcome</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Deployed across Sharp&rsquo;s offices worldwide.</Statement>

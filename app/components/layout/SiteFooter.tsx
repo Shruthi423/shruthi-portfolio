@@ -308,21 +308,31 @@ export function SiteFooter() {
       className="fixed bottom-0 left-0 z-0 h-[var(--footer-h)] w-full"
     >
       <FootprintsHome footprintPicker inverted introWalk="cross" awaitReveal>
-        {/* Three columns + contact row + colophon. The wrapper is
-            pointer-events-none so footprints spawn in the gaps; links opt in. */}
-        <div className="pointer-events-none relative mx-auto flex min-h-full max-w-[1140px] flex-col px-5 sm:px-8">
+        {/* Below sm the four lists stack one per row, which is taller than the
+            panel — and the panel is capped at one small viewport (see
+            --footer-h), so the overflow would be clipped with nothing able to
+            reach it. This scroller is what turns that clip into a scroll.
+
+            It has to take pointer events to be swipeable, so it only opts in
+            below sm; from sm up it goes back to being transparent and the
+            footprint canvas underneath sees the pointer again as before. */}
+        <div className="pointer-events-auto absolute inset-0 overflow-y-auto overscroll-contain sm:pointer-events-none sm:overflow-visible">
+        {/* Four columns + contact row + colophon. The wrapper is
+            pointer-events-none so footprints spawn in the gaps; links opt in.
+            min-h-full only from sm: on mobile the bottom bar is in flow after
+            the columns, and a full-height wrapper would push it past the
+            panel's own bottom edge. */}
+        <div className="pointer-events-none relative mx-auto flex max-w-[1140px] flex-col px-5 sm:min-h-full sm:px-8">
           {/* The measured block. Its own padding is inside the measurement, and
               min-h-full sits on the parent rather than here so this stays
               natural-height — see the note on the effect above.
 
-              2x2 on a phone, four across from md. It stays 2x2 rather than
-              stacking because the whole panel has to fit inside one small
-              viewport (see --footer-h): one column needs about 700px and an
-              iPhone SE has roughly 553px to give. The tighter padding and gaps
-              below md are what buy the fit. */}
+              One column on a phone, 2x2 from sm, four across from md. Stacked,
+              the lists are taller than the panel can be (see --footer-h), so
+              the scroller above carries the overflow. */}
           <div
             ref={columnsRef}
-            className="grid grid-cols-2 gap-x-6 gap-y-6 pt-12 sm:gap-x-12 sm:gap-y-12 sm:pt-28 md:grid-cols-4 md:gap-x-10 lg:gap-x-14"
+            className="grid grid-cols-1 gap-x-6 gap-y-6 pt-12 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-12 sm:pt-28 md:grid-cols-4 md:gap-x-10 lg:gap-x-14"
             data-quiet
           >
             <FooterColumn label="cooking" items={COOKING} onPreview={showPreview} />
@@ -340,7 +350,10 @@ export function SiteFooter() {
             out, so at sm the last line ran off the right edge. Below lg they
             stack instead.
 
-            This sits OUTSIDE the max-w-[1140px] column on purpose —
+            Below sm it is in flow, directly after the stacked lists, so it
+            scrolls with them. From sm up it goes back to being absolutely
+            pinned to the bottom of the panel, OUTSIDE the max-w-[1140px]
+            column on purpose —
             anchored to that column it was inset by the centring gutter on wide
             screens, which read as floating rather than as a corner. The picker
             cluster it pairs with is anchored to the footer edge the same way,
@@ -348,7 +361,7 @@ export function SiteFooter() {
         <div
           ref={barRef}
           data-quiet
-          className="pointer-events-none absolute bottom-8 left-5 right-5 flex flex-col gap-1 pr-14 font-mono text-caption-1 uppercase opacity-70 sm:left-8 sm:right-8 sm:gap-1.5 sm:pr-16 lg:h-9 lg:flex-row lg:items-center lg:justify-between lg:gap-6"
+          className="pointer-events-none mx-5 mt-7 mb-8 flex flex-col gap-1 pr-14 font-mono text-caption-1 uppercase opacity-70 sm:absolute sm:bottom-8 sm:left-8 sm:right-8 sm:mx-0 sm:mb-0 sm:mt-0 sm:gap-1.5 sm:pr-16 lg:h-9 lg:flex-row lg:items-center lg:justify-between lg:gap-6"
         >
           <p className="whitespace-nowrap">Copyright @ shruthi aragonda</p>
           <p className="flex items-center gap-1.5 whitespace-nowrap">
@@ -356,6 +369,7 @@ export function SiteFooter() {
             Lives in San Francisco, California
           </p>
           <p className="whitespace-nowrap">Last updated on {process.env.NEXT_PUBLIC_LAST_UPDATED}</p>
+        </div>
         </div>
       </FootprintsHome>
 

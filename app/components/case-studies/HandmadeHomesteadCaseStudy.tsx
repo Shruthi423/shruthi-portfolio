@@ -706,8 +706,8 @@ export function HandmadeHomesteadCaseStudy() {
         lead={
           <Bleed>
             <Figure
-              src="/handmade-homestead/hero.jpg"
-              file="handmade-homestead/hero.jpg"
+              src="/handmade-homestead/cover.png"
+              file="handmade-homestead/cover.png"
               label="Hero: brand banner / key visual"
               aspect="aspect-[4/3] sm:aspect-[3/2]"
               cursorLabel="the brand, at a glance"
@@ -773,7 +773,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 3 - CREATING BRANDING AND STRATEGY (the brand) */}
         <Section id="brand">
           <Reveal>
-            <Label>Creating branding and strategy</Label>
+            <Label>Creating Branding and Strategy</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">So we built something you could feel.</Statement>
@@ -1141,7 +1141,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 5 - THE CHALLENGE (problem) */}
         <Section id="problem">
           <Reveal>
-            <Label>The challenge</Label>
+            <Label>The Challenge</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">We launched education-first. The graph flatlined.</Statement>
@@ -1248,7 +1248,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 6 - THE PIVOT AND ADAPT */}
         <Section id="pivot">
           <Reveal>
-            <Label>The pivot and adapt</Label>
+            <Label>The Pivot and Adapt</Label>
           </Reveal>
           <Reveal delay={60}>
             <div className="mt-5 flex items-start justify-between gap-6">

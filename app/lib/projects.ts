@@ -17,7 +17,7 @@ export const projects: Project[] = [
     description: "A visual canvas for building AI workflows and orchestrating evals.",
     image: "/amuse-bouche/cover.jpg",
     // No public link yet — the repo stays private until it's further along.
-    hoverLabel: "Currently building",
+    hoverLabel: "BUILDING NOW",
   },
   // OpenTabs' card art is the live OpenTabsThumbnail (the door-and-wordmark
   // loop ported from opentabs-motion-thumbnail.html), so it needs no `image`.
@@ -94,9 +94,9 @@ export const projects: Project[] = [
     discipline: ["Automotive HMI", "Voice AI"],
     type: "Full-time",
     year: "2023-2024",
-    description: "An EV dashboard for delivery riders, rebuilt with a multilingual voice co-pilot.",
+    description: "An EV dashboard for delivery drivers, rebuilt with a multilingual voice co-pilot.",
     tags: [
-      "2M+ Riders",
+      "2M+ Drivers",
       "-73% Phone Use",
       "87% Satisfaction",
       "HMI Design",
@@ -168,7 +168,7 @@ export const projects: Project[] = [
       "152.6K Views",
       "Content Design",
     ],
-    image: "/handmade-homestead/cover.png",
+    image: "/handmade-homestead/hero.jpg",
     href: "/handmade-homestead",
   },
   {
@@ -276,7 +276,7 @@ export const projects: Project[] = [
     description: "An interactive U-M orientation exploring different perspectives on campus issues.",
     tags: ["Product Design", "Visual Design", "Accessibility", "Illustration", "U-M Orientation"],
     image: "/talking-maize-and-blue/cover.png",
-    hoverLabel: "Currently Building!",
+    hoverLabel: "BUILDING NOW",
   },
 ];
 

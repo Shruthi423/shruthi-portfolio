@@ -126,9 +126,9 @@
      where nothing can ever scroll to it — the panel is fixed and the curtain
      gap only slides the page off it. svh (the small viewport, URL bar showing)
      rather than vh, because vh on a phone is the taller bar-hidden measure and
-     would still clip. This is also why the four lists stay 2x2 on a phone
-     instead of stacking into one column: one column needs ~700px of panel,
-     and an iPhone SE only has ~553px to give. */
+     would still clip. Below sm the four lists stack into one column, which
+     needs ~700px of panel against an iPhone SE's ~553px, so the footer's own
+     content gets a scroller there rather than being clipped at this ceiling. */
   --footer-h: min(100svh, max(65vh, 560px, var(--footer-content-h, 0px)));
   --surface: #f0efec;
   --border: #e2e0db;

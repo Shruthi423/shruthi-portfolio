@@ -986,7 +986,7 @@ export function FeeldCaseStudy() {
 
         {/* 3 — MADE */}
         <Section id="made">
-          <Label>What we made</Label>
+          <Label>What We Made</Label>
 
           <Pull className="mt-10">
             <Em>Feeld</Em> is a contact lens and wristband.
@@ -1086,7 +1086,7 @@ export function FeeldCaseStudy() {
         {/* 4 — APP (intro + pinned reel) */}
         <section id="app" className="scroll-mt-24">
           <Section className="pb-0">
-            <Label>The app</Label>
+            <Label>The App</Label>
 
             <Pull className="mt-10">
               <Em>Feeld</Em> has five screens. Each one does <Em>exactly one</Em> thing.
@@ -1098,7 +1098,7 @@ export function FeeldCaseStudy() {
 
         {/* 5 — HARD */}
         <Section id="hard">
-          <Label>The hard part</Label>
+          <Label>The Hard Part</Label>
 
           <Body className="mt-10">
             Every early version was too loud. Labels, states, numbers, bars. We kept

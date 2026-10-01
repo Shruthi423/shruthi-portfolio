@@ -354,7 +354,7 @@ export function TempleCaseStudy() {
         {/* 4 - THE PROBLEM */}
         <Section id="problem">
           <Reveal>
-            <Label>The problem</Label>
+            <Label>The Problem</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>Visitors wanted in. An outdated system kept them out.</Statement>

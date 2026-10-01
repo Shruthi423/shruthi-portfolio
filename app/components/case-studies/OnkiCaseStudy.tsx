@@ -309,7 +309,7 @@ export function OnkiCaseStudy() {
         {/* 3 - INSIGHTS */}
         <Section id="insights">
           <Reveal>
-            <Label>Key insights</Label>
+            <Label>Key Insights</Label>
           </Reveal>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {INSIGHTS.map((c, i) => (
@@ -370,7 +370,7 @@ export function OnkiCaseStudy() {
         <Section id="design">
           <div className="grid gap-12 lg:grid-cols-[1fr_1.45fr]">
             <div className="lg:sticky lg:top-28 lg:self-start">
-              <Label>Design decisions</Label>
+              <Label>Design Decisions</Label>
               <Statement className="mt-4">The reasoning behind the work.</Statement>
               <Body className="mt-4">Every interaction had a UX principle behind it.</Body>
               <Aside className="mt-8" rotate={-2}>

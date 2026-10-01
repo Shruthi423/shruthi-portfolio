@@ -170,11 +170,11 @@ function s3(){bg('D');screen('ask');kick('02  Mitra, the assistant');hl('Mitra, 
   HEY.forEach(function(t,i){tl.add(function(){h.textContent='\u201C'+t+'\u201D';gsap.fromTo(h,{y:18,autoAlpha:0},{y:0,autoAlpha:1,duration:.3,ease:'power3.out'});sfx('tick')},i*.46)});
   tl.add(function(){cap('Say it in any of 9 languages. Mitra listens in that language.')},0.2);
   tl.add(pop('ask_0',24*K+'px','Asked in Kannada. Mitra answers out loud, in Kannada.',2.6),4.6);
-  tl.add(function(){cap('Riders pick its name and language.')},7.9);
+  tl.add(function(){cap('Drivers pick its name and language.')},7.9);
 }
 function s4(){bg('E');screen('order');kick('03');hl('Spill-aware orders');cap('');
   var tl=gsap.timeline({delay:.8});
-  tl.add(pop('order_0',24*K+'px','1. Liquids are flagged before the rider accepts.',2.2),0)
+  tl.add(pop('order_0',24*K+'px','1. Liquids are flagged before the driver accepts.',2.2),0)
     .add(function(){screen('pickup')},3.0)
     .add(pop('pickup_0',16*K+'px','2. A packing tip at pickup.',2.0),3.6)
     .add(function(){screen('spill')},6.4)
@@ -182,7 +182,7 @@ function s4(){bg('E');screen('order');kick('03');hl('Spill-aware orders');cap(''
 }
 function s5(){bg('F');screen('ride');kick('Modes');
   hl('<span class="md" id="mD" style="color:#8FB0F5">Drive.</span> <span class="md" id="mP" style="color:#FF9A6B">Power.</span> <span class="md" id="mE" style="color:#7CD08F">Eco.</span>');
-  cap('Each mode has its own color and image, so riders know it at a glance.');
+  cap('Each mode has its own color and image, so drivers know it at a glance.');
   gsap.delayedCall(.6,function(){$('#mD').classList.add('on');sfx('tick')});
   gsap.delayedCall(1.6,function(){screen('power');$('#mP').classList.add('on');sfx('tick')});
   gsap.delayedCall(2.8,function(){screen('eco');$('#mE').classList.add('on');sfx('tick')});
@@ -190,7 +190,7 @@ function s5(){bg('F');screen('ride');kick('Modes');
 function s7(){bg('D');kick('And more');cap('');
   var d=$('#disc'),m=META.music_0;d.src=IMG.music_0;
   gsap.set(d,{left:DX+m[0]*K,top:DY+m[1]*K,width:m[2]*K,height:m[3]*K,rotation:0});
-  var items=[['music','Music','Spotify on the dashboard. Titles in the rider\u2019s language.'],['reroute','Faster routes','Offered by AI, never switched on its own.'],['batch','Nearby orders','Suggested only if the first drop stays on time.'],['charge','Charging','Shows when it is enough, not just when it is full.'],['rain','Weather','Rain in 15 minutes: Mitra finds a covered stop.'],['rideday','Day and night','Switches with the light sensor.']];
+  var items=[['music','Music','Spotify on the dashboard. Titles in the driver\u2019s language.'],['reroute','Faster routes','Offered by AI, never switched on its own.'],['batch','Nearby orders','Suggested only if the first drop stays on time.'],['charge','Charging','Shows when it is enough, not just when it is full.'],['rain','Weather','Rain in 15 minutes: Mitra finds a covered stop.'],['rideday','Day and night','Switches with the light sensor.']];
   items.forEach(function(it,i){gsap.delayedCall(i*1.15,function(){screen(it[0]);hl(it[1]);cap(it[2]);sfx('tick');
     if(it[0]==='music'){gsap.to(d,{autoAlpha:1,duration:.4,delay:.35});gsap.to(d,{rotation:360,duration:5,ease:'none',repeat:-1})}
     else{gsap.to(d,{autoAlpha:0,duration:.25});}
