@@ -38,6 +38,10 @@ const SOCIALS = [
 const AT_PATH =
   "M128,24a104,104,0,0,0,0,208c21.51,0,44.1-6.48,60.43-17.33a8,8,0,0,0-8.86-13.33C166,210.38,146.21,216,128,216a88,88,0,1,1,88-88c0,26.45-10.88,32-20,32s-20-5.55-20-32V88a8,8,0,0,0-16,0v4.26a48,48,0,1,0,5.93,65.1c6,12,16.35,18.64,30.07,18.64,22.54,0,36-17.94,36-48A104.11,104.11,0,0,0,128,24Zm0,136a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z";
 
+/** Phosphor list — the mark the phone's page links live behind. */
+const LIST_PATH =
+  "M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z";
+
 const NAV: { label: string; href: string; section?: string }[] = [
   { label: "WORK", href: "/#work", section: "#work" },
   { label: "PLAYGROUND", href: "/playground" },
@@ -52,18 +56,24 @@ const LINK_CLASS =
 export function SiteNav() {
   const pathname = usePathname();
   const onHome = pathname === "/";
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  // Only one of the two collapsed menus is ever open: "socials" (the @ mark)
+  // or "pages" (the list mark).
+  const [openMenu, setOpenMenu] = useState<"socials" | "pages" | null>(null);
+  const socialsRef = useRef<HTMLDivElement>(null);
+  const pagesRef = useRef<HTMLDivElement>(null);
 
   // A dropdown over a page that also scrolls: close it on Escape and on any
   // pointer landing outside it, so it can never be left hanging open.
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!openMenu) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+      const target = e.target as Node;
+      if (socialsRef.current?.contains(target)) return;
+      if (pagesRef.current?.contains(target)) return;
+      setOpenMenu(null);
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") setOpenMenu(null);
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -71,10 +81,10 @@ export function SiteNav() {
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [menuOpen]);
+  }, [openMenu]);
 
-  // Navigating away should not carry the menu to the next page.
-  useEffect(() => setMenuOpen(false), [pathname]);
+  // Navigating away should not carry a menu to the next page.
+  useEffect(() => setOpenMenu(null), [pathname]);
 
   const scrollTo = (target: number | string) => (e: React.MouseEvent) => {
     // On the home the target lives on this same page — scroll instead of
@@ -92,9 +102,7 @@ export function SiteNav() {
           flips with the nav colour over the inverted home footer */}
       <div
         aria-hidden
-        // Taller below md, where the nav wraps onto two rows and the links sit
-        // lower than the single-row bar the 24 was measured against.
-        className="pointer-events-none absolute inset-x-0 top-0 h-32 md:h-24"
+        className="pointer-events-none absolute inset-x-0 top-0 h-24"
         style={{
           background:
             "linear-gradient(to bottom, var(--nav-scrim, var(--bg)), transparent)",
@@ -109,12 +117,12 @@ export function SiteNav() {
             below takes over — two renderings rather than one, because the row
             version's hover-to-unfurl has no meaning on touch: here every name
             is simply spelled out. */}
-        <div ref={menuRef} className="pointer-events-auto relative col-start-1 row-start-1 justify-self-start sm:hidden">
+        <div ref={socialsRef} className="pointer-events-auto relative col-start-1 row-start-1 justify-self-start sm:hidden">
           <button
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => setOpenMenu((open) => (open === "socials" ? null : "socials"))}
             aria-label="Social links"
-            aria-expanded={menuOpen}
+            aria-expanded={openMenu === "socials"}
             aria-controls="nav-socials"
             // h-11 is the finger, not the glyph — same tap target the icons in
             // the sm row get.
@@ -134,9 +142,9 @@ export function SiteNav() {
               background: "var(--bg)",
               borderColor: "var(--border)",
               color: "var(--text)",
-              opacity: menuOpen ? 1 : 0,
-              transform: `translateY(${menuOpen ? "0" : "-0.4rem"})`,
-              visibility: menuOpen ? "visible" : "hidden",
+              opacity: openMenu === "socials" ? 1 : 0,
+              transform: `translateY(${openMenu === "socials" ? "0" : "-0.4rem"})`,
+              visibility: openMenu === "socials" ? "visible" : "hidden",
             }}
           >
             {SOCIALS.map(({ label, href, path }) => (
@@ -145,7 +153,7 @@ export function SiteNav() {
                   href={href}
                   target={href.startsWith("mailto:") ? undefined : "_blank"}
                   rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => setOpenMenu(null)}
                   className="flex h-10 items-center gap-2.5 rounded px-2 font-mono text-caption-1 uppercase tracking-wide opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
                 >
                   <svg className="h-[18px] w-[18px] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
@@ -199,7 +207,55 @@ export function SiteNav() {
           Shruthi Aragonda
         </Link>
 
-        <ul className="pointer-events-auto col-span-3 row-start-2 flex items-center justify-self-center gap-5 font-mono text-caption-1 uppercase tracking-wide md:col-span-1 md:col-start-3 md:row-start-1 md:justify-self-end md:gap-5">
+        {/* The phone's collapsed page links. Below md there is no room for
+            three words beside the wordmark, so they drop out of the list mark
+            instead of wrapping onto a second row. */}
+        <div ref={pagesRef} className="pointer-events-auto relative col-start-3 row-start-1 justify-self-end md:hidden">
+          <button
+            type="button"
+            onClick={() => setOpenMenu((open) => (open === "pages" ? null : "pages"))}
+            aria-label="Pages"
+            aria-expanded={openMenu === "pages"}
+            aria-controls="nav-pages"
+            className="flex h-11 w-11 items-center justify-center rounded opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+          >
+            <svg className="h-[22px] w-[22px]" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+              <path d={LIST_PATH} />
+            </svg>
+          </button>
+          <ul
+            id="nav-pages"
+            // Own colours, not the nav's, for the same reason the socials panel
+            // carries its own: the nav flips to paper over the inverted footer.
+            className="absolute right-0 top-full z-50 flex min-w-[9.5rem] flex-col gap-0.5 rounded-sm border p-1.5 shadow-xl transition-[opacity,transform] duration-200 ease-out"
+            style={{
+              background: "var(--bg)",
+              borderColor: "var(--border)",
+              color: "var(--text)",
+              opacity: openMenu === "pages" ? 1 : 0,
+              transform: `translateY(${openMenu === "pages" ? "0" : "-0.4rem"})`,
+              visibility: openMenu === "pages" ? "visible" : "hidden",
+            }}
+          >
+            {NAV.map(({ label, href, section }) => (
+              <li key={label}>
+                <Link
+                  href={href}
+                  aria-current={pathname === href ? "page" : undefined}
+                  onClick={(e) => {
+                    if (section) scrollTo(section)(e);
+                    setOpenMenu(null);
+                  }}
+                  className="flex h-10 items-center rounded px-2 font-mono text-caption-1 uppercase tracking-wide opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <ul className="pointer-events-auto col-start-3 row-start-1 hidden items-center justify-self-end gap-5 font-mono text-caption-1 uppercase tracking-wide md:flex">
           {NAV.map(({ label, href, section }) => (
             <li key={label}>
               <Link
