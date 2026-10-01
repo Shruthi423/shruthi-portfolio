@@ -21,11 +21,25 @@
   --color-heading: var(--heading);
 
   /* Ovo for display type, Figtree for body, DM Mono for labels.
-   * PhotoStory's polaroid captions use Rock Salt directly. */
+   * PhotoStory's polaroid captions use Schoolbell (font-schoolbell);
+   * case-study section eyebrows use Homemade Apple (font-apple). */
   --font-display: var(--font-ovo), "Ovo", Georgia, serif;
   --font-heading: var(--font-ovo), "Ovo", Georgia, serif;
   --font-body: var(--font-figtree), "Figtree", "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-dm-mono), "DM Mono", ui-monospace, monospace;
+
+  /* The hero verb's three display faces: font-bricolage (a grotesque with
+   * irregular widths and an optical-size axis), font-grandstander (rounded, for
+   * the word that rolls in) and font-pixelify (drawn on a pixel grid, for the
+   * word whose parts trade places). */
+  --font-bricolage: var(--font-bricolage-face), "Bricolage Grotesque", sans-serif;
+  --font-grandstander: var(--font-grandstander-face), "Grandstander", "Comic Sans MS", cursive;
+  --font-pixelify: var(--font-pixelify-face), "Pixelify Sans", ui-monospace, monospace;
+
+  /* Handwriting faces, available as font-gochi / font-apple / font-schoolbell. */
+  --font-gochi: var(--font-gochi-hand), "Gochi Hand", cursive;
+  --font-apple: var(--font-homemade-apple), "Homemade Apple", cursive;
+  --font-schoolbell: var(--font-schoolbell-face), "Schoolbell", cursive;
 
   /* NOTE: do NOT add named spacing tokens like --spacing-xl (xs/sm/md/lg/xl/2xl/3xl).
    * In Tailwind v4 they hijack the named max-width and width scale — e.g.
@@ -56,6 +70,11 @@
   --text-caption-1--line-height: 1.4;
   --text-caption-2: 0.75rem;
   --text-caption-2--line-height: 1.4;
+  /* Section eyebrows, which are set in Homemade Apple — a face that renders
+     small for its size, so this sits well above the captions it is a sibling
+     of rather than alongside them. */
+  --text-eyebrow: 1.375rem;
+  --text-eyebrow--line-height: 1.5;
   --text-link: 1.0625rem;
   --text-link--line-height: 1.5;
   --text-body: 1.0625rem;
@@ -80,14 +99,42 @@
  *
  * --invert-bg / --invert-text are still here because the footer (and the
  * nav + cursor crossing over it) need the opposite polarity locally. They're a
- * fixed pair now, not a theme. */
+ * fixed pair now, not a theme. --invert-bg is the footer's plum, and must stay
+ * in step with SURFACE.footer in app/lib/footprints.ts — the panel itself is
+ * painted from there (canvas can't read CSS vars), while the nav scrim that
+ * fades into it and the cursor label that crosses it read this. */
 :root {
   --accent: #ee5a36;
+  /* Height of the fixed footer panel the page curtains away from. Every page
+     leaves exactly this much empty space below its content, so the footer is
+     revealed rather than scrolled to.
+
+     Everything inside the panel is absolutely positioned (FootprintsHome is
+     `absolute inset-0`, and the footer's own columns sit on top of it), so
+     content taller than this is silently clipped rather than pushing the panel
+     open — and at 560px flat it already was, on a narrow phone where the list
+     items wrap. Rather than hand-tune a number per breakpoint,
+     SiteFooter measures what its content actually occupies and publishes it as
+     --footer-content-h; the max() below takes whichever is larger, so the
+     curtain always uncovers the whole footer — at any width, and after the
+     lists are edited. The fallback keeps this correct before the measurement
+     lands and on a page with no JS.
+
+     The min(100svh) is a hard ceiling, not polish. The panel is `fixed
+     bottom-0`, so its top edge sits at (viewport bottom - this), and anything
+     taller than the viewport puts the top of the footer ABOVE the viewport
+     where nothing can ever scroll to it — the panel is fixed and the curtain
+     gap only slides the page off it. svh (the small viewport, URL bar showing)
+     rather than vh, because vh on a phone is the taller bar-hidden measure and
+     would still clip. This is also why the four lists stay 2x2 on a phone
+     instead of stacking into one column: one column needs ~700px of panel,
+     and an iPhone SE only has ~553px to give. */
+  --footer-h: min(100svh, max(65vh, 560px, var(--footer-content-h, 0px)));
   --surface: #f0efec;
   --border: #e2e0db;
   --muted: #6c6459;
   --highlight: #cee295;
-  --invert-bg: #202422;
+  --invert-bg: #5e2f40;
   --invert-text: #fafaf8;
   --bg: #fafaf8;
   --text: #202422;
@@ -108,11 +155,123 @@
 .site-nav {
   color: var(--text);
   --nav-scrim: var(--bg);
+  /* The wordmark is set from its own token rather than inheriting the nav's
+     colour: it is the footer's plum on the page and a pale lilac over the
+     footer, which is not the same flip the links make. SiteNav reads it. */
+  --wordmark: #5e2f40;
   transition: color 0.6s ease;
 }
 .hero-active .site-nav {
   color: var(--invert-text);
   --nav-scrim: var(--invert-bg);
+  --wordmark: #e6cbe4;
+}
+/* A nav link's hand-drawn underline (WobbleUnderline): the path is drawn on
+   from nothing on hover and retracts when the pointer leaves. stroke-dasharray
+   is 1 because the path is measured in its own normalised units, so one dash
+   covers the whole stroke and the offset is the fraction still hidden. */
+.wobble-link {
+  position: relative;
+}
+.wobble-link .wobble-underline path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1px;
+  transition: stroke-dashoffset 0.34s var(--ease-slow);
+}
+.wobble-link:hover .wobble-underline path,
+.wobble-link:focus-visible .wobble-underline path {
+  stroke-dashoffset: 0;
+}
+
+/* Top-left socials: icon only at rest, and on hover the platform name unfurls
+   out from behind the glyph. max-width does the width animation (so the row's
+   neighbours ease aside with it) and clip-path does the reveal — overflow:hidden
+   would have worked too, but it would also have clipped the wobble stroke that
+   sits below the text's own box. */
+.social-label {
+  display: inline-block;
+  position: relative;
+  white-space: nowrap;
+  max-width: 0;
+  margin-left: 0;
+  opacity: 0;
+  clip-path: inset(-60% 100% -100% 0);
+  transition:
+    max-width 0.36s var(--ease-slow),
+    margin-left 0.36s var(--ease-slow),
+    clip-path 0.36s var(--ease-slow),
+    opacity 0.18s linear;
+}
+.social-link:hover .social-label,
+.social-link:focus-visible .social-label {
+  max-width: 9ch;
+  margin-left: 0.3rem;
+  opacity: 1;
+  clip-path: inset(-60% -12% -100% 0);
+}
+/* A small lift so the glyph reads as the thing the name came out of. */
+.social-icon {
+  transition: transform 0.36s var(--ease-slow);
+}
+.social-link:hover .social-icon,
+.social-link:focus-visible .social-icon {
+  transform: translateY(-2px);
+}
+/* The stroke is drawn by hovering the whole link, not just the label's box. */
+.social-link:hover .wobble-underline path,
+.social-link:focus-visible .wobble-underline path {
+  stroke-dashoffset: 0;
+}
+
+/* The wobble under a nav link stays orange in both polarities — it is the
+   accent, not the text colour. */
+.site-nav .wobble-underline {
+  color: var(--color-orange);
+}
+
+/* ── The hero sentence ────────────────────────────────────────────────────
+ * From md up the whole line holds one row: that is the shape RotatingWord's
+ * slot was measured for, and the 6vw term is what keeps it there.
+ *
+ * Below md it sets on two lines instead, because one line at phone width came
+ * out around 23px — the sentence was intact and unreadable. The break is
+ * authored (the tail is a block) rather than left to the browser, and that is
+ * load-bearing: the verb slot is pinned to the widest word but each word is a
+ * different length inside it, so a free wrap would choose a different break
+ * point as the words turned over and the sentence would reflow every couple of
+ * seconds. With the tail on its own line the shape is identical for all eight
+ * verbs, and only the tail itself may wrap further on a very narrow screen.
+ *
+ * text-wrap: balance evens that tail out when it does wrap. */
+.hero-line {
+  font-size: clamp(2rem, 9vw, 3rem);
+  text-wrap: balance;
+}
+.hero-line__tail {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .hero-line {
+    /* 5.25rem is a hair under the 6vw the line takes at 1440px, so the
+       sentence runs close to the same proportion of the screen on a laptop as
+       it does on a phone, and only stops growing past that. */
+    font-size: clamp(1.15rem, 6vw, 5.25rem);
+    white-space: nowrap;
+    text-wrap: nowrap;
+  }
+  .hero-line__tail {
+    display: inline;
+  }
+}
+
+/* ScrollSmoother's wrapper covers the whole viewport, including the gap the
+   page leaves below itself for the curtained footer, so it would swallow every
+   click meant for the footer behind it. The wrapper itself is therefore inert
+   and the curtain inside it takes pointer events back (pointer-events-auto in
+   HomeV2). */
+#smooth-wrapper {
+  pointer-events: none;
 }
 
 html,
@@ -456,20 +615,21 @@ a:focus-visible, button:focus-visible { outline-color: var(--color-orange); }
 }
 .verb-wave { animation: verb-wave 2.4s ease-in-out infinite; }
 
-/* Shaping: the word lands on a trampoline. It drops in from above, sags well
- * below the line — squashing wide as it takes the weight, the way the mat gives
- * — then throws itself back up, overshoots, and settles. A single transition
- * can only overshoot once, which is why this is keyframes: the sag and the
- * rebound are two different places the word has to be. */
-@keyframes verb-trampoline {
-  0%   { transform: translateY(-0.7em) scale(0.94, 1.1); }
-  30%  { transform: translateY(0.34em) scale(1.14, 0.8); }
-  46%  { transform: translateY(0.38em) scale(1.16, 0.78); }
-  68%  { transform: translateY(-0.16em) scale(0.96, 1.07); }
-  85%  { transform: translateY(0.04em) scale(1.02, 0.99); }
-  100% { transform: translateY(0) scale(1, 1); }
+/* Designing: the hand writing the word. Each of the pen's strokes is revealed
+ * at a constant rate along its own length, which is what keeps the nib moving
+ * at one speed through the loops as well as the straights. Every stroke carries
+ * its own duration and delay, from its share of the pen's total length, and
+ * stroke-dashoffset's start value is likewise set on the element from the
+ * path's measured length — so this keyframe only has to name the destination.
+ * DesigningHand.tsx owns all of it. */
+@keyframes verb-write {
+  to { stroke-dashoffset: 0; }
 }
-.verb-trampoline { animation: verb-trampoline 900ms var(--ease-medium) both; }
+
+/* Shaping has no keyframes of its own: its letters straighten out of a real
+ * italic, which is a crossfade plus one transition per letter, so it lives in
+ * RotatingWord with the other per-letter effects. The trampoline that used to
+ * be here went with the motion it belonged to. */
 
 /* Rewiring: a bad connection. steps() on purpose — every other effect on the
  * page interpolates, so the one that jumps in hard frames is the one that
@@ -484,6 +644,15 @@ a:focus-visible, button:focus-visible { outline-color: var(--color-orange); }
   100% { transform: translate(0, 0); opacity: 1; }
 }
 .verb-glitch { animation: verb-glitch 380ms steps(1, end) both; }
+
+/* The sun/moon beside the footer's place line: it can only appear after the
+   client has read a clock, so it arrives a beat late. Rather than pop, it
+   swings in like something being hung up. */
+@keyframes sky-mark-in {
+  from { opacity: 0; transform: scale(0.55) rotate(-30deg); }
+  to   { opacity: 1; transform: none; }
+}
+.sky-mark { animation: sky-mark-in 0.55s var(--ease-slow) both; }
 
 /* Rewiring, the payoff: once the letters have stopped flickering, the dots over
  * the two i's trade places — which is the word's own joke, and the only reason
@@ -517,8 +686,12 @@ a:focus-visible, button:focus-visible { outline-color: var(--color-orange); }
   .verb-drift,
   .verb-think,
   .verb-wave,
-  .verb-trampoline,
   .verb-glitch,
   .verb-swap-over,
   .verb-swap-under { animation: none; }
+  /* The underline still appears on hover, it just stops being drawn on. */
+  .wobble-link .wobble-underline path { transition: none; }
+  .social-label,
+  .social-icon { transition: none; }
+  .sky-mark { animation: none; }
 }

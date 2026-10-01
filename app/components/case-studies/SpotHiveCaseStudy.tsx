@@ -147,7 +147,7 @@ function Reveal({
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span
-      className="font-mono text-caption-2 uppercase tracking-wide"
+      className="font-apple text-eyebrow"
       style={{ color: "var(--accent)" }}
     >
       {children}
@@ -474,7 +474,7 @@ export function SpotHiveCaseStudy() {
         {/* 2 — CHALLENGE */}
         <Section id="challenge">
           <Reveal>
-            <Label>the challenge</Label>
+            <Label>The challenge</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Zero to shipped, in a month.</Statement>
@@ -522,7 +522,7 @@ export function SpotHiveCaseStudy() {
         {/* 3 — ONBOARDING (sticky text + login screens) */}
         <StickyGallery
           id="onboarding"
-          label="getting in"
+          label="Getting in"
           title="Getting in, fast."
           shots={ONBOARDING_SHOTS}
         >
@@ -537,7 +537,7 @@ export function SpotHiveCaseStudy() {
         {/* 4 — SYSTEM (sticky text + dashboard / settings / profile) */}
         <StickyGallery
           id="system"
-          label="the system"
+          label="The system"
           title="A component kit built to scale."
           shots={SYSTEM_SHOTS}
         >
@@ -553,7 +553,7 @@ export function SpotHiveCaseStudy() {
         {/* 5 — SEAT MAP (sticky text + booking flow) */}
         <StickyGallery
           id="seatmap"
-          label="the seat map"
+          label="The seat map"
           title="Availability you can read at a glance."
           shots={SEATMAP_SHOTS}
         >
@@ -568,7 +568,7 @@ export function SpotHiveCaseStudy() {
         {/* 5 — ROLLOUT */}
         <Section id="rollout">
           <Reveal>
-            <Label>the outcome</Label>
+            <Label>The outcome</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Deployed across Sharp&rsquo;s offices worldwide.</Statement>

@@ -2,15 +2,7 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { Rock_Salt } from "next/font/google";
 import { gsap, useGSAP } from "@/app/lib/gsap";
-
-// Rock Salt — handwritten polaroid caption (next/font, not the raw <link>).
-const rockSalt = Rock_Salt({
-  weight: "400",
-  subsets: ["latin"],
-  display: "swap",
-});
 
 const INK = "#3b2a1c"; // espresso — the handwriting
 
@@ -29,7 +21,7 @@ const POLAROIDS: Polaroid[] = [
   { f: "sky1.jpeg", caption: "I like keeping a collection of rainbows" },
   { f: "sky2.jpeg", caption: "here's another one straight from the window seat" },
   { f: "snow1.jpeg", caption: "I love Michigan winters" },
-  { f: "cycle.jpeg", caption: "just moved to Berkeley and already loving it" },
+  { f: "cycle.jpeg", caption: "I love to bicycle by the shore" },
 ];
 
 // Hand-picked scatter so the pile looks tossed, not stacked dead-center.
@@ -46,9 +38,19 @@ const INTERACTIVE_MQ =
 
 // Pure-CSS layout switch — no JS, so it's correct on the server (no flash) and
 // touch devices are physically incapable of landing on the scroll-jacked stage.
+// The INTERACTIVE_MQ block goes LAST so its display:none beats the tablet grid
+// below — an iPad Pro in landscape is wide enough for both rules to match.
 const STYLES = `
 .ps-stage { display: none; }
 .ps-stack { display: flex; }
+@media (min-width: 768px) {
+  .ps-stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    justify-items: center;
+  }
+}
 @media ${INTERACTIVE_MQ} {
   .ps-stage { display: block; }
   .ps-stack { display: none; }
@@ -63,7 +65,7 @@ function Card({ p }: { p: Polaroid }) {
           src={`/about/${p.f}`}
           alt={p.caption}
           fill
-          sizes="(min-width: 1024px) 30vw, 80vw"
+          sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 86vw"
           className="object-cover"
           style={{
             objectPosition: p.focus,
@@ -74,7 +76,7 @@ function Card({ p }: { p: Polaroid }) {
         />
       </div>
       <p
-        className={`${rockSalt.className} mt-4 text-center text-[clamp(1rem,1.5vw,1.35rem)] leading-[1.5]`}
+        className={"font-schoolbell mt-4 text-center text-[clamp(1.05rem,1.6vw,1.45rem)] leading-[1.45]"}
         style={{ color: INK }}
       >
         {p.caption}
@@ -182,12 +184,14 @@ export default function PhotoStory() {
         ))}
       </div>
 
-      {/* MOBILE / touch / reduced-motion — simple tilted column, plain scroll */}
-      <div className="ps-stack flex-col items-center gap-10 px-4 py-12 sm:gap-12">
+      {/* MOBILE / touch / reduced-motion — the tilted pile laid flat, on plain
+          scroll. One column on a phone; two across from md, because twelve
+          full-width polaroids made a tablet twelve screens tall. */}
+      <div className="ps-stack flex-col items-center gap-10 px-4 py-12 sm:gap-12 md:gap-x-12 md:gap-y-14 md:px-8">
         {POLAROIDS.map((p, i) => (
           <div
             key={p.f}
-            className="w-[min(86vw,420px)]"
+            className="w-[min(86vw,420px)] md:w-full md:max-w-[420px]"
             style={{ transform: `rotate(${TILT[i]}deg)` }}
           >
             <Card p={p} />

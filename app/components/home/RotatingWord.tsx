@@ -3,8 +3,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 
+import DesigningHand from "@/app/components/home/DesigningHand";
 import VerbDoodle from "@/app/components/home/VerbDoodles";
-import { INK_HUES, SURFACE } from "@/app/lib/footprints";
+import { INK_HUES } from "@/app/lib/footprints";
 
 /**
  * The verb at the head of the hero, which will not sit still.
@@ -13,7 +14,8 @@ import { INK_HUES, SURFACE } from "@/app/lib/footprints";
  * fixed, the verb cycles. Eight words, and each one owns two things nothing
  * else in the list has: a hue, and a motion. The motion is chosen to mean the
  * word (the letters of "Prototyping" are dealt scrambled and trade places
- * until they spell it, a knot resolves for "Untangling") rather than to decorate it, which is the whole reason there
+ * until they spell it, a knot resolves for "Untangling", the letters of
+ * "Shaping" roll in from the left and assemble) rather than to decorate it, which is the whole reason there
  * are eight and not fifteen: the list was cut back until every word was doing
  * a different job. Five near-synonyms for thinking, each with its own
  * animation, read as a component showing off.
@@ -40,9 +42,18 @@ import { INK_HUES, SURFACE } from "@/app/lib/footprints";
  *  - The effect belongs to the incoming word only; every exit is identical
  *    (fade out, settle back down). One surprise per flip. Eight entrances and
  *    eight exits would be noise.
- *  - Reduced motion gets the resting word, in Ovo, fully written, with no
- *    timer and no effect at all. A headline that rewrites itself every couple
- *    of seconds is exactly what that setting is for.
+ *  - Reduced motion gets the resting word, fully written, with no timer and no
+ *    effect at all. A headline that rewrites itself every couple of seconds is
+ *    exactly what that setting is for.
+ *  - Seven faces for eight words, all of them loaded in app/layout.tsx.
+ *    Each word is set in whichever of them its motion is about (mono for the
+ *    letters that trade seats, a joined-up hand for the knot, the heaviest
+ *    weight available for the word that stacks) and scaled back to Ovo's cap
+ *    height, because a face is only worth swapping in if it makes the motion
+ *    legible. Two words stay in Ovo so the line still has a voice of its own.
+ *    No word is left in the headline's own Ovo: the two that were read as the
+ *    words nothing had been done to. See the Face type below for what a face
+ *    may override and why.
  *
  * The hues come from lib rather than the CSS custom properties because they
  * are handed back up via `onTint` to steer the footprint blends, and canvas
@@ -63,7 +74,8 @@ import { INK_HUES, SURFACE } from "@/app/lib/footprints";
  * The eight motions. Each one is named for the word it belongs to, not for
  * what it does to the DOM.
  *
- *  typeset  — every letter starts at its own angle and is slowly set straight
+ *  handwrite — the word is set in Homemade Apple and written by a pen that
+ *             follows the path of each letter, in the order a hand makes them
  *  anagram  — the letters are dealt in the wrong order, then trade places
  *             until the word is spelled right
  *  think    — the word drifts, and one letter floats off above the line, hangs
@@ -72,7 +84,8 @@ import { INK_HUES, SURFACE } from "@/app/lib/footprints";
  *  untangle — letters arrive spun most of the way round, unwinding from one end
  *  pile     — letters fall from above onto one spot, heaping up, then shuffle
  *             sideways out of the pile into the word
- *  trampoline — the word drops in, sags below the line, and is thrown back up
+ *  roll     — the letters roll in from one point off to the left and assemble,
+ *             each spinning by exactly as much ground as it covers
  *  rewire   — letters jump in hard frames, and then the dots over the two i's
  *             trade places
  *
@@ -83,42 +96,222 @@ import { INK_HUES, SURFACE } from "@/app/lib/footprints";
  * to a single property instead of nudging three.
  */
 type Effect =
-  | "typeset"
+  | "handwrite"
   | "anagram"
   | "think"
   | "wave"
   | "untangle"
   | "pile"
-  | "trampoline"
+  | "roll"
   | "rewire";
+
+/**
+ * The face a word is set in, and the three corrections that let a face other
+ * than Ovo share a line with it.
+ *
+ * None of these numbers were chosen by eye. The faces were opened with
+ * fontTools and measured, because the two things that go wrong when you mix
+ * faces in one slot are both arithmetic:
+ *
+ * `em` — seven faces at one font-size do not look like one size. Grandstander's
+ * x-height is 0.579 of its em and Gochi Hand's cap height is 0.56 of its own,
+ * so set at 1em the rounded face reads as shouting and Gochi as a footnote. Each value
+ * is a 60/40 blend of matching Ovo's x-height (0.460em) and its cap height
+ * (0.662em): these words are nearly all lowercase, so the x-height is what the
+ * eye sizes them by, but weighting it alone makes the capital tower.
+ *
+ * `trackingEm` — the slot is pinned to the widest word, so every other word
+ * sits in the middle of it with air on both sides, and that air is the gap
+ * between the verb and "how". DM Mono is a wide face: "Prototyping" in it runs
+ * 6.07em at its matched size against Ovo's 5.07em, which would have grown the
+ * slot by a fifth and pushed "meet AI." off a phone (at 390px the line has
+ * only 0.39em of slack, which is the constraint this whole table is solved
+ * against). So the mono word is tracked in and the short words tracked out,
+ * until the spread between the widest and narrowest word is 1.16em rather than
+ * the 1.52em the sentence shipped with when every word was Ovo. The gap is
+ * smaller than it used to be, not merely no worse.
+ *
+ * Tracking also adds a space after the final letter, which is dead width on
+ * the right and shifts the ink off centre, so the render cancels exactly one
+ * tracking unit with a negative margin.
+ *
+ * Scaling the word rather than the slot is safe because the slot is measured
+ * from the rendered spans (see the measure effect below) and re-measured once
+ * the webfonts resolve, so whichever word ends up widest is the one the
+ * sentence is sized against. "Prototyping" is still that word, by 0.13em.
+ */
+type Face = {
+  /** Tailwind font utility. Absent means the headline's own Ovo. */
+  className?: string;
+  /** Size relative to the sentence: a measured 60/40 blend of Ovo's x-height
+   *  and cap height. Absent means 1. */
+  em?: number;
+  /** Tracking, in em of the word's own size. Negative pulls a wide face back
+   *  inside the slot; positive fills a narrow one out toward its edges. */
+  trackingEm?: number;
+  /** Where the drawn tittle sits, for the one word that draws its own — a
+   *  fact about the face's own metrics, so it cannot live in a constant. */
+  dotDropEm?: number;
+  /** How big that tittle is, in em of the word. Absent means DOT_EM. */
+  dotEm?: number;
+  /** Square it off. True for a face drawn on a pixel grid, where a round dot is
+   *  the one thing in the word that is not made of pixels. */
+  dotSquare?: boolean;
+};
 
 type Verb = {
   word: string;
   /** Palette hue, from INK_HUES — the readable-at-display-size tier. */
   color: string;
   effect: Effect;
+  /** Every word carries one; only the written word leaves it empty, because
+   *  its SVG sets its own face and scale. */
+  face: Face;
 };
 
-// Ink is the page's own text colour, not a palette hue — so it is the one word
-// colour that hands `null` upward and lets the trail roll its own blends.
-const INK = SURFACE.ink;
-
 const VERBS: readonly Verb[] = [
-  // "Designing" opens the loop: the site's own voice, in ink, in the
-  // headline's own face. Its letters are already on screen while the sentence
-  // fades up, each at its own angle, and they are set straight over the
-  // following second — so the first thing the page does is compose itself.
-  // A handwritten face (Rock Salt) was tried here and dropped: a second
-  // typeface at the head of the one sentence on the page read as a different
-  // voice rather than the same one.
-  { word: "Designing", color: INK, effect: "typeset" },
-  { word: "Prototyping", color: INK_HUES.orange, effect: "anagram" },
-  { word: "Pondering", color: INK_HUES.forest, effect: "think" },
-  { word: "Imagining", color: INK_HUES.lavender, effect: "wave" },
-  { word: "Untangling", color: INK_HUES.pink, effect: "untangle" },
-  { word: "Building", color: INK_HUES.blue, effect: "pile" },
-  { word: "Shaping", color: INK_HUES.plum, effect: "trampoline" },
-  { word: "Rewiring", color: INK_HUES.lime, effect: "rewire" },
+  // "Designing" opens the loop: the site's own voice. It is written rather than
+  // typed — Homemade Apple, revealed by a pen that travels the letters in the
+  // order a hand makes them — so the first thing the page does is put the word
+  // down by hand. It was once the only word here not set in Ovo; now that the
+  // whole list carries its own face, what still makes this one the opener is
+  // the writing, not the typeface. (Which is also why an early pass at simply
+  // swapping in Rock Salt was dropped: a face alone read as a different voice.)
+  // It held the page's ink for a while, on the theory that the opening word
+  // should be the site's resting colour, then the footer's teal. Both read as
+  // the one word that had forgotten to join in: at #123b36 the teal is a
+  // decimal point away from ink, so the word the page opens on was the
+  // quietest of the eight. It takes the site accent instead, which is the
+  // loudest hue in the palette and the one the rest of the site is already
+  // keyed to. Orange and forest shift down a place to make room, and every
+  // verb still wears a hue no other verb does.
+  // Its face is empty here on purpose: DesigningHand is an SVG that sets its
+  // own Homemade Apple and its own scale, so an `em` here would compound with
+  // that one and shrink the word twice.
+  { word: "Designing", color: INK_HUES.orange, effect: "handwrite", face: {} },
+  // Mono, because the anagram's letters trade places and a face whose every
+  // letter occupies the same width makes that read as a mechanism rather than
+  // as a wobble — the seats are visibly identical, so the swap is the only
+  // thing moving. It is also the widest word in the list and therefore the one
+  // that sets the slot, which is why it is the only word tracked inward.
+  {
+    word: "Prototyping",
+    color: INK_HUES.forest,
+    effect: "anagram",
+    face: { className: "font-mono", em: 0.86, trackingEm: -0.045 },
+  },
+  // The loosest of the three hands, for the word that is not concentrating.
+  {
+    word: "Pondering",
+    color: INK_HUES.teal,
+    effect: "think",
+    face: { className: "font-schoolbell", em: 0.96, trackingEm: 0.1 },
+  },
+  // Gochi already sits on an uneven baseline, so the wave amplifies what the
+  // face is doing instead of fighting it.
+  {
+    word: "Imagining",
+    color: INK_HUES.lavender,
+    effect: "wave",
+    face: { className: "font-gochi", em: 1.23, trackingEm: 0.02 },
+  },
+  // Homemade Apple again, and the one place in the list where a repeated face
+  // earns itself: it is the only looped, joined-up hand loaded, so the knot
+  // pulling loose happens on letters that already look like thread. It reads
+  // as a different thing from "Designing" because that word is drawn by a pen
+  // and this one is simply set.
+  {
+    word: "Untangling",
+    color: INK_HUES.pink,
+    effect: "untangle",
+    face: { className: "font-apple", em: 0.88 },
+  },
+  // Bricolage Grotesque at bold: a grotesque with deliberately irregular
+  // widths, so a word built out of it is visibly built out of parts of
+  // different sizes — which is what makes the pile read as masonry rather than
+  // as eight identical bricks. Figtree had the weight for it and none of the
+  // character at any weight. Set a little above its matched size, because it
+  // is one of the two narrowest words and the size is doing work the tracking
+  // would otherwise have to do alone.
+  {
+    word: "Building",
+    color: INK_HUES.blue,
+    effect: "pile",
+    face: {
+      className: "font-bricolage font-bold",
+      em: 0.94,
+      trackingEm: 0.13,
+    },
+  },
+  // Grandstander, rounded and a little goofy in its proportions, for the word
+  // whose letters roll: the bowls are circles, so the face and the motion are
+  // saying the same thing. Two faces came before it here and both were chosen
+  // for a motion this word no longer has — Jost for its real italic (the word
+  // used to come upright out of true italic letterforms rather than out of a
+  // skew), then the site's own Figtree when the roll replaced it, which was
+  // correct and had no character at all. A roll happens to a letter's position
+  // and not to its shape, so the thing to spend on here is roundness.
+  // Set at medium: Grandstander's widths barely move across its weight axis
+  // (3.978em at 500 against 3.975em at 400), so the weight is free and the word
+  // can carry some presence at 84px without the slot shifting.
+  {
+    word: "Shaping",
+    color: INK_HUES.plum,
+    effect: "roll",
+    face: {
+      className: "font-grandstander font-medium",
+      // x-height 0.579 of its em against Ovo's 0.457, cap height 0.653 against
+      // Ovo's 0.662 — so the usual 60/40 blend lands at 0.88. It is the
+      // largest x-height in the table, which is why this is also the smallest
+      // em in it.
+      em: 0.88,
+      // Untracked, this word sets at 3.50em of the sentence, almost exactly
+      // what Ovo gives it (3.54em) and a third of an em narrower than the
+      // face it replaced. The track puts that width back: short words are
+      // tracked out here so the spread between the widest word and the
+      // narrowest stays small, because that spread is the gap between the verb
+      // and "how".
+      trackingEm: 0.09,
+    },
+  },
+  // Pixelify Sans: letters drawn on a visible pixel grid, and the only face in
+  // the table actually built out of parts — which is the point, because this
+  // word's effect is two of its parts trading places. It was DM Mono at medium
+  // for a while, on the theory that the two technical words should share a
+  // voice; what that actually bought was the list's one repeated face doing
+  // its second-best job, and a swap of two dots that read as a wobble because
+  // nothing else in the word looked removable. On a grid, a tittle is visibly
+  // a component.
+  //
+  // Everything about its tittles comes off the face's own grid rather than out
+  // of the constants: Pixelify's period is exactly one pixel, 0.110em wide and
+  // 0.113em tall, so that is the size, and it is square because every other
+  // mark in the word is.
+  {
+    word: "Rewiring",
+    color: INK_HUES.lime,
+    effect: "rewire",
+    face: {
+      className: "font-pixelify font-medium",
+      // x-height 0.456 of its em against Ovo's 0.457 and cap height 0.633
+      // against Ovo's 0.662: the one face here that is already almost the
+      // right size, so the blend barely moves it.
+      em: 1.02,
+      // Still the second-widest word in the list and still carrying the track
+      // that reads as a circuit trace.
+      trackingEm: 0.1,
+      // The i's own dot sits one pixel clear of the x-height, from 0.520em to
+      // 0.633em above the baseline. The drawn one is pulled down to meet it:
+      // the letter's box top sits at half-leading plus ascent above the
+      // baseline ((1.12 - 1.20) / 2 + 0.92 = 0.88em), and 0.88 - 0.52 is the
+      // drop. Of every number in this table this is the one most worth
+      // checking on screen, because it is the only one that depends on the
+      // inline box rather than on the glyphs.
+      dotDropEm: 0.36,
+      dotEm: 0.11,
+      dotSquare: true,
+    },
+  },
 ];
 // Every word here has to finish the sentence, and the tail starts with "how" —
 // which is a preposition-shaped hole. "Designing how", "Untangling how",
@@ -132,8 +325,8 @@ const VERBS: readonly Verb[] = [
 // on.
 
 /** How long each word holds before the next one takes over. Long enough that
- *  the slowest effect (setting "Designing" straight, at 1s plus its stagger)
- *  finishes with time to be read rather than merely glimpsed. */
+ *  the slowest effect (the hand writing "Designing", at 1.5s) finishes with
+ *  time to be read rather than merely glimpsed. */
 const DWELL_MS = 2200;
 /** Crossfade duration, shared by every word in both directions. */
 const SWAP_MS = 380;
@@ -147,13 +340,30 @@ const ANAGRAM_MS = 560;
 const FALL_MS = 340;
 const FALL_STAGGER_MS = 70;
 const SPREAD_MS = 520;
-/** The dotless i the two rewired letters are set in, and the tittle drawn over
- *  it: its diameter, and how far it is pulled back down from the top of the
- *  letter's box. Both in em so they track the headline's clamp, and DOT_DROP_EM
- *  is the one value in this file set by eye against Ovo rather than measured. */
+/** The dotless i the two rewired letters are set in, and the defaults for the
+ *  tittle drawn over it: its diameter, and how far it is pulled back down from
+ *  the top of the letter's box. Both in em so they track the headline's clamp.
+ *  These are the Ovo-shaped defaults and nothing uses them as they stand — the
+ *  one word that draws its own tittles is set on a pixel grid and brings its own
+ *  size, drop and shape (see Face.dotEm / dotSquare). They are the fallback for
+ *  a future word whose face does not care. */
 const DOTLESS_I = "\u0131";
 const DOT_EM = 0.085;
 const DOT_DROP_EM = 0.3;
+
+/** The roll: how long one letter takes at the longest travel in the word, how
+ *  far apart they set off, and how much clear air to the left they set off from
+ *  (in em of the word's own size, so it tracks the headline's clamp).
+ *
+ *  ROLL_R_EM is the rolling radius, and it is the one number here doing real
+ *  work: a letter's spin is its travel divided by this circumference, never a
+ *  rotation picked per letter. Smaller than the ink looks, on purpose — a radius
+ *  matched to a letter's actual size gives about a third of a turn over a short
+ *  hop, which reads as a wobble rather than as a roll. */
+const ROLL_MS = 720;
+const ROLL_STAGGER_MS = 46;
+const ROLL_IN_EM = 1.15;
+const ROLL_R_EM = 0.3;
 
 /** Deterministic 0..1 from an integer — the scatter has to be identical on the
  *  server and the client or hydration complains, so no Math.random(). */
@@ -169,9 +379,6 @@ function swing(seed: number) {
 /** Per-letter timing. Stagger is per letter index; ltr effects read as a hand
  *  moving through the word, so the order is never centre-out. */
 const LETTER_TIMING: Record<string, { ms: number; stagger: number; ease: string }> = {
-  // Slowest of the lot, and the gentlest stagger: this one is meant to read as
-  // settling, not as arriving.
-  typeset: { ms: 1000, stagger: 60, ease: "var(--ease-slow)" },
   untangle: { ms: 760, stagger: 58, ease: "var(--ease-spring)" },
 };
 
@@ -181,14 +388,6 @@ const LETTER_TIMING: Record<string, { ms: number; stagger: number; ease: string 
  */
 function restingLetter(effect: Effect, i: number): string | undefined {
   switch (effect) {
-    // Rotation and nothing else, pivoting on the baseline (see transformOrigin
-    // in Letters), so the letters read as tipped where they stand rather than
-    // as having been thrown there. Angles stay under 10deg: the word has to be
-    // legible the whole way, since it is on screen before the sentence has
-    // even finished fading up. This is what keeps it distinct from "untangle"
-    // below, which displaces as well as rotates and is twice as steep.
-    case "typeset":
-      return `rotate(${(swing(i * 4.7) * 8 + Math.sign(swing(i * 4.7)) * 2).toFixed(2)}deg)`;
     // Spun most of the way round, which is what makes it read as a knot
     // pulling loose rather than as letters arriving: 120deg to 180deg, sign
     // alternating so neighbours unwind in opposite directions, plus enough
@@ -205,11 +404,16 @@ function restingLetter(effect: Effect, i: number): string | undefined {
 }
 
 /**
- * Every letter's horizontal centre, in px, relative to the word.
+ * Every letter's horizontal centre, in px, relative to the word — and the font
+ * size those px were measured at, which only the roll needs (its spin is a
+ * travel over a circumference in em, so it cannot be worked out from the
+ * centres alone).
  *
- * Three effects need to know where the letters actually are rather than
+ * Four effects need to know where the letters actually are rather than
  * choosing an offset by eye: the anagram (letter i starts where letter perm[i]
- * belongs), the pile (every letter starts heaped on one spot) and the dot swap
+ * belongs), the pile (every letter starts heaped on one spot), the roll (every
+ * letter sets off from one point to the left, so its travel and therefore its
+ * spin is a fact about where it sits) and the dot swap
  * (each tittle has to travel exactly as far as the next i). Measured on mount,
  * again once the webfont resolves — the fallback's advance widths are not
  * Ovo's — and again on resize, because the headline is a viewport clamp.
@@ -220,14 +424,20 @@ function restingLetter(effect: Effect, i: number): string | undefined {
 function useLetterCentres(word: string) {
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
   const [centres, setCentres] = useState<number[] | null>(null);
+  const [fontPx, setFontPx] = useState(0);
 
   useLayoutEffect(() => {
-    const measure = () =>
+    const measure = () => {
       setCentres(
         refs.current.map((el) =>
           el ? el.offsetLeft + el.offsetWidth / 2 : 0,
         ),
       );
+      const first = refs.current[0];
+      if (first) {
+        setFontPx(parseFloat(window.getComputedStyle(first).fontSize) || 0);
+      }
+    };
 
     measure();
     document.fonts?.ready.then(measure);
@@ -235,7 +445,7 @@ function useLetterCentres(word: string) {
     return () => window.removeEventListener("resize", measure);
   }, [word]);
 
-  return { refs, centres };
+  return { refs, centres, fontPx };
 }
 
 /**
@@ -404,10 +614,20 @@ function RewireWord({
   word,
   landed,
   pulse,
+  dotDrop = DOT_DROP_EM,
+  dotSize = DOT_EM,
+  square = false,
 }: {
   word: string;
   landed: boolean;
   pulse: number;
+  /** From the word's own face: a tittle's height above the letter is a fact
+   *  about that face's metrics, and this word is not set in Ovo. */
+  dotDrop?: number;
+  /** Likewise its size — on a pixel face, one of the face's own pixels. */
+  dotSize?: number;
+  /** Square rather than round, for a face drawn on a grid. */
+  square?: boolean;
 }) {
   const letters = [...word];
   const { refs, centres } = useLetterCentres(word);
@@ -440,7 +660,7 @@ function RewireWord({
                 // Anchored above the letter's own box and pulled back down —
                 // the same trick VerbDoodles uses for its shoulder marks, and
                 // the one number here that is set by eye rather than measured.
-                className={`absolute rounded-full bg-current ${
+                className={`absolute bg-current ${square ? "" : "rounded-full"} ${
                   landed
                     ? dot === 0
                       ? "verb-swap-over"
@@ -451,15 +671,94 @@ function RewireWord({
                   {
                     left: "50%",
                     bottom: "100%",
-                    marginLeft: `-${DOT_EM / 2}em`,
-                    marginBottom: `-${DOT_DROP_EM}em`,
-                    width: `${DOT_EM}em`,
-                    height: `${DOT_EM}em`,
+                    marginLeft: `-${dotSize / 2}em`,
+                    marginBottom: `-${dotDrop}em`,
+                    width: `${dotSize}em`,
+                    height: `${dotSize}em`,
                     "--swap": `${swap}px`,
                   } as CSSProperties
                 }
               />
             )}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * Shaping: the letters roll in from the left and assemble into the word.
+ *
+ * Every letter sets off from the same point, a little over an em clear of the
+ * word's own first letter, and they leave in reading order, so the word gathers
+ * itself left to right rather than sliding in as a block. Two things are what
+ * make it read as rolling rather than as sliding, and neither is a number
+ * chosen by eye:
+ *
+ *  - The spin is the travel divided by the circumference in ROLL_R_EM. So the
+ *    last letter, which crosses the whole word, turns several times more than
+ *    the first, which crosses almost nothing — exactly as two wheels of one size
+ *    would. Give every letter the same rotation instead and the word reads as
+ *    letters twirling on the spot while they drift sideways.
+ *  - The far letters take longer. Duration scales with distance (down to 62% of
+ *    ROLL_MS at the near end), so the whole word is rolling at something close
+ *    to one speed. A shared duration makes the last letter by far the fastest
+ *    thing on the line, which looks thrown rather than rolled.
+ *
+ * Deceleration with no overshoot, which is the one place this parts company with
+ * the rest of the file: every other arrival here lands on --ease-spring and
+ * settles. A letter that rolls past its seat and comes back has bounced off
+ * something, and there is nothing there to bounce off.
+ *
+ * The resting state carries the transform and landing clears it, so the word
+ * waits at the queue point while its span is still faded out and starts rolling
+ * as it fades up. Nothing has to be timed against the crossfade for that: the
+ * letters are already where they set off from long before the word is on the
+ * line.
+ */
+function RollLetters({ word, landed }: { word: string; landed: boolean }) {
+  const letters = [...word];
+  const { refs, centres, fontPx } = useLetterCentres(word);
+
+  // Where the roll starts, and the longest travel in the word — the distance
+  // every duration is scaled against.
+  const start = centres ? centres[0] - ROLL_IN_EM * fontPx : 0;
+  const longest = centres ? centres[centres.length - 1] - start : 0;
+  // One turn of the wheel, in the px the centres are measured in.
+  const circumference = 2 * Math.PI * ROLL_R_EM * fontPx;
+
+  return (
+    <>
+      {letters.map((letter, i) => {
+        const travel = centres ? centres[i] - start : 0;
+        const spin = circumference > 0 ? (travel / circumference) * 360 : 0;
+        const share = longest > 0 ? travel / longest : 1;
+
+        return (
+          <span
+            key={`${letter}-${i}`}
+            ref={(el) => {
+              refs.current[i] = el;
+            }}
+            className="inline-block"
+            style={{
+              // Before the measurement lands there is nowhere to send the
+              // letters, so they simply sit in the right place — a first paint
+              // that is merely correct beats one stuck out in the margin.
+              transform:
+                landed || !centres
+                  ? undefined
+                  : `translateX(${(-travel).toFixed(1)}px) rotate(${(-spin).toFixed(1)}deg)`,
+              transitionProperty: "transform",
+              transitionDuration: `${Math.round(ROLL_MS * (0.62 + 0.38 * share))}ms`,
+              transitionTimingFunction: "var(--ease-slow)",
+              // Leaving is uniform: no delay on the way out, so the whole word
+              // goes at once and only arrivals are choreographed.
+              transitionDelay: landed ? `${i * ROLL_STAGGER_MS}ms` : "0ms",
+            }}
+          >
+            {letter}
           </span>
         );
       })}
@@ -510,9 +809,6 @@ function Letters({
             }
           : {
               transform: landed ? undefined : restingLetter(effect, i),
-              // Tipped letters pivot on the line they sit on. Everything
-              // else rotates about its own middle.
-              transformOrigin: effect === "typeset" ? "50% 88%" : undefined,
               transitionProperty: "transform",
               transitionDuration: `${timing?.ms ?? SWAP_MS}ms`,
               transitionTimingFunction: timing?.ease ?? "var(--ease-slow)",
@@ -551,9 +847,9 @@ export default function RotatingWord({
    *  before anything starts turning over. */
   startDelayMs?: number;
   /** When the opening word is allowed to play its effect. The headline fades
-   *  up first with "Designing" already in place but askew, and this is when
-   *  its letters start straightening — so the sentence sets itself once it has
-   *  finished arriving, instead of doing both at once. */
+   *  up first with the verb's slot empty, and this is when the hand starts
+   *  writing — so the sentence arrives first and is then signed, instead of
+   *  doing both at once. */
   armDelayMs?: number;
   /** Fires with the live word's hue, or null for ink. The hero feeds it to the
    *  footprint canvas so the trail wears the same colour. */
@@ -617,13 +913,12 @@ export default function RotatingWord({
     };
   }, [startDelayMs, armDelayMs]);
 
-  // Publish the live hue upward. Ink is the page's own text colour rather than
-  // a palette hue, so it reports null and the trail goes back to rolling its
-  // own blends — the coupling shows itself on the seven coloured words and
-  // relaxes on the resting one.
+  // Publish the live hue upward, so the footprint trail is tinted by whichever
+  // word is on the line. Every one of the eight carries a hue now, so this
+  // never reports null; the consumer still takes it, for a caller that wants
+  // the trail rolling its own blends again.
   useEffect(() => {
-    const hue = VERBS[index].color;
-    onTint?.(hue === INK ? null : hue);
+    onTint?.(VERBS[index].color);
   }, [index, onTint]);
 
   return (
@@ -673,10 +968,26 @@ export default function RotatingWord({
               spans.current[i] = el;
             }}
             className={`relative [grid-area:1/1] whitespace-nowrap transition-[opacity,transform,color] ease-slow ${
-              active ? "opacity-100" : "opacity-0"
-            } ${verb.effect === "think" && !calm ? "verb-drift" : ""}`}
+              verb.face.className ?? ""
+            } ${active ? "opacity-100" : "opacity-0"} ${
+              verb.effect === "think" && !calm ? "verb-drift" : ""
+            }`}
             style={{
               color: verb.color,
+              // The face's own size and tracking. Set here rather than on the
+              // text layer inside so that everything measured in em — the
+              // effects' offsets, the doodle beside the word — scales with the
+              // word it belongs to instead of with the sentence.
+              fontSize: verb.face.em ? `${verb.face.em}em` : undefined,
+              letterSpacing: verb.face.trackingEm
+                ? `${verb.face.trackingEm}em`
+                : undefined,
+              // Tracking is applied after every letter including the last, so
+              // it leaves that much dead width on the right and shifts the ink
+              // off the centre of the slot. Cancel exactly one unit of it.
+              marginRight: verb.face.trackingEm
+                ? `${-verb.face.trackingEm}em`
+                : undefined,
               transitionDuration: `${SWAP_MS}ms`,
               // Resting words sit a hair low; the active one rises to the
               // baseline. So the incoming word lifts in as the outgoing one
@@ -691,30 +1002,27 @@ export default function RotatingWord({
                     : "translateY(0.14em)",
             }}
           >
-            <span
-              // The text layer. The bounce lives here rather than on the
-              // parent so the whole word takes the trampoline as one piece and
-              // the doodle beside it is untouched. Keyed on the flip counter so
-              // the animation restarts every time the word comes back around —
-              // an element that is never unmounted would otherwise play it once
-              // and sit still for every loop after that.
-              key={verb.effect === "trampoline" ? `bounce-${pulse}` : undefined}
-              className={`inline-block ${
-                verb.effect === "trampoline" && landed ? "verb-trampoline" : ""
-              }`}
-              style={{
-                transformOrigin:
-                  verb.effect === "trampoline" ? "50% 100%" : undefined,
-              }}
-            >
-              {verb.effect === "trampoline" ? (
-                verb.word
+            {/* The text layer. Every effect but the written word is a
+                per-letter component, so the wrapper that used to sit here to
+                take the trampoline as one piece went with it. */}
+            <span className="inline-block">
+              {verb.effect === "handwrite" ? (
+                <DesigningHand landed={landed} calm={calm} pulse={pulse} />
               ) : verb.effect === "anagram" ? (
                 <AnagramLetters word={verb.word} landed={landed} />
               ) : verb.effect === "pile" ? (
                 <PileLetters word={verb.word} landed={landed} />
+              ) : verb.effect === "roll" ? (
+                <RollLetters word={verb.word} landed={landed} />
               ) : verb.effect === "rewire" ? (
-                <RewireWord word={verb.word} landed={landed} pulse={pulse} />
+                <RewireWord
+                  word={verb.word}
+                  landed={landed}
+                  pulse={pulse}
+                  dotDrop={verb.face.dotDropEm}
+                  dotSize={verb.face.dotEm}
+                  square={verb.face.dotSquare}
+                />
               ) : (
                 <Letters word={verb.word} effect={verb.effect} landed={landed} />
               )}

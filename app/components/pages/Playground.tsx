@@ -53,9 +53,10 @@ function Section({
     <section className="mt-16 grid grid-cols-1 gap-8 lg:mt-16 lg:grid-cols-[1fr_2fr] lg:gap-8">
       <div className="lg:sticky lg:top-28 lg:self-start">
         <h2 className="font-heading text-h3 text-heading">{title}</h2>
-        <p className="mt-2 font-mono text-caption-1 uppercase tracking-wide text-muted">
-          {subtitle}
-        </p>
+        {/* Homemade Apple — same handwritten register as About's section
+            titles. Uppercase and tracking come off with the mono face: the
+            capitals are too loose to hold at label size. */}
+        <p className="mt-2 font-apple text-eyebrow text-muted">{subtitle}</p>
         {note && (
           <p className="mt-4 max-w-[26rem] text-balance font-body font-normal text-[15px] leading-relaxed text-text">
             {note}

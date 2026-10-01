@@ -6,7 +6,7 @@ import { gsap, useGSAP, ScrollSmoother } from "@/app/lib/gsap";
 // refs are threaded into create() (which keeps the types null-free).
 import HeroStack from "@/app/components/home/HeroStack";
 import { WorkGrid } from "@/app/components/work/WorkGrid";
-import { SiteFooter } from "@/app/components/layout/SiteFooter";
+import { SiteFooter, FooterCurtainGap } from "@/app/components/layout/SiteFooter";
 import { activeProjects } from "@/app/lib/projects";
 
 /**
@@ -23,6 +23,15 @@ export default function HomeV2() {
 
   useGSAP(
     () => {
+      // The splash plays on every load, so the page it lifts onto has to be the
+      // top of the page. Browsers restore the previous scroll offset on refresh,
+      // which would otherwise drop you into the work grid behind the count.
+      // The restore itself is disabled by the inline script in app/layout.tsx —
+      // it has to run during parse, before the browser schedules the restore,
+      // so doing it here would be too late. This just zeroes whatever offset
+      // the document happens to be at before the smoother reads it.
+      window.scrollTo(0, 0);
+
       const smoother = ScrollSmoother.create({
         smooth: 1.2,
         effects: true,
@@ -34,6 +43,14 @@ export default function HomeV2() {
       // Jump there manually once the smoother is live.
       if (window.location.hash === "#work") {
         smoother.scrollTo("#work", false);
+      } else {
+        // Once the smoother is live it owns the scroll position, and a plain
+        // window.scrollTo no longer moves it. Park it at the top through the
+        // smoother itself, immediately and again after layout settles (images
+        // and fonts resize the page under us, and normalizeScroll re-reads the
+        // offset on the next frame).
+        smoother.scrollTop(0);
+        requestAnimationFrame(() => smoother.scrollTop(0));
       }
 
       // Gentle rise-in for each section eyebrow/heading as it enters.
@@ -61,21 +78,30 @@ export default function HomeV2() {
     <>
       {/* Nav is the shared <SiteNav />, rendered once by SiteFrame for every
           page. On the home its WORK / wordmark drive this ScrollSmoother. */}
-      <div id="smooth-wrapper" ref={wrapper}>
+      <div id="smooth-wrapper" ref={wrapper} className="z-10">
         <div id="smooth-content">
-          {/* 1 — HERO — editorial introduction over the brush-loop backdrop. */}
-          <HeroStack />
+          {/* The curtain: everything the page actually shows, opaque so the
+              footer pinned behind it stays hidden until the gap below. */}
+          <div className="pointer-events-auto relative z-10 bg-bg">
+            {/* 1 — HERO — editorial introduction over the brush-loop backdrop. */}
+            <HeroStack />
 
-          {/* 2 — Selected work keeps the compact, curated grid. */}
-          <section id="work">
-            <WorkGrid projects={activeProjects} heading="Selected projects" />
-          </section>
+            {/* 2 — Selected work keeps the compact, curated grid. */}
+            <section id="work">
+              <WorkGrid projects={activeProjects} heading="Selected projects" />
+            </section>
+          </div>
 
-          {/* 3 — FOOTER — the shared <SiteFooter /> (footprint canvas + pickers
-              + toggle + CTA + colophon), identical on every page. */}
-          <SiteFooter />
+          {/* 3 — the gap that slides the curtain off the footer. */}
+          <FooterCurtainGap />
         </div>
       </div>
+
+      {/* FOOTER — the shared <SiteFooter /> (footprint canvas + pickers +
+          colophon), identical on every page. Outside #smooth-wrapper on
+          purpose: it's `fixed`, and ScrollSmoother transforms #smooth-content,
+          which would otherwise become its containing block. */}
+      <SiteFooter />
     </>
   );
 }

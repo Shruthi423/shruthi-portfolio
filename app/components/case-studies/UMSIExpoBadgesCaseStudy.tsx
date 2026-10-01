@@ -166,11 +166,11 @@ function Reveal({
   );
 }
 
-// Section eyebrow - matches the pattern across the other case studies.
+// Section eyebrow - Homemade Apple, matches the pattern across the other case studies.
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span
-      className="font-mono text-caption-2 uppercase tracking-wide"
+      className="font-apple text-eyebrow"
       style={{ color: "var(--accent)" }}
     >
       {children}
@@ -473,7 +473,7 @@ export function UMSIExpoBadgesCaseStudy() {
         {/* 2 - OBJECTIVES */}
         <Section id="objectives">
           <Reveal>
-            <Label>objectives</Label>
+            <Label>Objectives</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Four constraints, one system.</Statement>
@@ -517,7 +517,7 @@ export function UMSIExpoBadgesCaseStudy() {
         {/* 3 - PALETTE (UMSI brand colors I had to design within) */}
         <Section id="palette">
           <Reveal>
-            <Label>palette</Label>
+            <Label>Palette</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">The colors I had to work inside.</Statement>

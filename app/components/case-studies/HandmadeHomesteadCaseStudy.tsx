@@ -312,8 +312,8 @@ function Aside({
   );
 }
 
-// Section eyebrow + hand-drawn squiggle. Uppercase mono accent — matches the
-// pattern used across all case studies.
+// Section eyebrows are Homemade Apple in the accent colour — matches the pattern
+// used across all case studies.
 // Photo-or-placeholder. Renders the real image when the file exists; until then
 // (and on any load error) it shows a terracotta-tinted dashed frame labelled
 // with the exact filename to drop into /public/handmade-homestead/.
@@ -733,7 +733,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 2 - CONTEXT */}
         <Section id="context">
           <Reveal>
-            <Label>context</Label>
+            <Label>Context</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Two very different people, chasing the same quiet thing.</Statement>
@@ -773,7 +773,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 3 - CREATING BRANDING AND STRATEGY (the brand) */}
         <Section id="brand">
           <Reveal>
-            <Label>creating branding and strategy</Label>
+            <Label>Creating branding and strategy</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">So we built something you could feel.</Statement>
@@ -788,7 +788,7 @@ export function HandmadeHomesteadCaseStudy() {
           <Reveal delay={160} className="mt-14">
             <div className="grid gap-10 md:grid-cols-2 md:gap-14">
               <div>
-                <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+                <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
                   Vision
                 </p>
                 <p
@@ -799,7 +799,7 @@ export function HandmadeHomesteadCaseStudy() {
                 </p>
               </div>
               <div>
-                <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+                <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
                   Mission
                 </p>
                 <p
@@ -835,8 +835,8 @@ export function HandmadeHomesteadCaseStudy() {
 
           <Reveal delay={120} className="mt-8">
             <div className="max-w-3xl">
-              <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-                the mark
+              <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+                The mark
               </p>
               <h3
                 className="mt-3 font-heading text-text"
@@ -855,8 +855,8 @@ export function HandmadeHomesteadCaseStudy() {
              the values cards so the brand section reads as: mark -> language
              -> values -> palette -> type. */}
           <Reveal delay={80} className="mt-14">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              the visual language
+            <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+              The visual language
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
@@ -981,8 +981,8 @@ export function HandmadeHomesteadCaseStudy() {
              together" beat. Source is near-square; rendered at full
              section width with a small eyebrow + closer caption. */}
           <Reveal className="mt-20">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              the brand, in the world
+            <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+              The brand, in the world
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
@@ -1010,7 +1010,7 @@ export function HandmadeHomesteadCaseStudy() {
              the strategy that flatlined.) */}
         <Section id="research">
           <Reveal>
-            <Label>research</Label>
+            <Label>Research</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Before we made anything, we made decisions.</Statement>
@@ -1026,8 +1026,8 @@ export function HandmadeHomesteadCaseStudy() {
              the editorial pattern used elsewhere on the page. */}
           <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-14">
             <Reveal variant="left">
-              <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-                the 80 / 20 strategy
+              <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+                The 80 / 20 strategy
               </p>
               <h3
                 className="mt-3 font-heading leading-tight text-text"
@@ -1041,8 +1041,8 @@ export function HandmadeHomesteadCaseStudy() {
             </Reveal>
 
             <Reveal variant="right" delay={80}>
-              <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-                the five R&rsquo;s
+              <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+                The five R&rsquo;s
               </p>
               <h3
                 className="mt-3 font-heading leading-tight text-text"
@@ -1077,8 +1077,8 @@ export function HandmadeHomesteadCaseStudy() {
              This is what we set out to ship; the next section is where it
              didn't work. */}
           <Reveal className="mt-16">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              content decisions
+            <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+              Content decisions
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
@@ -1141,7 +1141,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 5 - THE CHALLENGE (problem) */}
         <Section id="problem">
           <Reveal>
-            <Label>the challenge</Label>
+            <Label>The challenge</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">We launched education-first. The graph flatlined.</Statement>
@@ -1156,8 +1156,8 @@ export function HandmadeHomesteadCaseStudy() {
              storyboards (moved here from pivot) - showing how much
              intentionality went into work that ultimately didn't travel. */}
           <Reveal delay={140} className="mt-16">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              from sketch to post
+            <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+              From sketch to post
             </p>
             <p
               className="mt-3 font-heading text-text"
@@ -1206,7 +1206,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 5 - INSIGHTS */}
         <Section id="insights">
           <Reveal>
-            <Label>insights</Label>
+            <Label>Insights</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Three things the data made impossible to ignore.</Statement>
@@ -1248,7 +1248,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 6 - THE PIVOT AND ADAPT */}
         <Section id="pivot">
           <Reveal>
-            <Label>the pivot and adapt</Label>
+            <Label>The pivot and adapt</Label>
           </Reveal>
           <Reveal delay={60}>
             <div className="mt-5 flex items-start justify-between gap-6">
@@ -1267,8 +1267,8 @@ export function HandmadeHomesteadCaseStudy() {
              below. Keyboard nav (Arrow Left/Right) works once a tab has
              focus. See `WhatWeChangedTabs` for the full component. */}
           <Reveal delay={120} className="mt-10">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              what we changed
+            <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+              What we changed
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
@@ -1285,8 +1285,8 @@ export function HandmadeHomesteadCaseStudy() {
              that did the work. Side-by-side layout: video left, story
              right (eyebrow + headline + metrics chips). */}
           <Reveal delay={80} className="mt-16">
-            <p className="font-mono text-caption-2 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
-              the mark in motion
+            <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
+              The mark in motion
             </p>
             <h3
               className="mt-3 font-heading leading-tight text-text"
@@ -1370,7 +1370,7 @@ export function HandmadeHomesteadCaseStudy() {
         {/* 7 - OUTCOMES */}
         <Section id="outcome">
           <Reveal>
-            <Label>outcomes</Label>
+            <Label>Outcomes</Label>
           </Reveal>
           <Reveal delay={60}>
             <div className="mt-5 flex items-start justify-between gap-6">

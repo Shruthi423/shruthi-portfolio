@@ -28,8 +28,8 @@ export const projects: Project[] = [
     status: "building",
     description: "Personal job listing curation.",
     hoverLabel: "View",
-    // The live GitHub Pages build, not the repo.
-    repoHref: "https://shruthi423.github.io/OpenTabs/",
+    liveHref: "https://shruthi423.github.io/OpenTabs/",
+    repoHref: "https://github.com/Shruthi423/OpenTabs",
   },
   {
     name: "DeepClean",

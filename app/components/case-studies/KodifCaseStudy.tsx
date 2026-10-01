@@ -179,7 +179,9 @@ function SiteBrowser({ src, alt, url = "kodif.ai" }: { src: string; alt: string;
           </div>
         </div>
 
-        <div className="relative h-[60vh] overflow-hidden sm:h-[68vh]" data-cursor-label="scroll to explore">
+        {/* svh on a phone: vh there is the URL-bar-hidden measure, so a frame
+            sized in it is taller than what you can see. */}
+        <div className="relative h-[60svh] overflow-hidden sm:h-[68vh]" data-cursor-label="scroll to explore">
           <div className="absolute inset-0 overflow-y-auto overscroll-contain">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={src} alt={alt} className="block w-full" />
@@ -364,7 +366,7 @@ export function KodifCaseStudy() {
         {/* 2 - WHY A REDESIGN */}
         <Section id="why">
           <Reveal>
-            <Label>why a redesign</Label>
+            <Label>Why a redesign</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>
@@ -381,7 +383,7 @@ export function KodifCaseStudy() {
         {/* 3 - THE CHALLENGES */}
         <Section id="challenges">
           <Reveal>
-            <Label>the challenges</Label>
+            <Label>The challenges</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Three gaps to close at once.</Statement>
@@ -402,7 +404,7 @@ export function KodifCaseStudy() {
         {/* 4 - THE WORK */}
         <Section id="work">
           <Reveal>
-            <Label>the work</Label>
+            <Label>The work</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>One brand, from landing page to tote bag.</Statement>
@@ -463,7 +465,7 @@ export function KodifCaseStudy() {
         {/* 4b - REVISED BRAND GUIDELINES (rebuilt natively from the token sheets) */}
         <Section id="guidelines">
           <Reveal>
-            <Label>revised brand guidelines</Label>
+            <Label>Revised brand guidelines</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">The redesign, codified.</Statement>
@@ -570,7 +572,7 @@ export function KodifCaseStudy() {
         {/* 5 - PRINCIPLES */}
         <Section id="principles">
           <Reveal>
-            <Label>principles</Label>
+            <Label>Principles</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement className="mt-5">Five rules kept it one system.</Statement>
@@ -607,7 +609,7 @@ export function KodifCaseStudy() {
         {/* 6 - THE OUTCOME */}
         <Section id="outcome">
           <Reveal>
-            <Label>the outcome</Label>
+            <Label>The outcome</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5 " style={{ fontSize: "var(--text-h3)" }}>The narrative caught up, and so did the numbers.</Statement>

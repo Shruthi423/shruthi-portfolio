@@ -26,9 +26,9 @@ import RotatingWord from "@/app/components/home/RotatingWord";
  *
  * That colour is the hinge between the two systems. The live hue rides back up
  * here as `tint` and straight into the footprint canvas, so when the verb turns
- * orange the prints mix orange with it. Charcoal reports null, which lets the
- * trail roll its own blends again — so the coupling reveals itself on the
- * coloured words and relaxes on the resting one.
+ * orange the prints mix orange with it. All eight words carry a hue now
+ * (including the opening "Designing", which used to sit in the page's own ink
+ * and report null), so the trail is tinted the whole way round the loop.
  *
  * There is deliberately no picker here: the footer holds the only one, and the
  * choice is shared + persisted in FootprintProvider, so picking there changes
@@ -65,7 +65,7 @@ export default function HeroStack() {
       <FootprintsHome tint={tint} introWalk="cross">
         <section
           aria-labelledby="hero-title"
-          className="flex h-full w-full items-center justify-center px-6"
+          className="flex h-full w-full items-center justify-center px-5 sm:px-6"
         >
           <h1
             id="hero-title"
@@ -73,11 +73,14 @@ export default function HeroStack() {
             // sentence: the walker's arc passes below it, and anything that
             // strays near fades out through quietFactor.
             data-quiet
-            /* Sized off the viewport rather than --text-h1: the whole
-               sentence has to hold one line down to phone width, and the
-               slot is pinned to "Prototyping", so that is the one length the
-               clamp is tuned against. */
-            className="max-w-full whitespace-nowrap text-center text-[clamp(1.15rem,6vw,3.25rem)] font-display font-normal leading-[1.12] tracking-[-0.025em] text-text transition-[opacity,transform,filter] ease-slow"
+            /* Sized off the viewport rather than --text-h1, and the sizing
+               lives in `.hero-line` (globals.css) because it takes a media
+               query, not a clamp: from md up the whole sentence holds one row,
+               which is the shape the verb slot is measured for; below md it
+               sets on two, because one row at phone width came out around
+               23px. The break between them is the `.hero-line__tail` span
+               below, not the browser's choice — see the note on the class. */
+            className="hero-line max-w-full text-center font-display font-normal leading-[1.12] tracking-[-0.025em] text-text transition-[opacity,transform,filter] ease-slow"
             style={{
               transitionDuration: `${ENTRANCE_MS}ms`,
               opacity: entered ? 1 : 0,
@@ -95,8 +98,12 @@ export default function HeroStack() {
                 startDelayMs={ENTRANCE_MS + FIRST_HOLD_MS}
                 armDelayMs={ENTRANCE_MS}
                 onTint={onTint}
-              />{" "}
-              how humans meet AI.
+              />
+              {/* The tail is its own element so the phone break can be put
+                  here deliberately: `.hero-line__tail` is a block below md and
+                  an inline again from md up, where the leading space comes
+                  back. A free wrap would move with the verb's width. */}
+              <span className="hero-line__tail"> how humans meet AI.</span>
             </span>
           </h1>
         </section>

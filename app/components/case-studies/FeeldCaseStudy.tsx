@@ -851,11 +851,15 @@ function ScreensReel() {
     <section
       ref={root}
       aria-label="The Feeld app screens"
-      className="relative h-screen overflow-hidden"
+      // svh, not vh: on a phone 100vh is the LARGE viewport (URL bar hidden),
+      // so a vh-tall pinned scene is taller than what you can actually see
+      // until the bar collapses. svh is the stable small one, which is what a
+      // scene that has to fit on screen in one piece wants.
+      className="relative h-[100svh] overflow-hidden"
     >
       <div className="mx-auto flex h-full max-w-[1000px] flex-col items-center justify-center gap-6 px-6 sm:px-10 md:flex-row md:gap-12 lg:px-16">
         {/* Left: the changing label */}
-        <div className="relative order-2 h-[28vh] w-full md:order-1 md:h-[80vh] md:w-2/5">
+        <div className="relative order-2 h-[28svh] w-full md:order-1 md:h-[80vh] md:w-2/5">
           {APP_SCREENS.map((s, i) => (
             <div
               key={s.name}
@@ -883,7 +887,7 @@ function ScreensReel() {
 
         {/* Right: the phone frame, screens cross-fading inside it. Sized to
            max-h-[92vh] on desktop, takes 60% of the row width. */}
-        <div className="order-1 flex h-[60vh] w-full items-center justify-center md:order-2 md:h-[92vh] md:w-3/5">
+        <div className="order-1 flex h-[60svh] w-full items-center justify-center md:order-2 md:h-[92vh] md:w-3/5">
           <div className="relative aspect-[9/19] h-full max-h-[92vh] rounded-[2.5rem] bg-black p-[6px] shadow-2xl ring-1 ring-black/40">
             <div className="relative h-full w-full overflow-hidden rounded-[2.15rem] bg-black">
               {/* Each screen wrapped in a container so the image and its
@@ -982,7 +986,7 @@ export function FeeldCaseStudy() {
 
         {/* 3 — MADE */}
         <Section id="made">
-          <Label>what we made</Label>
+          <Label>What we made</Label>
 
           <Pull className="mt-10">
             <Em>Feeld</Em> is a contact lens and wristband.
@@ -1082,7 +1086,7 @@ export function FeeldCaseStudy() {
         {/* 4 — APP (intro + pinned reel) */}
         <section id="app" className="scroll-mt-24">
           <Section className="pb-0">
-            <Label>the app</Label>
+            <Label>The app</Label>
 
             <Pull className="mt-10">
               <Em>Feeld</Em> has five screens. Each one does <Em>exactly one</Em> thing.
@@ -1094,7 +1098,7 @@ export function FeeldCaseStudy() {
 
         {/* 5 — HARD */}
         <Section id="hard">
-          <Label>the hard part</Label>
+          <Label>The hard part</Label>
 
           <Body className="mt-10">
             Every early version was too loud. Labels, states, numbers, bars. We kept
@@ -1112,7 +1116,7 @@ export function FeeldCaseStudy() {
            Text reads left-aligned at section width; the rings diagram keeps
            its centered SVG+list layout (it's a visual, not prose). */}
         <Section id="privacy">
-          <Label>privacy</Label>
+          <Label>Privacy</Label>
 
           <Body className="mt-10">
             <Em>Feeld</Em> has four privacy layers. You control what you share, and

@@ -66,7 +66,7 @@ const CHALLENGES = [
 // brand and booking flow. Images are dropped into /public/temple/ai/.
 const REDESIGN_FEATURES = [
   {
-    eyebrow: "speed",
+    eyebrow: "Speed",
     title: "Fast lane for returning visitors",
     body: "Saved details let repeat visitors rebook in seconds.",
     // ?t= is the poster frame: a moment inside this clip's own chapter range
@@ -74,13 +74,13 @@ const REDESIGN_FEATURES = [
     img: "/temple/ai/fastlane.html",
   },
   {
-    eyebrow: "crowds",
+    eyebrow: "Crowds",
     title: "Crowd-aware date picker",
     body: "Shows busy and quiet days, so visitors can choose a calmer time.",
     img: "/temple/ai/forecast.html",
   },
   {
-    eyebrow: "language",
+    eyebrow: "Language",
     title: "Nandi, a voice and chat guide",
     body: "Answers questions in 11 Indian languages. Nandi is named after the sacred bull that guards Shiva temples.",
     img: "/temple/ai/nandi.html",
@@ -217,7 +217,9 @@ function ScrollScene({ src, title }: { src: string; title: string }) {
   return (
     <div className="relative w-screen" style={{ left: "50%", marginLeft: "-50vw" }}>
       <div ref={track} style={{ height: `${steps * SCENE_VH_PER_STEP + 100}vh` }}>
-        <div className="sticky top-0 h-screen w-full overflow-hidden">
+        {/* svh so the scene fits the visible viewport on a phone, where 100vh
+            is the taller URL-bar-hidden measure. */}
+        <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
           <iframe ref={frame} src={src} title={title} className="h-full w-full" loading="lazy" />
         </div>
       </div>
@@ -260,7 +262,7 @@ export function TempleCaseStudy() {
         {/* 2 - IMPACT */}
         <Section id="outcome">
           <Reveal>
-            <Label>impact</Label>
+            <Label>Impact</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>From a free pilot to the state model.</Statement>
@@ -329,7 +331,7 @@ export function TempleCaseStudy() {
         {/* 3 - BACKGROUND */}
         <Section id="background">
           <Reveal>
-            <Label>background</Label>
+            <Label>Background</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>A huge market, an outdated experience.</Statement>
@@ -352,7 +354,7 @@ export function TempleCaseStudy() {
         {/* 4 - THE PROBLEM */}
         <Section id="problem">
           <Reveal>
-            <Label>the problem</Label>
+            <Label>The problem</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>Visitors wanted in. An outdated system kept them out.</Statement>
@@ -420,7 +422,7 @@ export function TempleCaseStudy() {
         {/* 6 - WHAT I DID IN 2021 (the original screens) */}
         <Section id="screens">
           <Reveal>
-            <Label>before</Label>
+            <Label>Before</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5" style={{ fontSize: "var(--text-h3)" }}>What I did in 2021.</Statement>
@@ -455,7 +457,7 @@ export function TempleCaseStudy() {
           </div>
 
           <Reveal className="mt-20">
-            <Statement maxW="none" style={{ fontSize: "var(--text-h3)" }}>Wanna see more?</Statement>
+            <Statement maxW="none" hand>wanna see more?</Statement>
           </Reveal>
           <Reveal delay={60}>
             <Body className="mt-4">

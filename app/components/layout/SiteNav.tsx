@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ScrollSmoother } from "@/app/lib/gsap";
+import { WobbleUnderline } from "@/app/components/shared/WobbleUnderline";
 
 // Shared navigation: social links left, centered wordmark, page links right.
+// The socials are icon-only until hovered, when the platform name unfurls
+// beside the glyph (see `.social-link` in globals.css).
 const SOCIALS = [
   {
     "label": "LinkedIn",
@@ -34,9 +37,10 @@ const NAV: { label: string; href: string; section?: string }[] = [
   { label: "ABOUT", href: "/about" },
 ];
 
-// Same animated underline sweep the footer links use.
+// Same hand-drawn underline the footer links use; the stroke itself is
+// WobbleUnderline, and `wobble-link` is what its hover rule hangs off.
 const LINK_CLASS =
-  "relative opacity-80 transition-opacity duration-150 hover:opacity-100 after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100";
+  "wobble-link opacity-80 transition-opacity duration-150 hover:opacity-100";
 
 export function SiteNav() {
   const pathname = usePathname();
@@ -58,7 +62,9 @@ export function SiteNav() {
           flips with the nav colour over the inverted home footer */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-24"
+        // Taller below md, where the nav wraps onto two rows and the links sit
+        // lower than the single-row bar the 24 was measured against.
+        className="pointer-events-none absolute inset-x-0 top-0 h-32 md:h-24"
         style={{
           background:
             "linear-gradient(to bottom, var(--nav-scrim, var(--bg)), transparent)",
@@ -69,20 +75,32 @@ export function SiteNav() {
         className="relative grid min-h-16 grid-cols-[1fr_auto_1fr] items-center gap-y-1 px-3 py-3 sm:px-8"
         aria-label="Primary"
       >
-        <ul className="pointer-events-auto col-start-1 row-start-1 flex items-center gap-0.5 justify-self-start sm:gap-1" aria-label="Social links">
+        <ul className="pointer-events-auto col-start-1 row-start-1 flex items-center justify-self-start" aria-label="Social links">
           {SOCIALS.map(({ label, href, path }) => (
             <li key={label}>
               <a
                 href={href}
                 aria-label={label}
-                title={label}
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
                 rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
-                className="flex h-8 w-5 items-center justify-center rounded opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current sm:h-9 sm:w-8"
+                // h-11 on a phone is the tap target, not the look: the glyph is
+                // 19px either way, the box around it is just finger-sized. The
+                // side padding only opens up past 360px — at 320px four icons
+                // and the wordmark have no room to spare on this row.
+                className="social-link flex h-11 items-center rounded px-0.5 opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current min-[360px]:px-1 sm:h-9 sm:px-1.5"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+                {/* 19px below sm. Four icons and the wordmark share row one on
+                    a phone, and at 22px with px-1 the row outgrew a 320px
+                    viewport and the name got squeezed. */}
+                <svg className="social-icon h-[19px] w-[19px] shrink-0 sm:h-[22px] sm:w-[22px]" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
                   <path d={path} />
                 </svg>
+                {/* The name unfurls out of the icon; aria-label already says it,
+                    so this copy is decorative and stays out of the a11y tree. */}
+                <span aria-hidden className="social-label wobble-link font-mono text-caption-1 uppercase tracking-wide">
+                  {label}
+                  <WobbleUnderline label={label} />
+                </span>
               </a>
             </li>
           ))}
@@ -91,10 +109,19 @@ export function SiteNav() {
           href="/"
           onClick={scrollTo(0)}
           aria-label="Home"
-          className="pointer-events-auto col-start-2 row-start-1 justify-self-center whitespace-nowrap lowercase tracking-tight opacity-90 transition-opacity duration-150 hover:opacity-70"
-          style={{ fontFamily: "var(--font-display)", fontSize: "clamp(16px, 2vw, 20px)" }}
+          // The splash's written name flies into this box and lands on it, so
+          // it needs to be findable from outside the tree.
+          data-wordmark
+          // The side padding is the gap to the social icons, which share this
+          // row on a phone and were landing 4px off the name. It grows the
+          // centre column symmetrically, so the wordmark stays centred. Held
+          // back below 360px, where there is no width to spend.
+          className="pointer-events-auto col-start-2 row-start-1 justify-self-center whitespace-nowrap tracking-tight opacity-90 transition-opacity duration-150 hover:opacity-70 min-[360px]:px-2"
+          // The 12px floor is for the phone, where this shares row one with the
+          // four social icons; 1.7vw doesn't reach 14px until ~825px wide.
+          style={{ fontFamily: "var(--font-apple)", fontSize: "clamp(12px, 1.7vw, 17px)", color: "var(--wordmark)" }}
         >
-          shruthi aragonda
+          Shruthi Aragonda
         </Link>
 
         <ul className="pointer-events-auto col-span-3 row-start-2 flex items-center justify-self-center gap-5 font-mono text-caption-1 uppercase tracking-wide md:col-span-1 md:col-start-3 md:row-start-1 md:justify-self-end md:gap-5">
@@ -107,6 +134,7 @@ export function SiteNav() {
                 className={LINK_CLASS}
               >
                 {label}
+                <WobbleUnderline label={label} />
               </Link>
             </li>
           ))}

@@ -93,7 +93,7 @@ export function DomuCaseStudy() {
 
       <Section>
         <Reveal>
-          <Statement maxW="none">Wanna see more?</Statement>
+          <Statement maxW="none" hand>wanna see more?</Statement>
         </Reveal>
         <Reveal delay={60}>
           <Body className="mt-4">

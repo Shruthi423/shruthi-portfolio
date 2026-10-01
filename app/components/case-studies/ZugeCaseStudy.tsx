@@ -18,7 +18,7 @@ import {
 /**
  * Zuge case study - built on the same editorial template as 9and9
  * (TempleCaseStudy): one centred axis at FRAME_MAX_WIDTH shared by every text
- * column and every image, a dot rail on the left, lowercase mono eyebrows, and
+ * column and every image, a dot rail on the left, Homemade Apple eyebrows, and
  * an impact list ruled with hairlines. The only deliberate difference is the
  * accent: 9and9 is orange, Zuge is the palette's forest green, scoped to this
  * page by overriding --accent on the root wrapper.
@@ -57,43 +57,43 @@ const META: { label: string; value: string[]; href?: string }[] = [
 // lead piece is.
 const REDESIGN_FEATURES = [
   {
-    eyebrow: "safety",
+    eyebrow: "Safety",
     title: "Speed-first screen",
     body: "Less on screen when moving, more when parked. Touch turns off while riding.",
     clip: "/zuge/zuge-clip-speed-first.html",
   },
   {
-    eyebrow: "voice",
+    eyebrow: "Voice",
     title: "Mitra, a voice guide",
     body: "Riders talk to it in English or 8 Indian languages, hands on the handlebars.",
     clip: "/zuge/zuge-clip-mitra.html",
   },
   {
-    eyebrow: "orders",
+    eyebrow: "Orders",
     title: "Spill-aware orders",
     body: "It flags liquid orders at accept, gives a tip at pickup, and alerts the rider before speed breakers.",
     clip: "/zuge/zuge-clip-spill-aware.html",
   },
   {
-    eyebrow: "modes",
+    eyebrow: "Modes",
     title: "Riding modes",
     body: "Drive, Power, and Eco, each with its own colour. The rider reads the state before reading a single number.",
     clip: "/zuge/zuge-clip-modes.html",
   },
   {
-    eyebrow: "light",
+    eyebrow: "Light",
     title: "Day and night",
     body: "A bright map that holds up in direct sun, fully dark after sunset so nothing glares. The light sensor switches it, not the rider.",
     clip: "/zuge/zuge-clip-day-night.html",
   },
   {
-    eyebrow: "battery",
+    eyebrow: "Battery",
     title: "Low battery, handled early",
     body: "Mitra counts the battery in orders left, not percent: two. It finds a fast charger already on the route, and says when 80% is enough to finish the shift.",
     clip: "/zuge/zuge-clip-low-battery.html",
   },
   {
-    eyebrow: "weather",
+    eyebrow: "Weather",
     title: "Weather warnings",
     body: "A brief before the shift, a raincoat stop on the way, a reroute around flooding, and the customer told before they ask.",
     clip: "/zuge/zuge-clip-weather.html",
@@ -134,9 +134,9 @@ const PROTOTYPES = [
 
 // The headline numbers, rendered as an editorial list rather than a grid.
 const METRICS = [
-  { prefix: "", value: 73, decimals: 0, suffix: "%", label: "less phone use on the road", sub: null },
-  { prefix: "", value: 20, decimals: 0, suffix: "%", label: "faster task completion", sub: null },
-  { prefix: "", value: 2, decimals: 0, suffix: "M+", label: "gig riders on the platform", sub: null },
+  { prefix: "", value: 73, decimals: 0, suffix: "%", label: "Less phone use on the road", sub: null },
+  { prefix: "", value: 20, decimals: 0, suffix: "%", label: "Faster task completion", sub: null },
+  { prefix: "", value: 2, decimals: 0, suffix: "M+", label: "Gig riders on the platform", sub: null },
 ];
 
 
@@ -199,7 +199,7 @@ function Figure({
   );
 }
 
-// The editorial block from 9and9: a mono eyebrow, a subheading, a line of grey
+// The editorial block from 9and9: a Homemade Apple eyebrow, a subheading, a line of grey
 // body copy, then the art running full width beneath it.
 function Chapter({
   label,
@@ -263,7 +263,7 @@ export function ZugeCaseStudy() {
       >
         <Reveal delay={200}>
           <div className="mt-16 pt-10">
-            <Label>principle</Label>
+            <Label>Principle</Label>
             <div className="mt-6 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-end">
               <p
                 className="font-display leading-[1.05] text-text"
@@ -287,7 +287,7 @@ export function ZugeCaseStudy() {
         {/* 2 - THE OUTCOME */}
         <Section id="outcome">
           <Reveal>
-            <Label>the outcome</Label>
+            <Label>The outcome</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5">Less looking down, more riding.</Statement>
@@ -326,7 +326,7 @@ export function ZugeCaseStudy() {
         {/* 3 - THE PROBLEM */}
         <Section id="problem">
           <Reveal>
-            <Label>the problem</Label>
+            <Label>The problem</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5">
@@ -382,7 +382,7 @@ export function ZugeCaseStudy() {
         {/* 7 - THE DASHBOARD */}
         <Section id="dashboard">
           <Reveal>
-            <Label>before screens</Label>
+            <Label>Before screens</Label>
           </Reveal>
           <Reveal delay={80} className="mt-8">
             <SetLabel>the overlays, as components</SetLabel>
@@ -440,7 +440,7 @@ export function ZugeCaseStudy() {
         {/* 8 - IN CONTEXT */}
         <Section id="context">
           <Reveal>
-            <Label>in context</Label>
+            <Label>In context</Label>
           </Reveal>
           <Reveal delay={60}>
             <Statement maxW="none" className="mt-5">Final screens, on the bike.</Statement>
@@ -475,7 +475,7 @@ export function ZugeCaseStudy() {
           </div>
 
           <Reveal className="mt-20">
-            <Statement maxW="none">Wanna see more?</Statement>
+            <Statement maxW="none" hand>wanna see more?</Statement>
           </Reveal>
           <Reveal delay={60}>
             <Body className="mt-4">

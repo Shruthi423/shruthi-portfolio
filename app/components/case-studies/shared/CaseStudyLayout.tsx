@@ -41,7 +41,7 @@ export function Label({
 }) {
   return (
     <div className={center ? "text-center" : "text-left"}>
-      <p className="font-mono text-caption-1 uppercase tracking-wide" style={{ color: "var(--accent)" }}>
+      <p className="font-apple text-eyebrow" style={{ color: "var(--accent)" }}>
         {children}
       </p>
     </div>
@@ -50,23 +50,42 @@ export function Label({
 
 // The one big line per section. Defaults to a 30ch measure; pass maxW="none"
 // for a heading meant to run the full width of the column.
+//
+// `hand` swaps Ovo for Homemade Apple, which is not a font-family swap alone:
+// the face has a much smaller x-height and hairline strokes, so at the h3 the
+// serif is set at it reads a tier smaller than everything around it, and its
+// long ascenders and descenders collide at 1.1 leading. The handwritten
+// variant therefore carries its own size, leading and tracking — the same
+// allowance --text-eyebrow already makes for this face elsewhere. It lives
+// here rather than at the three call sites so the closer cannot drift between
+// case studies.
 export function Statement({
   children,
   className = "",
   maxW = "30ch",
   center = false,
+  hand = false,
   style,
 }: {
   children: React.ReactNode;
   className?: string;
   maxW?: string;
   center?: boolean;
+  /** Set the line in Homemade Apple rather than the heading serif. */
+  hand?: boolean;
   style?: React.CSSProperties;
 }) {
   return (
     <h2
-      className={`font-heading leading-[1.1] text-text ${center ? "text-center" : ""} ${className}`}
-      style={{ maxWidth: maxW, fontSize: "var(--text-h3)", letterSpacing: "-0.01em", ...style }}
+      className={`${hand ? "font-apple leading-[1.4]" : "font-heading leading-[1.1]"} text-text ${center ? "text-center" : ""} ${className}`}
+      style={{
+        maxWidth: maxW,
+        fontSize: hand ? "var(--text-h2)" : "var(--text-h3)",
+        // Homemade Apple is already loose and joined; pulling it tighter
+        // stacks the letters into each other.
+        letterSpacing: hand ? "0" : "-0.01em",
+        ...style,
+      }}
     >
       {children}
     </h2>
@@ -417,7 +436,7 @@ export type MetaEntry = { label: string; value: string | string[]; href?: string
 
 /**
  * The opening of every case study, in one shape: an optional full-bleed lead
- * visual, then the project's name as a mono eyebrow, the title, one paragraph
+ * visual, then the project's name as a Homemade Apple eyebrow, the title, one paragraph
  * of intro, and the meta grid (timeline / role / team / tools).
  *
  * `title` is optional for a study whose lead visual already states its headline
@@ -445,7 +464,9 @@ export function Hero({
   children?: React.ReactNode;
 }) {
   return (
-    <section id={id} className={`scroll-mt-24 pb-8 ${lead ? "pt-20 sm:pt-24" : "pt-36 md:pt-44"}`}>
+    // The lead variant opens on a full-bleed visual rather than type, so it
+    // starts higher — but not above the nav, which is two rows tall below md.
+    <section id={id} className={`scroll-mt-24 pb-8 ${lead ? "pt-28 md:pt-24" : "pt-36 md:pt-44"}`}>
       {lead ? <Reveal>{lead}</Reveal> : null}
       {leadCaption ? (
         <Reveal delay={60}>

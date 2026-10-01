@@ -4,13 +4,14 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Breadcrumbs } from "@/app/components/layout/Breadcrumbs";
 import { SiteNav } from "@/app/components/layout/SiteNav";
-import { SiteFooter } from "@/app/components/layout/SiteFooter";
+import { SiteFooter, FooterCurtainGap } from "@/app/components/layout/SiteFooter";
 
 /**
  * Route-aware shell. SiteNav (top) and SiteFooter (bottom) are shared by every
- * page so the nav + footer can never drift. The home renders SiteFooter itself
- * as the last section of its one-pager; every inner page gets it appended here
- * after the page content, so the footprint footer is identical everywhere.
+ * page so the nav + footer can never drift. The home wires its own curtain
+ * (its footer has to sit outside ScrollSmoother's transformed wrapper); every
+ * inner page gets the same three pieces here — opaque content, the curtain gap,
+ * and the fixed footer panel it uncovers.
  */
 export function SiteFrame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -38,7 +39,10 @@ export function SiteFrame({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SiteNav />
-      <main className="relative z-10 flex-1">{children}</main>
+      {/* Opaque, so it hides the fixed footer sitting behind it until the gap
+          below scrolls the page off it. */}
+      <main className="relative z-10 flex-1 bg-bg">{children}</main>
+      <FooterCurtainGap />
       <SiteFooter />
       <Breadcrumbs />
     </>

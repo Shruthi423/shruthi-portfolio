@@ -5,6 +5,7 @@ import { gsap } from "@/app/lib/gsap";
 import { useFootprint } from "@/app/components/shared/FootprintProvider";
 import {
   FOOTPRINT_ANIMALS,
+  FOOTER_HUES,
   SURFACE,
   HUES,
   BLENDS,
@@ -24,6 +25,18 @@ const rgbTriplet = (hex: string) => {
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 };
 
+// hex → [r, g, b], for the footer's colour drift: it interpolates channels
+// rather than tweening a string, so the canvas veil and the CSS panel are
+// always built from the exact same numbers.
+const rgbChannels = (hex: string): [number, number, number] => {
+  const t = rgbTriplet(hex).split(", ").map(Number);
+  return [t[0], t[1], t[2]];
+};
+
+// How long one hue holds, and how long it takes to become the next.
+const FOOTER_HUE_HOLD = 10;
+const FOOTER_HUE_FADE = 2.4;
+
 // The frost veil is drawn on a 2D canvas and the prints are SVG, so both need
 // real color values (not CSS vars) — hence the plain objects below.
 
@@ -37,8 +50,8 @@ type Animal = FootprintAnimal;
 // that, so the rendered viewBox is padded and the size scaled to match — the
 // paw lands at the same on-screen size, with room for its ragged edge.
 const VB = { x: -14, y: -14, w: 128, h: 138 };
-const PAW_W = 82;
-const PAW_H = 88;
+const PAW_W = 102;
+const PAW_H = 110;
 // Gradient sweep radius in user units, measured from the shape's center.
 const GRAD_R = 78;
 
@@ -61,10 +74,25 @@ const SIZE: Record<Animal, number> = {
 };
 
 const POOL = 44;
-// A second, smaller pool drawn on top of the type in `screen` blend, for the
-// walkers that cross the headline. Only ever a handful are alive at once —
-// one crossing's worth — so it doesn't need the full 44.
+// Two more, smaller pools, both for the walkers that cross the headline. Only
+// ever one crossing's worth is alive at once, so neither needs the full 44.
+//
+// POOL_SOFT is the passing mass: the same print again, lifted above the frost
+// and blurred wide, so the crossing reads as one low-frequency form rather
+// than fourteen separate scuffs. POOL_OVER is the copy on top of the type in
+// `screen`, which is what actually tints the letters.
+const POOL_SOFT = 18;
 const POOL_OVER = 18;
+// The crossing's soft copy: how far it blurs, and how much of the base print's
+// opacity it carries.
+const SOFT_BLUR = 9;
+const SOFT_ALPHA = 0.7;
+// The crossing breathes rather than snaps: it fades up over this, holds, and
+// ebbs away, against the 0.18s pop a cursor print still uses. This is most of
+// what "smoother" turned out to mean.
+const SOFT_IN = 1.1;
+const SOFT_HOLD = 1.3;
+const SOFT_OUT = 1.8;
 // Realistic-ish gait: stride (px between steps) + track width per animal.
 const STRIDE: Record<Animal, number> = {
   giraffe: 146,
@@ -159,6 +187,65 @@ function paintPrint(el: HTMLElement, tint?: string | null) {
 }
 
 /**
+ * The same hue, taken down to something that can tint a letter.
+ *
+ * `screen` is the one blend that leaves the paper alone (screening anything
+ * onto near-white stays near-white), which is why the copy on top of the type
+ * uses it — but screening a *pastel* onto charcoal only lifts it toward milky
+ * grey, which is the washed-out look the crossing used to have. Screening a
+ * dark, saturated version of the same hue onto charcoal lands on a rich,
+ * readable colour instead: the letter takes the print's hue rather than losing
+ * its own density.
+ *
+ * So: keep the hue, force the saturation up and the lightness down. The print
+ * under the type keeps the palette's real pastel — this is only ever the
+ * overlay's copy.
+ *
+ * The lightness is not a taste call. A tinted letter still has to be readable
+ * while the print is over it, and at 0.32 the palette's lime bottomed out at
+ * 2.80:1 against the paper — under the 3:1 floor large text has to clear. 0.28
+ * puts the worst hue (still lime) at 3.35:1 and every other one above 4, with
+ * the overlay's own opacity only ever pulling the letter back toward its ink.
+ */
+function deepen(hex: string, sat = 0.8, light = 0.28) {
+  const [r, g, b] = rgbChannels(hex).map((v) => v / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  if (max !== min) {
+    const d = max - min;
+    h =
+      max === r
+        ? (g - b) / d + (g < b ? 6 : 0)
+        : max === g
+          ? (b - r) / d + 2
+          : (r - g) / d + 4;
+    h /= 6;
+  }
+  // Achromatic stops (the palette has none today, but a future one might)
+  // have no hue to preserve, so they just go dark.
+  const S = max === min ? 0 : sat;
+  const c = (1 - Math.abs(2 * light - 1)) * S;
+  const x = c * (1 - Math.abs(((h * 6) % 2) - 1));
+  const m = light - c / 2;
+  const seg = Math.floor(h * 6) % 6;
+  const rgb = [
+    [c, x, 0],
+    [x, c, 0],
+    [0, c, x],
+    [0, x, c],
+    [x, 0, c],
+    [c, 0, x],
+  ][seg];
+  const hx = (v: number) =>
+    Math.round(clamp((v + m) * 255, 0, 255))
+      .toString(16)
+      .padStart(2, "0");
+  return `#${hx(rgb[0])}${hx(rgb[1])}${hx(rgb[2])}`;
+}
+
+/**
  * Copy a freshly-painted slot's colourway onto a second slot, so the two are
  * the same print rather than two rolls of the dice.
  *
@@ -167,13 +254,14 @@ function paintPrint(el: HTMLElement, tint?: string | null) {
  * `screen`, and the pair only reads as one object if they share a gradient,
  * a stop split and a turbulence seed.
  */
-function mirrorPaint(src: HTMLElement, dst: HTMLElement) {
+function mirrorPaint(src: HTMLElement, dst: HTMLElement, deep = false) {
   const ss = src.querySelectorAll<SVGStopElement>("stop");
   const ds = dst.querySelectorAll<SVGStopElement>("stop");
   ss.forEach((st, i) => {
     const d = ds[i];
     if (!d) return;
-    d.setAttribute("stop-color", st.getAttribute("stop-color") ?? "");
+    const c = st.getAttribute("stop-color") ?? "";
+    d.setAttribute("stop-color", deep ? deepen(c) : c);
     d.setAttribute("offset", st.getAttribute("offset") ?? `${i * 50}%`);
   });
   const sg = src.querySelector("linearGradient");
@@ -290,6 +378,7 @@ export default function FootprintsHome({
   inverted = false,
   tint = null,
   introWalk = "corner",
+  awaitReveal = false,
   children,
 }: {
   // Render the 5-animal picker (which critter's prints appear).
@@ -304,6 +393,11 @@ export default function FootprintsHome({
   // for the hero, where the box is a whole viewport and four prints in a
   // corner leave the screen looking dead until the pointer moves.
   introWalk?: "corner" | "cross";
+  // Hold the ambient walker until `.hero-active` is on <html> — i.e. until the
+  // panel this lives in is actually uncovered. The footer is a fixed curtain
+  // behind the page, so without this its walkers would amble across a hidden
+  // panel for the whole visit and the reveal would land on an empty one.
+  awaitReveal?: boolean;
   children?: ReactNode;
 } = {}) {
   // SVG ids are document-global, so each mount (hero + footer both render this)
@@ -316,6 +410,8 @@ export default function FootprintsHome({
   >([]);
   const paws = useRef<HTMLDivElement[]>([]);
   const pawI = useRef(0);
+  const pawsSoft = useRef<HTMLDivElement[]>([]);
+  const pawSoftI = useRef(0);
   const pawsOver = useRef<HTMLDivElement[]>([]);
   const pawOverI = useRef(0);
   const wipes = useRef<Wipe[]>([]);
@@ -374,8 +470,8 @@ export default function FootprintsHome({
   // the page's own polarity. Prints are independent of this either way — they're
   // mixed from HUES/BLENDS.
   const pal: Palette = useMemo(() => {
-    const { paper, ink } = SURFACE;
-    const bg = inverted ? ink : paper;
+    const { paper, ink, footer } = SURFACE;
+    const bg = inverted ? footer : paper;
     const fg = inverted ? paper : ink;
     return {
       bg,
@@ -389,6 +485,68 @@ export default function FootprintsHome({
   useEffect(() => {
     palRef.current = pal;
   }, [pal]);
+
+  /**
+   * The footer panel drifts between FOOTER_HUES — a new one every
+   * FOOTER_HUE_HOLD seconds, eased over FOOTER_HUE_FADE.
+   *
+   * Channels are interpolated in a plain object, and each frame writes the
+   * result to two places at once: `--invert-bg` (which the panel's background,
+   * the nav's scrim gradient and the cursor label all read) and palRef (which
+   * the canvas frost veil reads, since canvas can't see CSS vars). Driving both
+   * from one tween is the point — the veil sits at 0.72 alpha over the panel,
+   * so a veil lagging the panel would show as a mismatched patch wherever the
+   * cursor has wiped the frost.
+   *
+   * The panel's background is `var(--invert-bg)` rather than an inline hex
+   * precisely so a React re-render (the picker opening, say) can't snap the
+   * colour back to its starting value mid-drift.
+   */
+  useEffect(() => {
+    if (!inverted) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let i = 0;
+    const [r, g, b] = rgbChannels(FOOTER_HUES[i]);
+    const c = { r, g, b };
+    const apply = () => {
+      const triplet = `${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)}`;
+      document.documentElement.style.setProperty("--invert-bg", `rgb(${triplet})`);
+      palRef.current = {
+        ...palRef.current,
+        bg: `rgb(${triplet})`,
+        fog: `rgba(${triplet}, 0.72)`,
+      };
+    };
+
+    let tween: gsap.core.Tween | null = null;
+    let wait: gsap.core.Tween | null = null;
+    const step = () => {
+      // Random, not a cycle — but never the hue already showing.
+      let n = i;
+      while (n === i) n = Math.floor(Math.random() * FOOTER_HUES.length);
+      i = n;
+      const [nr, ng, nb] = rgbChannels(FOOTER_HUES[i]);
+      tween = gsap.to(c, {
+        r: nr,
+        g: ng,
+        b: nb,
+        duration: FOOTER_HUE_FADE,
+        ease: "sine.inOut",
+        onUpdate: apply,
+        onComplete: () => {
+          wait = gsap.delayedCall(FOOTER_HUE_HOLD, step);
+        },
+      });
+    };
+    wait = gsap.delayedCall(FOOTER_HUE_HOLD, step);
+
+    return () => {
+      tween?.kill();
+      wait?.kill();
+      document.documentElement.style.removeProperty("--invert-bg");
+    };
+  }, [inverted]);
 
   // 0 over any protected element (calm) → 1 out in the open.
   const quietFactor = (x: number, y: number) => {
@@ -406,9 +564,12 @@ export default function FootprintsHome({
     rot: number,
     p: number,
     fade = 1,
-    // Also draw this print in the overlay pool, above the type. Used by the
-    // walkers routed through the headline: the copy underneath gives the soft
-    // coloured form, the copy on top lets the letters take its hue.
+    // Draw this print as a crossing: the walkers routed through the headline
+    // get two more copies of it. One is lifted above the frost and blurred
+    // wide (the passing mass); the other sits on top of the type in `screen`,
+    // deepened, so the letters take the print's hue as it goes under them.
+    // A cursor print is never a crossing — the quiet zones keep the pointer's
+    // own trail off the sentence.
     overlay = false,
   ) => {
     if (fade <= 0.06) return; // inside the quiet zone — no print
@@ -422,9 +583,34 @@ export default function FootprintsHome({
     const opacity = lerp(0.45, 0.88, p) * fade;
     const scale = lerp(0.82, 1.2, p) * SIZE[animal] * lerp(0.72, 1, fade);
     const out = lerp(1.4, 2.4, p);
-    const run = (target: HTMLElement, o: number) => {
+    // A cursor print snaps up and fades; a crossing breathes in and out, which
+    // is why they take different envelopes rather than different durations of
+    // the same one.
+    const run = (target: HTMLElement, o: number, soft = false) => {
       gsap.killTweensOf(target);
-      gsap.set(target, { x, y, rotation: rot, scale: scale * 0.78, opacity: 0 });
+      gsap.set(target, {
+        x,
+        y,
+        rotation: rot,
+        scale: scale * (soft ? 0.92 : 0.78),
+        opacity: 0,
+      });
+      if (soft) {
+        gsap.to(target, {
+          opacity: o,
+          scale,
+          duration: SOFT_IN,
+          ease: "sine.inOut",
+        });
+        gsap.to(target, {
+          opacity: 0,
+          scale: scale * 1.05,
+          duration: SOFT_OUT,
+          ease: "sine.inOut",
+          delay: SOFT_IN + SOFT_HOLD,
+        });
+        return;
+      }
       gsap.to(target, { opacity: o, scale, duration: 0.18, ease: "power2.out" });
       gsap.to(target, {
         opacity: 0,
@@ -433,19 +619,32 @@ export default function FootprintsHome({
         delay: 0.5 + p * 0.4,
       });
     };
-    run(el, opacity);
+    run(el, opacity, overlay);
 
     if (overlay) {
+      // The passing mass: same print, same colourway, above the frost and
+      // blurred by the layer it lives in.
+      const sf = pawsSoft.current[pawSoftI.current++ % POOL_SOFT];
+      if (sf) {
+        sf.querySelectorAll<SVGElement>("[data-shape]").forEach((s) => {
+          s.style.display =
+            s.getAttribute("data-shape") === animal ? "block" : "none";
+        });
+        mirrorPaint(el, sf);
+        run(sf, opacity * SOFT_ALPHA, true);
+      }
+
+      // The copy that tints the letters. `deep` is the whole trick — see
+      // deepen(): screening the palette's pastel onto charcoal only makes it
+      // milky, screening a dark saturated cousin of it makes it colour.
       const ov = pawsOver.current[pawOverI.current++ % POOL_OVER];
       if (ov) {
         ov.querySelectorAll<SVGElement>("[data-shape]").forEach((s) => {
           s.style.display =
             s.getAttribute("data-shape") === animal ? "block" : "none";
         });
-        mirrorPaint(el, ov);
-        // Fuller than the copy underneath: `screen` only bites where it lands
-        // on the dark type, and it has to carry the colour there on its own.
-        run(ov, Math.min(1, opacity * 1.35));
+        mirrorPaint(el, ov, true);
+        run(ov, Math.min(1, opacity * 1.2), true);
       }
     }
   };
@@ -560,6 +759,15 @@ export default function FootprintsHome({
     sizeCanvas();
     computeQuietBoxes();
     if (document.fonts) document.fonts.ready.then(computeQuietBoxes);
+    // A ResizeObserver on the box itself, not just window resize: the footer
+    // panel is --footer-h tall and that variable is raised at runtime to
+    // whatever its content needs (SiteFooter measures it), so the box can
+    // change size without the window doing anything. On window resize alone
+    // the veil stayed at the old height and the bottom of the footer came up
+    // unfrosted. The window listener stays for a devicePixelRatio change that
+    // doesn't move the box, which the observer won't see.
+    const ro = new ResizeObserver(onResize);
+    ro.observe(root.current!);
     window.addEventListener("resize", onResize);
 
     const paintFog = (dt: number) => {
@@ -603,6 +811,7 @@ export default function FootprintsHome({
           opacity: 0.85,
         });
       }
+      ro.disconnect();
       window.removeEventListener("resize", onResize);
       return;
     }
@@ -612,8 +821,10 @@ export default function FootprintsHome({
 
     return () => {
       gsap.ticker.remove(update);
+      ro.disconnect();
       window.removeEventListener("resize", onResize);
       gsap.killTweensOf(paws.current);
+      gsap.killTweensOf(pawsSoft.current);
       gsap.killTweensOf(pawsOver.current);
       wipes.current = [];
     };
@@ -654,7 +865,7 @@ export default function FootprintsHome({
     // than at a hard-coded band, so it finds the type wherever the layout puts
     // it, and the crossing is drawn in the overlay pool as well — the letters
     // take the print's colour as it passes under them.
-    const THROUGH_EVERY = 4; // one crossing in four
+    const THROUGH_EVERY = 2; // every other walk goes through the sentence
     let crossings = 0;
 
     const throughRoute = (w: number, h: number) => {
@@ -663,6 +874,10 @@ export default function FootprintsHome({
       const target = boxes.reduce((a, b) =>
         b.right - b.left > a.right - a.left ? b : a,
       );
+      // Only walk through something with the heft of a headline. The footer's
+      // widest protected box is its one-line colophon; a print stamped over
+      // 13px mono caps reads as a smudge, not as a creature passing under type.
+      if (target.bottom - target.top < h * 0.08) return null;
       const cy = (target.top + target.bottom) / 2 / h;
       const band = Math.min((target.bottom - target.top) / h * 0.28, 0.06);
       const dir = Math.random() < 0.5 ? 1 : -1;
@@ -724,6 +939,10 @@ export default function FootprintsHome({
     // never stops moving simply never lets anyone through.
     const queue = () => {
       calls = calls.filter((c) => c.isActive());
+      if (awaitReveal && !document.documentElement.classList.contains("hero-active")) {
+        calls.push(gsap.delayedCall(0.5, queue));
+        return;
+      }
       const since = performance.now() - lastPointerAt.current;
       if (since < IDLE_MS) {
         calls.push(gsap.delayedCall((IDLE_MS - since) / 1000, queue));
@@ -746,12 +965,16 @@ export default function FootprintsHome({
           if (q > 0.08) addWipe(s.x, s.y, WIPE_R, q);
         }),
       );
+    } else if (awaitReveal) {
+      // Nothing on mount: the first walker waits for the curtain to lift, then
+      // for the pointer to settle, like every one after it.
+      calls.push(gsap.delayedCall(0.45, queue));
     } else {
       calls.push(gsap.delayedCall(0.45, walk));
     }
 
     return () => calls.forEach((c) => c.kill());
-  }, [introWalk]);
+  }, [introWalk, awaitReveal]);
 
   return (
     <div
@@ -762,9 +985,11 @@ export default function FootprintsHome({
       onPointerLeave={onLeave}
       className="absolute inset-0 z-0 flex flex-col"
       style={{
-        backgroundColor: pal.bg,
+        // Inverted (the footer): the colour loop above owns this, via the var,
+        // and supplies its own easing — hence no CSS transition on it here.
+        backgroundColor: inverted ? "var(--invert-bg)" : pal.bg,
         color: pal.ink,
-        transition: "background-color 0.6s ease, color 0.6s ease",
+        transition: inverted ? "color 0.6s ease" : "background-color 0.6s ease, color 0.6s ease",
       }}
     >
       {/* Footprints — under the frosted glass */}
@@ -791,6 +1016,32 @@ export default function FootprintsHome({
         className="pointer-events-none absolute inset-0 z-10"
       />
 
+      {/* The crossing's passing mass — above the frost, below the type.
+          Everything else the engine draws sits under the veil and is muted by
+          it; a walker going through the headline has to be seen doing it, so
+          its second copy is lifted over the frost and blurred wide. The blur
+          is on the layer, not the slots, so it costs one filter rather than
+          eighteen. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[15]"
+        style={{ filter: `blur(${SOFT_BLUR}px)` }}
+      >
+        {Array.from({ length: POOL_SOFT }).map((_, i) => (
+          <div
+            key={i}
+            ref={(el) => {
+              if (el) pawsSoft.current[i] = el;
+            }}
+            className="absolute left-0 top-0 will-change-transform"
+            style={{ opacity: 0 }}
+          >
+            <PawDefs id={`${slotId}-sf-${i}`} />
+            <PawShapes id={`${slotId}-sf-${i}`} />
+          </div>
+        ))}
+      </div>
+
       {/* Bare frosted-footprint layer with caller-supplied content above the
           frost. The wrapper stays pointer-events-none so the cursor still
           lays prints in the gaps; interactive children opt back in with
@@ -802,11 +1053,13 @@ export default function FootprintsHome({
         {children}
       </div>
 
-      {/* The same prints again, on top of the type in `screen`. Over the paper
-          this is a no-op (screening a pastel onto near-white leaves near-white),
-          so it shows up only where a print crosses a dark letterform, which is
-          where the letter takes on the print's colour. Only the headline
-          crossings feed it — see the ambient walker. */}
+      {/* The print once more, on top of the type in `screen`, in the deepened
+          cousin of its own colourway. Over the paper this is a no-op
+          (screening anything onto near-white leaves near-white), so it shows
+          up only where a print crosses a dark letterform — and there the
+          letter takes the print's hue at its own density instead of washing
+          out toward grey, which is what the pastel used to do. Only the
+          headline crossings feed it — see the ambient walker. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-30"

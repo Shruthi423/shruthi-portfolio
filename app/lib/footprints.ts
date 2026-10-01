@@ -21,10 +21,38 @@ export const FOOTPRINT_ANIMALS = [
 ] as const;
 export type FootprintAnimal = (typeof FOOTPRINT_ANIMALS)[number];
 
-// The page's two surface colours, mirroring :root in globals.css. Canvas and
-// SVG can't read CSS vars, so the real values live here too. There's no dark
-// polarity any more: `ink` is the footer panel, not a night mode.
-export const SURFACE = { paper: "#fafaf8", ink: "#202422" } as const;
+// The page's surface colours, mirroring :root in globals.css. Canvas and SVG
+// can't read CSS vars, so the real values live here too. There's no dark
+// polarity any more: `footer` is the footer panel, not a night mode.
+//
+// `footer` is deliberately its own value rather than reusing `ink`: ink is the
+// site's text colour, and the footer panel is now a hue (the palette's plum,
+// pushed dark). It holds 10.3:1 against paper, so the 13px mono on it stays
+// well clear of AA, and being warm it lets the orange/pink prints glow instead
+// of fighting them.
+export const SURFACE = { paper: "#fafaf8", ink: "#202422", footer: "#5e2f40" } as const;
+
+/**
+ * The footer panel's rotation. It drifts from one of these to another every
+ * few seconds (see FootprintsHome's inverted colour loop), so the footer is
+ * never quite the same colour twice.
+ *
+ * Hand-picked, not random in colour space: paper mono at 13px sits on this
+ * panel, so every entry has to carry it. The weakest here (deep forest) is
+ * 8.4:1 against paper and the strongest is 13.2:1 — all far clear of AA. They
+ * are also deliberately spread across the wheel so a change reads as a change.
+ *
+ * `SURFACE.footer` is the first of them and the value that shows when motion is
+ * off; `--invert-bg` in globals.css must hold the same hex, since the nav scrim
+ * and the cursor label start from there.
+ */
+export const FOOTER_HUES = [
+  "#5e2f40", // plum, pushed dark
+  "#3b2540", // aubergine
+  "#2d2a6e", // indigo
+  "#123b36", // teal ink
+  "#10553c", // deep forest
+] as const;
 
 // The site palette, straight from the @theme block in globals.css. Canvas + SVG
 // can't read CSS vars, so the hex values live here.
@@ -49,11 +77,18 @@ export const HUES = {
  * case studies already use for their typographic accents), so the hero can rotate
  * through eight hues without one of them dropping out of readability.
  *
- * Charcoal is in here as `ink` because it is one of the eight the hero deals
- * from, even though it is the page's own text colour rather than a palette hue.
+ * `teal` is not from the @theme palette at all: it is the footer rotation's
+ * teal ink, borrowed so the hero's opening word has a hue of its own. Every
+ * other entry here was already claimed by a verb, and the site was already
+ * wearing this one a few hundred pixels further down the page.
+ *
+ * Charcoal stays in here as `ink` even though no verb deals it any more: it is
+ * the page's own text colour and the value anything wanting the darkest tier
+ * should reach for.
  */
 export const INK_HUES = {
   ink: SURFACE.ink,
+  teal: "#123b36",
   orange: HUES.orange,
   forest: HUES.forest,
   pink: HUES.pink,

@@ -51,12 +51,14 @@ export type Project = {
   image?: string; // floating mockup — wired in later
   imageFit?: "cover" | "contain"; // default "cover"; use "contain" for portrait mockups where the subject must show in full
   hoverLabel?: string; // override the cursor pill on hover (default: "VIEW" when live, "Coming soon" otherwise)
-  // External repo/source link. It always sits in the label slot beside the
-  // title, next to the discipline chip, so every card carrying one looks the
-  // same. On a card that *also* links to a case study the title becomes the
-  // link instead of the whole meta block — nesting a link inside a link would
-  // be invalid markup.
+  // The GitHub repo. Always sits in the label slot beside the title, next to
+  // the discipline chip, so every card carrying one looks the same. It's the
+  // only thing on the card that lands on GitHub.
   repoHref?: string;
+  // The live build, for projects that have one but no case study of their own.
+  // The title and its arrow land here; `repoHref` is the fallback for projects
+  // whose only public face *is* the repo (a CLI tool, say).
+  liveHref?: string;
   href?: string;
 };
 
@@ -150,31 +152,50 @@ export function ProjectCard({ project }: { project: Project }) {
   );
 
   // The title text — a link of its own on cards whose meta block can't be
-  // wrapped in one (see `repoMeta` below).
+  // wrapped in one (see below).
   const titleText = project.title ?? project.name;
+
+  // Where the title (and the arrow beside it) land. A case study wins; failing
+  // that the live build; failing that the repo, for projects that are only a
+  // repo. The GitHub mark is always its own link to `repoHref` regardless.
+  const outboundHref = project.liveHref ?? project.repoHref;
+  const titleHref = project.href ?? outboundHref;
+  const titleIsExternal = !project.href && Boolean(outboundHref);
 
   const meta = (linkTitle: boolean) => (
     <div className="mt-3.5 px-1">
       <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1.5">
         <h3 className="flex min-w-0 items-baseline gap-1.5 font-heading text-[19px] font-medium leading-6 text-text">
-          {linkTitle && project.href ? (
-            <Link href={project.href} className="min-w-0">
-              {titleText}
-            </Link>
+          {linkTitle && titleHref ? (
+            titleIsExternal ? (
+              <a
+                href={titleHref}
+                target="_blank"
+                rel="noreferrer"
+                data-cursor-label={project.hoverLabel ?? "VIEW"}
+                className="min-w-0"
+              >
+                {titleText}
+              </a>
+            ) : (
+              <Link href={titleHref} className="min-w-0">
+                {titleText}
+              </Link>
+            )
           ) : (
             titleText
           )}
-          {/* Outbound cue on a card whose only link is its repo/demo: the chip
-              below is the announced link, so this one is hidden from the a11y
-              tree and the tab order rather than repeating it. */}
-          {project.repoHref && !project.href && (
+          {/* Outbound cue on a card with no case study of its own. The title
+              beside it is the announced link to the same place, so this is
+              hidden from the a11y tree and the tab order rather than repeating
+              it. */}
+          {titleIsExternal && (
             <a
-              href={project.repoHref}
+              href={titleHref}
               target="_blank"
               rel="noreferrer"
               tabIndex={-1}
               aria-hidden="true"
-              data-cursor-label="GitHub"
               className="shrink-0 self-center text-muted transition-colors duration-200 hover:text-text"
             >
               <svg
@@ -225,11 +246,28 @@ export function ProjectCard({ project }: { project: Project }) {
     </div>
   );
 
+  // No case study of its own. The artwork, the title and the arrow all land on
+  // the live build (or the repo, for a project that's only a repo) — the
+  // artwork out of the tab order and the a11y tree so the card announces once,
+  // as the titled link. The GitHub mark in the label slot is its own link.
   if (!project.href) {
     return (
       <div ref={cardRef} className="group/card block">
-        {visual}
-        {meta(false)}
+        {titleIsExternal ? (
+          <a
+            href={titleHref}
+            target="_blank"
+            rel="noreferrer"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="block"
+          >
+            {visual}
+          </a>
+        ) : (
+          visual
+        )}
+        {meta(true)}
       </div>
     );
   }
